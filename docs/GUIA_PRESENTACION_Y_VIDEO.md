@@ -1,61 +1,55 @@
-# 🎬 Guía de Presentación, Video y Pitch Oficial
-### Field Shift · NASA Space Apps Challenge 2026
+# Presentación y pitch — borrador del equipo
 
-Este documento contiene los textos oficiales, la estructura de video en 5 actos y la batería de respuestas para la defensa ante el jurado calificador del hackathon.
+Actualizado el 14 de noviembre de 2026. Textos ajustados al prototipo recibido y revisado. No son textos oficiales de NASA ni acreditan validación de campo.
 
----
+## Mensaje central
 
-## 1. Resumen General del Proyecto (Plataforma Space Apps)
+Field Shift ayuda a explorar rotaciones de cultivos a dos años con clima histórico de NASA POWER y prioridades del productor. Permite seleccionar un punto, elegir un manejo de referencia y comparar alternativas con calendarios, indicadores, riesgos y datos faltantes. El caso inicial es Santiago del Estero, Argentina; se propone un piloto con productores y técnicos de Añatuya para revisar parámetros y resultados.
 
-> **Límite oficial:** 50 a 200 palabras.  
-> **Conteo de esta versión:** 178 palabras.
+La versión actual calcula indicadores con POWER y utiliza GIBS para contexto visual. Las integraciones adicionales deben mencionarse como futuras hasta estar verificadas.
 
-El Chaco Semiárido argentino enfrenta una crisis silenciosa: deforestación, sequías prolongadas y sistemas agrícolas que colapsan ante el cambio climático. En Añatuya, Santiago del Estero, los pequeños productores pierden hasta un 60% de sus cosechas por falta de información a tiempo.
+## Resumen en inglés para adaptar al formulario
 
-Field Shift usa cuatro misiones satelitales de la NASA — SMAP (humedad de suelo), GPM IMERG (precipitaciones), ECOSTRESS (estrés térmico) y MODIS (salud vegetal) — como un sistema integrado de inteligencia agronómica. No monitoreamos: **decidimos**. Cada dato satelital activa un protocolo específico: cuándo sembrar, cuándo regar y cuándo actuar antes de que la planta muera.
+Field Shift is a prototype for exploring two-year crop rotations using historical NASA POWER climate data and farmer priorities. Users select a location, choose a current rotation preset and enter irrigation, slope and preference settings. A transparent rule engine compares the baseline with up to three alternatives, showing calendars, climate and water indicators, potential trade-offs, risks and information gaps. Rainfall and temperature controls explore sensitivity rather than forecast future weather. NASA GIBS adds contextual vegetation and soil-moisture map layers. The initial case is a reference point in Santiago del Estero, Argentina. Soil, crop and market parameters remain generic and require local review. The next step is a pilot with farmers and agricultural advisers to review the assumptions and comparisons.
 
-Combinamos esta inteligencia satelital con un Plan de Sucesión Regenerativa (Sorgo, Caupí y abonos verdes) diseñado para el déficit hídrico chaqueño. El resultado proyectado: -45% en consumo de agua y -51% en riesgo de pérdida de cosecha.
+Verificar extensión e idioma exigidos en la guía aplicable antes de enviarlo. Si cambia el software, reescribir el resumen según sus funciones finales.
 
-Field Shift no es un dashboard. Es un sistema de toma de decisiones agronómicas impulsado por la NASA, diseñado para las manos que alimentan el Chaco.
+## Estructura de presentación propuesta
 
----
+Siete diapositivas como borrador de trabajo; el formato oficial aplicable sigue por confirmar.
 
-## 2. Guión Audiovisual del Video (2:30 a 3:00 minutos)
+1. **Pregunta:** qué rotación explorar durante los próximos dos años y por qué.
+2. **Caso:** ubicación regional, carácter ilustrativo, manejo de referencia y prioridades.
+3. **Flujo:** configurar → comparar → abrir evidencia y límites.
+4. **Fuente:** POWER numérico, período y método; GIBS como contexto visual.
+5. **Comparación:** calendario común, hasta tres candidatas y contrapartidas.
+6. **Sensibilidad:** cambio de lluvia/temperatura y efecto sobre las opciones; no es pronóstico.
+7. **Próximo paso:** revisión agronómica, datos del lote y piloto propuesto.
 
-### Acto 1: La Urgencia Humana y Ecológica (0:00 — 0:30)
-* **Visual:** Secuencia timelapse satelital MODIS/Landsat del Gran Chaco (2000 al presente) mostrando la pérdida de verdor. Corte a un campo seco en Añatuya y un productor caminando sobre suelo agrietado.
-* **Voz en off:**  
-  *"Este mapa cambió de color en 25 años. No fue un efecto visual: fue el Chaco degradándose. En Añatuya, Marcos perdió más de la mitad de su cosecha. No fue por falta de trabajo, sino porque nadie podía avisarle lo que estaba sucediendo a diez centímetros bajo la tierra."*
+Usar capturas de la versión realmente ejecutada. Si hay gráficos de ejemplo o un personaje ilustrativo, etiquetarlos. La serie regional revisada puede citarse con su punto y período; no atribuirla a un productor ni a Añatuya sin confirmar ubicación.
 
-### Acto 2: La Revelación Espacial (0:30 — 1:00)
-* **Visual:** Transición al globo terráqueo mostrando las órbitas de SMAP, ECOSTRESS y GPM. Zoom a la parcela con capas térmicas infrarrojas de ECOSTRESS.
-* **Voz en off:**  
-  *"Los satélites de la NASA ya sabían lo que Marcos necesitaba. Mientras el ojo humano ve una planta aparentemente sana, ECOSTRESS detecta el estrés térmico radicular con cinco días de anticipación. Y donde las estaciones terrestres no llegan, SMAP mide cuánta agua queda realmente en el suelo."*
+Un video de 2–3 minutos puede servir para ensayo interno. La actualización recibida menciona una alternativa de 30 segundos; confirmar en la guía el formato y duración antes de producir la entrega.
 
-### Acto 3: La Solución Field Shift (1:00 — 1:50)
-* **Visual:** Demostración de la interfaz de Field Shift. Selección de parcela en Añatuya. Comparativa de las 3 rotaciones de cultivos. Simulación del consorcio Sorgo + Caupí. Recepción de un SMS de alerta simple en un celular básico.
-* **Voz en off:**  
-  *"Field Shift transforma datos satelitales masivos en decisiones agronómicas simples. Nuestro motor compara la rotación actual frente a alternativas regenerativas probadas: la combinación de Sorgo tolerante a sequía y Caupí fijador de nitrógeno. El productor no necesita ser científico: recibe recomendaciones claras y directas en su celular o por su cooperativa local."*
+## Respuestas al jurado
 
-### Acto 4: El Impacto Validado (1:50 — 2:25)
-* **Visual:** Gráficos limpios de reducción de consumo hídrico y probabilidad de pérdida de cosecha. Logos de NASA POWER, OpenET y FAO-56.
-* **Voz en off:**  
-  *"No son conjeturas teóricas: son modelos validados con 24 campañas históricas de NASA POWER y simulaciones de balance hídrico FAO-56. El resultado: un 45% menos de agua consumida y una reducción del 51% en el riesgo de quiebra de la cosecha."*
+**¿Qué datos NASA entran al cálculo?** POWER aporta temperatura, precipitación y humedad relativa del suelo. Las capas GIBS de MODIS y SMAP son visuales. No hay SMAP numérico, ECOSTRESS ni HLS integrados en el motor recibido.
 
-### Acto 5: Escalabilidad y Cierre (2:25 — 2:50)
-* **Visual:** El mapa se aleja: de Añatuya al Gran Chaco sudamericano, y luego al Sahel africano y regiones semiáridas de América del Norte. Logo de Field Shift con el lema.
-* **Voz en off:**  
-  *"Field Shift nació para resolver el problema de Añatuya, pero su arquitectura está lista para proteger a cualquier comunidad vulnerable en las zonas áridas del planeta. Field Shift: cuando los satélites salvan cosechas."*
+**¿Cuánta agua ahorra?** No está medido. El algoritmo compara indicadores bajo supuestos; el piloto definirá métricas según secano o riego.
 
----
+**¿Cómo resuelven la escala de parcela?** Todavía no hay downscaling validado. La interfaz debe mostrar el soporte regional de cada producto y los datos de campo que faltan.
 
-## 3. Respuestas Preparadas ante el Jurado (Q&A de Alta Dificultad)
+**¿Qué se comprobó?** En la revisión registrada pasaron 24 pruebas y el build. Se reprodujo el motor con una serie real POWER 2011–2025 y un escenario de sensibilidad. No equivale a 24 campañas agrícolas ni validación de impacto.
 
-### P1: "¿Cómo superan la baja resolución espacial de SMAP (~9-36 km) en parcelas familiares de 5 hectáreas?"
-> *"Utilizamos downscaling estadístico integrando la temperatura de superficie de Landsat/ECOSTRESS (30–70 m) y la topografía SRTM (30 m). Esto permite interpolar la dinámica de humedad a escala sub-kilométrica preservando el balance físico general del producto oficial de NASA."*
+**¿Usa inteligencia artificial dentro de la app?** La versión recibida usa reglas y explicaciones estructuradas. No tiene llamadas LLM. Declarar por separado el uso real de asistentes para investigar, documentar o generar/revisar código.
 
-### P2: "¿Por qué no utilizar simplemente Sentinel-2 o satélites comerciales de alta resolución?"
-> *"Porque los sensores puramente ópticos solo capturan la reflectancia del dosel foliar superficial; no tienen capacidad de microondas para medir humedad subsuperficial (como SMAP) ni sensores térmicos calibrados para evapotranspiración real (como ECOSTRESS). Las misiones de NASA aportan la física del agua, no solo la foto."*
+**¿Por qué el productor debe revisarlo con un técnico?** Los parámetros son genéricos, faltan datos locales y hay simplificaciones en agua, helada, suelo y mercado.
 
-### P3: "¿Por qué afirman que el proyecto no reemplaza al agricultor?"
-> *"Porque la herramienta incluye un panel de restricciones donde el productor define su prioridad (ahorrar agua, forraje o suelo) y cada recomendación viene acompañada de un nivel de incertidumbre y la advertencia explícita de requerir validación con los técnicos de extensión local (ej. INTA)."*
+## Revisión antes de enviar
+
+- Verificar requisitos, plazo y formato de la sede/guía aplicable.
+- Alinear demo, README, datos usados y descripción del proyecto.
+- Declarar asistencia de IA y procedencia del código con precisión.
+- Confirmar acceso a los links sin sesión y requisitos de subtítulos/marcas.
+- Incluir solo resultados trazables y testimonios autorizados.
+
+Se retiran del pitch los porcentajes sin respaldo, la anticipación fija, los SMS/downscaling no implementados y las promesas de alcance global validado. El [README](../README.md) documenta el stack y las funciones presentes.

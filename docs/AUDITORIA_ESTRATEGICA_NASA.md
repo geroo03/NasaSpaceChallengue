@@ -1,80 +1,59 @@
-# 🛰️ FIELD SHIFT — Auditoría Estratégica Integral
-### NASA Space Apps Challenge · Estratega Experto & Jurado Principal
+# Field Shift — estado, evidencia y prioridades
 
-> **Proyecto:** Field Shift · Resiliencia Climática del Chaco Semiárido & Añatuya  
-> **Misiones NASA:** SMAP · GPM IMERG · ECOSTRESS · MODIS · NASA POWER · SRTM · Landsat · GEDI  
-> **Documento:** Plan Competitivo para Máxima Puntuación en Múltiples Categorías  
+Documento de trabajo del equipo, actualizado el 14 de noviembre de 2026. Describe el prototipo y propuestas para su siguiente entrega. No es una evaluación oficial del jurado ni asigna puntuaciones.
 
----
+## Dirección
 
-## 1. Diagnóstico Ejecutivo
+Una herramienta para explorar rotaciones durante 24 meses, con un caso inicial en Santiago del Estero y un futuro piloto en Añatuya. La decisión principal es qué secuencias conviene evaluar según agua, suelo y prioridades locales.
 
-Field Shift tiene **solidez ganadora**: ataca un problema real, geográficamente específico (Añatuya, Santiago del Estero), con datos NASA de primer nivel y una solución agronómica regenerativa basada en consorcios de cultivos.
+El [desafío oficial](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/) combina observaciones NASA con contexto agrícola y criterio del productor. Su propuesta de comparar estrategias es orientativa. El equipo elige actual + hasta tres alternativas como diseño del producto.
 
-> **Principio de Evaluación NASA:**  
-> El jurado del Space Apps no premia "quien usó más satélites". Premia **a quien demuestre que sin esos satélites y APIs, la solución sería imposible**.
+## Estado y evidencia
 
----
+| Elemento | Estado |
+| --- | --- |
+| POWER numérico | Implementado en cliente y motor; snapshot 2011–2025 procesado |
+| GIBS | Código de capas visuales MODIS/SMAP presente |
+| Comparación | Calendario de 24 meses, prioridades y explicaciones estructuradas |
+| Software | 24 pruebas existentes y build aprobados en la revisión registrada |
+| Interfaz | Código bilingüe compilado; ensayo visual completo pendiente |
+| Suelo y cultivos | Supuestos y parámetros genéricos; falta revisión local |
+| SMAP numérico, ECOSTRESS, HLS, AppEEARS | Propuestos, no integrados en el ZIP |
+| SMS, downscaling y LLM | Propuestos, no implementados |
+| Ensayo de campo, ahorro de agua y pérdidas evitadas | Sin evidencia local reproducible |
 
-## 2. Eje 1: Relevancia e Integración de Datos (Rúbrica: 5/5)
+Los registros están en [evidencia del prototipo](../Field%20Shift%20-%20Obsidian/99%20Recursos/Revision%20prototipo). El caso usa el punto `-27.7834, -64.2642`, no un lote confirmado de Añatuya. Una ejecución regional y pruebas de software no validan recomendaciones agrícolas.
 
-### 2.1 El Cuarteto de Decisión Causal
+## Brechas que resolver
 
-Para evitar la "mención superficial de satélites", Field Shift articula una **cadena de dependencia funcional estricta**:
+1. **Caso:** documentar productor o carácter ilustrativo, coordenadas, manejo, suelo y restricciones.
+2. **Calendario:** conservar el manejo observado; el motor actual optimiza también la referencia.
+3. **Agua:** presentar la oferta/demanda como aproximación. Falta conservación de almacenamiento entre cultivos.
+4. **Helada:** alinear descripción y fórmula. El máximo mensual ponderado actual no equivale a porcentaje de campañas con helada durante todo el ciclo.
+5. **Cobertura:** los huecos del calendario no demuestran suelo desnudo ni ausencia de rastrojo.
+6. **Puntajes:** índices heurísticos, con parámetros y pesos visibles; no mediciones de suelo, ganancias o probabilidades de éxito.
+7. **Uso:** verificar móvil, escritorio, errores, datos guardados y dependencia de red de los mapas.
 
-```
-SMAP              GPM IMERG         ECOSTRESS         MODIS / Landsat
-  ↓                   ↓                 ↓                     ↓
-¿CUÁNTA agua        ¿CUÁNDO           ¿QUÉ TAN              ¿CÓMO
-hay en suelo?       llovió?           estresado está?       responde la planta?
-  ↓                   ↓                 ↓                     ↓
-Decisión:           Decisión:         Decisión:             Decisión:
-RIEGO EXACTO        SIEMBRA ÓPTIMA    MANEJO TÉRMICO        VALIDACIÓN MULTIANUAL
-```
+## Próximo cierre
 
-* **SMAP (Soil Moisture Active Passive):** Única fuente continua de humedad en suelo superficial y zona radicular. Permite prescindir de sensores in-situ costosos.
-* **GPM IMERG:** Detecta precipitaciones convectivas locales erráticas en el Chaco que escapan al promedio de modelos climáticos regionales.
-* **ECOSTRESS:** Mide temperatura de superficie (LST) y evapotranspiración (ET) a 70 m. Detecta estrés hídrico 3 a 5 días antes de que la marchitez sea visible en campo.
-* **MODIS / Landsat:** Construye la línea de base histórica (2000–2026) y audita la recuperación del NDVI tras la intervención.
+Adaptar frontend manteniendo TypeScript/Vite y los módulos existentes. Hacer visibles fuentes, supuestos, vacíos y contrapartidas. Completar el contexto local y revisar las fórmulas en tareas específicas. Después, considerar SMAP numérico como contexto regional; ampliar otras fuentes solo con una utilidad concreta.
 
-**Argumento blindado ante el jurado:**
-> *"GPM nos dice cuánta lluvia cayó, pero solo SMAP revela lo que la raíz puede aprovechar. ECOSTRESS detecta el estrés térmico antes de que la hoja amarillee, y MODIS cierra el ciclo demostrando si la rotación regenerativa aumentó la cobertura vegetal año a año."*
+La colaboración con técnicos de INTA, cooperativas y productores es una propuesta para revisar el caso y el piloto, no una alianza ya confirmada.
 
----
+## Afirmaciones retiradas
 
-## 3. Eje 2: Impacto Agronómico y Validación Científica (Rúbrica: 5/5)
+No presentar −45 % de agua, −51 % de pérdidas, anticipación fija de 3–5 días, riego exacto por SMAP, downscaling implementado ni validación con 24 campañas. Los textos previos no aportaron archivos, ensayos y cálculos suficientes para sostenerlas.
 
-### 3.1 Consorcio Sorgo Rústico + Caupí + Abonos Verdes
+También se retira el testimonio de «Marcos perdió el 60 %» mientras no exista un registro verificable y permiso de uso. Un cambio de NDVI no demuestra por sí solo degradación ni su causa.
 
-* **Sorgo rústico (*Sorghum bicolor*):** Alta tolerancia a sequía, raíces profundas para romper capas densas y gran producción de biomasa para cobertura.
-* **Caupí (*Vigna unguiculata*):** Leguminosa rústica que fija nitrógeno simbiótico ($+40\text{ a }80\text{ kg N/ha/año}$), reduciendo costos de fertilizantes químicos y proveyendo proteína para la economía local.
-* **Abonos Verdes / Mulching:** Creación de una capa protectora que frena la evaporación superficial frente a temperaturas de suelo que superan los $50^\circ\text{C}$.
-* **Analogía Científica:** Este sistema intercalado está extensamente documentado por **ICRISAT en el Sahel africano** (bioma climáticamente análogo al Chaco Semiárido), demostrando mejoras del $+30\text{–}60\%$ en retención de agua en suelo.
+## Evidencia que permitiría avanzar
 
-### 3.2 Respaldo de Métricas Clave
+| Objetivo | Evidencia necesaria |
+| --- | --- |
+| Mejorar comparación | Calendario local, suelo y parámetros con fuente; revisión agronómica |
+| Medir agua aplicada | m³/ha, manejo, rendimiento y comparación pertinente, donde haya riego |
+| Evaluar secano | Lluvia, humedad por profundidad, cobertura y rendimiento |
+| Medir alertas | Episodios, anticipación, falsas alarmas, acción y resultado |
+| Atribuir beneficios a una rotación | Comparación de manejos con condiciones y limitaciones documentadas |
 
-| Métrica | Mecanismo Físico | Metodología de Cálculo |
-|---|---|---|
-| **-45% Consumo de Agua** | Riego por demanda real (umbral SMAP $< 0.15\text{ m}^3/\text{m}^3$) + mulching que reduce evaporación en $\sim 30\%$. | Balance FAO-56 Penman-Monteith con ETc ajustada por ECOSTRESS vs. lámina de riego tradicional por inundación. |
-| **-51% Riesgo de Pérdida** | Alerta temprana ECOSTRESS (ventana de acción 3–5 días) + diversificación de cultivos. | Simulación retrospectiva de 24 campañas (2000–2024) cruzando anomalías GPM y NDVI-MODIS en años Niño/Niña. |
-
----
-
-## 4. Eje 3: Creatividad y Ventaja Competitiva
-
-* **De Dashboard Pasivo a Motor Prescriptivo:** La mayoría de proyectos muestran mapas que el agricultor no sabe interpretar. Field Shift transforma píxeles satelitales en recomendaciones agronómicas directas.
-* **Entrega Ultra-Liviana:** El backend procesa las capas complejas de NASA; el agricultor recibe alertas claras vía SMS, bot de mensajería o boletín de radio comunitaria rural.
-* **Apertura de Pitch (Primeros 30 segundos):**
-  > *[Imagen satelital MODIS del Chaco pasando de verde en 2000 a marrón en 2026]*  
-  > *"Este mapa cambió de color en 25 años. No fue un filtro fotográfico: fue el Chaco degradándose. En Añatuya, Marcos perdió el 60% de su cosecha no por falta de trabajo, sino porque no tenía forma de saber lo que los satélites de NASA ya sabían. Field Shift cambia eso."*
-
----
-
-## 5. Eje 4: Blindaje ante Puntos Ciegos del Jurado
-
-1. **Resolución de SMAP (~9 a 36 km) vs. Escala de Parcela:**
-   * *Respuesta:* Se aplica downscaling estadístico integrando la temperatura de superficie de Landsat/ECOSTRESS (30–70 m) y modelos de elevación SRTM (30 m), técnica estandarizada en literatura científica (Vergopolan et al.).
-2. **¿Por qué no usar únicamente Sentinel-2 óptico?**
-   * *Respuesta:* Los sensores ópticos solo ven la superficie del dosel; no pueden penetrar el suelo para medir humedad (SMAP) ni medir temperatura térmica infrarroja de alta resolución para estrés evaporativo (ECOSTRESS).
-3. **¿Cómo adopta la tecnología un pequeño productor sin conectividad?**
-   * *Respuesta:* El diseño es *farmer-first*: la herramienta está pensada para intermediarios técnicos (cooperativas agrícolas, técnicos de INTA) que distribuyen alertas simplificadas por canales offline y radio local.
+Para implementar: [CLAUDE.md](../CLAUDE.md). Para presentar: [guía del equipo](GUIA_PRESENTACION_Y_VIDEO.md).

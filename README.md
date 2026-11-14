@@ -1,25 +1,49 @@
 # Field Shift
 
-Prototipo y documentación de trabajo para **Field Shift: Adapting Farms with NASA Data**, NASA Space Apps Challenge 2026.
+Herramienta exploratoria para comparar rotaciones de cultivos durante **24 meses**, según datos históricos de NASA POWER y las prioridades del productor. Se desarrolla para [Field Shift: Adapting Farms with NASA Data, NASA Space Apps 2026](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/).
 
-Explora rotaciones de cultivos durante dos años según clima histórico de NASA POWER y prioridades del productor. El caso de referencia está en Santiago del Estero, Argentina; Añatuya es el piloto propuesto, todavía sin lote de productor confirmado.
+**Dirección:** cerrar una demo explicable para Santiago del Estero, Argentina. Añatuya es el piloto territorial propuesto; el punto predeterminado todavía no representa un lote de productor confirmado.
 
-## Contenido
+## Lenguaje y stack de trabajo
 
-| Ruta | Contenido |
-| --- | --- |
-| [`docs/AUDITORIA_ESTRATEGICA_NASA.md`](docs/AUDITORIA_ESTRATEGICA_NASA.md) | Auditoría conceptual, narrativa y de alineación estratégica para el jurado |
-| [`docs/MATRIZ_DATOS_Y_APIS_NASA.md`](docs/MATRIZ_DATOS_Y_APIS_NASA.md) | Mapeo técnico de APIs y satélites (NASA POWER, AppEEARS, SMAP, ECOSTRESS, GPM, etc.) |
-| [`docs/ESTRATEGIAS_ROTACION_CULTIVOS.md`](docs/ESTRATEGIAS_ROTACION_CULTIVOS.md) | Comparativa de las 3 estrategias de rotación requeridas por el desafío |
-| [`docs/GUIA_PRESENTACION_Y_VIDEO.md`](docs/GUIA_PRESENTACION_Y_VIDEO.md) | Guión audiovisual en 5 actos, resumen oficial de 178 palabras y defensa ante el jurado |
-| [`prototipo/field-shift`](prototipo/field-shift) | Aplicación Vite/TypeScript, Leaflet y Chart.js |
-| [`prototipo/revisar-caso.ts`](prototipo/revisar-caso.ts) | Reproducción del motor con la serie guardada de POWER |
-| [`Field Shift - Obsidian`](Field%20Shift%20-%20Obsidian) | Bóveda con investigación, decisiones, auditoría, tareas y presentación |
-| [`field-shift.zip`](field-shift.zip) | Prototipo original recibido |
+Continuamos con la tecnología del prototipo existente.
 
-## Ejecutar el prototipo
+| Parte | Elección | Uso |
+| --- | --- | --- |
+| Lenguaje principal | **TypeScript** con modo estricto | Datos, indicadores, reglas e interacción |
+| Estructura de la interfaz | **HTML semántico + DOM desde TypeScript** | Formularios, resultados y navegación |
+| Estilos | **CSS** | Diseño responsive y estados visuales |
+| Desarrollo y build | **Vite** | Servidor local y salida estática |
+| Mapa | **Leaflet** | Selección de punto y capas cartográficas |
+| Gráficos | **Chart.js** | Indicadores y comparación |
+| Pruebas | **Vitest** | Parser, análisis climático y motor |
+| Runtime de desarrollo | **Node.js 24 + npm** | Comandos; revisión original ejecutada con Node 24.21.0 |
+| Datos de evidencia | **JSON** | Respuestas, metadatos y resultados reproducibles |
+| Documentación | **Markdown + Obsidian** | Decisiones, fuentes y entrega |
 
-Requiere una versión de Node.js compatible con las dependencias del proyecto y npm.
+La aplicación actual funciona sin framework de componentes ni backend. La prioridad es extender esta base. React, Next.js, Python, una base de datos o nuevas librerías requerirían una necesidad concreta y una decisión documentada; no forman parte del stack acordado para esta etapa. Los rangos de versiones están en [package.json](prototipo/field-shift/package.json), y `package-lock.json` fija la instalación reproducible.
+
+## Idioma y vocabulario
+
+- Documentación del equipo: español.
+- Identificadores y tipos del código: inglés, siguiendo la base existente.
+- Interfaz: español argentino e inglés mediante `src/i18n.ts`.
+- Mensajes al productor: breves, comprensibles y con una acción o dato por verificar.
+- Usar «Alternativa para explorar», «Índice orientativo», «Dato faltante» y «Meses sin cultivo programado».
+- Un escenario de sensibilidad se presenta como exploración, no como pronóstico.
+
+## Empezar con Claude
+
+1. Leer [CLAUDE.md](CLAUDE.md): instrucciones de trabajo, límites y validación.
+2. Copiar [el prompt de inicio](docs/PROMPT_PARA_CLAUDE.md): primera tarea y entregables.
+3. Consultar [la auditoría](docs/AUDITORIA_ESTRATEGICA_NASA.md) y [la matriz de datos](docs/MATRIZ_DATOS_Y_APIS_NASA.md).
+4. Usar [el prompt para Stitch](Field%20Shift%20-%20Obsidian/04%20Presentacion/Prompt%20para%20Stitch.md) como referencia visual.
+
+El diseño de Stitch es una propuesta de frontend. Debe conectarse a los datos y contratos existentes; sus campos nuevos no implican que el motor ya los utilice.
+
+## Ejecutar
+
+Desde la raíz del repositorio:
 
 ```sh
 cd prototipo/field-shift
@@ -27,54 +51,103 @@ npm ci
 npm run dev
 ```
 
-Abrir la dirección que muestre Vite en la terminal.
+Abrir la URL que indique Vite. `index.html` requiere el servidor de Vite para cargar los módulos TypeScript.
 
 ```sh
 npm test
+npm run typecheck
 npm run build
+npm run preview
 ```
 
-El build se genera en `prototipo/field-shift/dist`. No se incluyen dependencias instaladas ni archivos compilados en el repositorio.
+`build` ya ejecuta el typecheck. La salida estática se genera en `prototipo/field-shift/dist`. `preview` sirve ese build; debe ejecutarse después de compilar. Dependencias y salida compilada están excluidas de Git.
+
+## Arquitectura actual
+
+```text
+prototipo/field-shift/
+  index.html               Estructura HTML y puntos de montaje
+  src/main.ts              Estado, Leaflet, gráficos y render del DOM
+  src/styles.css           Presentación responsive
+  src/i18n.ts              Traducciones ES/EN
+  src/data/power.ts        Cliente HTTP y validación del JSON de POWER
+  src/analysis/climate.ts  Indicadores históricos y escenarios
+  src/domain/crops.ts      Catálogo y parámetros genéricos de cultivos
+  src/domain/rotations.ts  Calendarios, evaluación y puntajes
+  src/test/                Pruebas existentes y fixtures sintéticos
+prototipo/revisar-caso.ts   Ejecución del motor con la serie guardada
+```
+
+Flujo numérico: **POWER → parser → perfil climático → motor de rotaciones → interfaz**. GIBS aporta contexto visual por una ruta separada. Mantener el cliente de red, los cálculos y el render separados.
 
 ## Estado comprobado
 
-En la revisión del **14 de noviembre de 2026**:
+Revisión del **14 de noviembre de 2026**:
 
-- Pasaron 24 pruebas existentes, distribuidas en tres archivos, y el build de producción.
-- Se descargaron y procesaron 5.479 días de POWER, 2011–2025, del punto predeterminado `-27.7834, -64.2642`.
-- Se ejecutó el motor con el escenario base y una sensibilidad de −20 % de lluvia / +2 °C.
-- POWER alimenta los indicadores numéricos; GIBS aporta capas visuales de MODIS y SMAP.
-- El motor compara la rotación actual con hasta tres alternativas que pasan sus filtros.
+| Elemento | Estado |
+| --- | --- |
+| Pruebas y build | 24 pruebas existentes aprobadas; compilación correcta |
+| Evidencia numérica | POWER 2011–2025, 5.479 días procesados, punto `-27.7834, -64.2642` |
+| Comparación | Ejecución base y sensibilidad −20 % lluvia / +2 °C |
+| Datos que alimentan el motor | POWER: temperatura, precipitación y humedad relativa del suelo |
+| Mapas | Código de capas GIBS MODIS/SMAP presente; sin ensayo visual completo registrado |
+| Interfaz | ES/EN, punto, presets, prioridades, gráficos y calendario; revisión en navegador/celular pendiente |
+| Validación agronómica | Pendiente |
 
-Los registros están en [`Field Shift - Obsidian/99 Recursos/Revision prototipo`](Field%20Shift%20-%20Obsidian/99%20Recursos/Revision%20prototipo).
+Pruebas de software y ejecución con clima real acreditan esos casos revisados; no demuestran ahorro de agua, aumento de rendimiento ni pérdidas evitadas.
 
-Para repetir el cálculo con los datos guardados, desde `prototipo/field-shift`:
+Los archivos están en [evidencia de revisión](Field%20Shift%20-%20Obsidian/99%20Recursos/Revision%20prototipo). Para repetir el cálculo guardado, desde `prototipo/field-shift`:
 
 ```sh
 node node_modules/vite-node/vite-node.mjs ../revisar-caso.ts
 ```
 
-Este script actualiza `resultado-motor.json`; no descarga una nueva serie.
+Este comando usa el JSON guardado y actualiza `resultado-motor.json`; no descarga una serie nueva. Preservar los registros originales o guardar nuevas ejecuciones aparte si cambia el motor.
 
-## Alcance y próximos pasos
+## Alcance de la próxima demo
 
-Es una herramienta exploratoria. Los parámetros de cultivos, el suelo, el agua disponible y los índices de mercado incluyen supuestos genéricos. Las pruebas de software no equivalen a validación agronómica, de usabilidad o de impacto.
+- Un caso regional claramente identificado como ilustrativo hasta confirmar el lote.
+- Rotación de referencia y hasta tres alternativas distintas en un calendario común.
+- Razones, evidencia, beneficios potenciales, contrapartidas, riesgos y datos faltantes por opción.
+- Fuente, fecha, unidad y escala junto a los indicadores.
+- Suelo, rasgos de cultivos y restricciones con procedencia y estado conocido/desconocido.
+- Comparación de escenarios con supuestos visibles.
 
-SMAP numérico, ECOSTRESS, HLS y un LLM dentro de la aplicación están pendientes de integración. La selección del mapa es un punto; no hay delimitación del lote implementada. La consulta regional no debe presentarse como una medición de campo.
+La cantidad de alternativas es una elección del producto; el enunciado la plantea como sugerencia. Si los filtros dejan menos opciones, explicar el resultado y revisar el catálogo sin fabricar alternativas.
 
-La prioridad es completar el caso local y revisar los indicadores de agua, heladas y períodos sin cultivo programado. El backlog está en [Cambios prioritarios](Field%20Shift%20-%20Obsidian/06%20Prototipo/Cambios%20prioritarios.md). Las correcciones documentadas todavía no están aplicadas al motor recibido.
+## Orden de trabajo
 
-## Usar Obsidian
+| Prioridad | Trabajo | Cierre esperado |
+| --- | --- | --- |
+| P0 | Adaptar frontend, terminología y estados | Flujo claro en móvil/escritorio conectado al motor |
+| P0 | Completar caso, suelo y restricciones | Datos reales, estimados y desconocidos distinguibles |
+| P0 | Revisar baseline, agua y heladas | Descripción y fórmula coherentes; fechas actuales preservadas |
+| P0 | Preparar caso guardado y manejo de fallos | Demo repetible con fecha/procedencia; dependencias de red visibles |
+| P1 | Añadir SMAP numérico | Contexto regional con calidad, unidad, profundidad y versión |
+| P2 | ECOSTRESS, HLS, economía local o LLM | Solo según utilidad y evidencia disponible |
 
-Abrir la carpeta `Field Shift - Obsidian` como bóveda y comenzar en [`00 Inicio.md`](Field%20Shift%20-%20Obsidian/00%20Inicio.md). Los enlaces `[[...]]` se navegan desde Obsidian.
+La próxima tarea de frontend puede mejorar las explicaciones de los indicadores actuales sin alterar sus fórmulas. Los cambios científicos van en una tarea separada con pruebas de regresión apropiadas.
 
-El prompt de diseño está en [Prompt para Stitch](Field%20Shift%20-%20Obsidian/04%20Presentacion/Prompt%20para%20Stitch.md).
+## Supuestos y funciones pendientes
 
-## Fuentes y procedencia
+El motor actual usa Hargreaves para ET₀, coeficientes genéricos de cultivos y una oferta hídrica aproximada. Hay una reserva supuesta de 120 mm, lluvia efectiva del 75 % y un valor de relleno de humedad de 0,4. El cálculo no conserva el almacenamiento entre cultivos. El indicador de helada y sus etiquetas requieren revisión, y el calendario de referencia también se optimiza automáticamente.
 
-- [Desafío oficial Field Shift 2026](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/).
-- [NASA POWER](https://power.larc.nasa.gov/).
-- [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/).
-- [FAO-56](https://www.fao.org/4/x0490e/x0490e00.htm).
+Los puntajes son heurísticos. `bareMonths` representa huecos del calendario; no mide suelo desnudo ni ausencia de rastrojo. Suelo, erosión e ingresos no son mediciones de campo ni rentabilidad calculada.
 
-La bóveda conserva los textos recibidos, la revisión de sus afirmaciones, los metadatos de descarga y las limitaciones. Las notas de presentación son borradores y deben ajustarse a la versión efectivamente demostrada y a la guía de entrega aplicable.
+SMAP numérico, ECOSTRESS, HLS, AppEEARS, downscaling, SMS, un backend y un LLM no están implementados en el ZIP recibido. El mapa selecciona un punto, no un polígono. El catálogo no incluye caupí ni modela un intercultivo sorgo–caupí.
+
+## Documentación y precedencia
+
+| Documento | Para qué sirve |
+| --- | --- |
+| [CLAUDE.md](CLAUDE.md) | Trabajar sobre el proyecto |
+| [Prompt para Claude](docs/PROMPT_PARA_CLAUDE.md) | Iniciar la adaptación del frontend |
+| [Auditoría](docs/AUDITORIA_ESTRATEGICA_NASA.md) | Estado y prioridades comprobables |
+| [Matriz de datos](docs/MATRIZ_DATOS_Y_APIS_NASA.md) | Integraciones presentes y propuestas |
+| [Estrategias](docs/ESTRATEGIAS_ROTACION_CULTIVOS.md) | Candidatos y condiciones para evaluarlos |
+| [Presentación](docs/GUIA_PRESENTACION_Y_VIDEO.md) | Pitch ajustado a las funciones actuales |
+| [Bóveda de Obsidian](Field%20Shift%20-%20Obsidian/00%20Inicio.md) | Investigación, evidencias e historial |
+
+El código y los registros indican lo implementado y ejecutado; la fuente primaria define cada producto científico y el desafío. Los materiales originales en `05 Material recibido`, el ZIP y los respaldos son historial, no una especificación vigente. Las versiones anteriores de los documentos de `docs/` permanecen en el historial de Git.
+
+Los textos corregidos reemplazan las promesas anteriores de −45 % de agua, −51 % de pérdidas, anticipación fija y validación global. Esas afirmaciones no tienen respaldo local reproducible en el proyecto.

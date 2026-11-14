@@ -36,3 +36,7 @@ Las decisiones anteriores se conservan como historial. El estado actual de las f
 ## Lectura directa de la consigna oficial
 
 2026-11-14: se recuperó el contenido completo del enlace aportado, se registró su procedencia y se revisó el alcance en [[Consigna oficial y encaje]]. Se conserva la meta actual + tres alternativas como elección de producto. Suelo, cultivos y restricciones locales pasan a P0; SMAP numérico queda después del cierre del caso. Las fuentes del prototipo no fueron modificadas.
+
+## Preparación para Claude
+
+2026-11-14: se consolidó la continuidad con TypeScript estricto, Vite, HTML/CSS y DOM, Leaflet, Chart.js y Vitest. La documentación se mantiene en español, el código en inglés y la interfaz ES/EN. El README y CLAUDE.md de la raíz describen el estado y el prompt para la primera adaptación del frontend. Los cuatro documentos nuevos de `docs/` se corrigieron para separar funciones presentes, propuestas y validación pendiente. No se modificaron las fórmulas ni el frontend en esta preparación. Ver [[Preparación para Claude]].

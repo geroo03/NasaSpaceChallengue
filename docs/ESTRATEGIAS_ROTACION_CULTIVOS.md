@@ -1,67 +1,54 @@
-# 🌾 Comparativa de Estrategias de Rotación de Cultivos
-### Requisito Oficial NASA Space Apps Challenge 2026
+# Estrategias de rotación — candidatos y condiciones de comparación
 
-La consigna oficial de **Field Shift** exige explícitamente:
-> *"Compare at least three rotation strategies, including the current one. For each strategy, explain why it was suggested, what evidence supports it, what benefits it may offer, where data gaps exist, and any risks that warrant local review by farmers or agricultural experts."*
+Documento del equipo, actualizado el 14 de noviembre de 2026. Son opciones para explorar, no recomendaciones agronómicas validadas.
 
-A continuación se detalla la matriz agronómica completa para el caso de estudio de **Añatuya, Chaco Semiárido (Santiago del Estero, Argentina)**.
+El [enunciado oficial](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/) sugiere comparar estrategias, incluida la actual. Para nuestra demo se eligió **rotación de referencia + hasta tres alternativas**, sobre el mismo horizonte de 24 meses.
 
----
+## Caso y referencia
 
-## Estrategia 1: Línea de Base (Práctica Actual Convencional)
+El código usa el punto `-27.7834, -64.2642` y presets de manejo. No hay entrevista, polígono ni calendario de un productor de Añatuya confirmado. Por lo tanto, la referencia debe identificarse como ilustrativa hasta conseguir esos datos.
 
-* **Esquema:** Monocultivo de Maíz tardío o Algodón en verano $\rightarrow$ Barbecho químico largo (Suelo desnudo de Mayo a Noviembre).
-* **Por qué se evaluó:** Es la práctica dominante en la región chaqueña, caracterizada por dejar el lote descubierto durante el invierno y primavera temprana esperando la primera lluvia estival.
-* **Evidencia que la cuestiona (Datos NASA):**
-  * **Landsat / Sentinel-2:** Muestran NDVI $< 0.15$ durante más de 160 días al año (suelo completamente expuesto a erosión eólica).
-  * **ECOSTRESS:** Revela temperaturas de superficie terrestre (LST) que superan los $52^\circ\text{C}$ en el suelo descubierto, destruyendo materia orgánica y volatilizando la poca humedad remanente.
-  * **SRTM + GPM IMERG:** En Octubre/Noviembre, las primeras tormentas intensas impactan sobre suelo desprotegido, causando sellado superficial (*planchado de suelo*) y escorrentía sin infiltración.
-* **Beneficios reportados:** Bajo costo operativo inmediato en mano de obra durante los meses de invierno.
-* **Riesgos y Lagunas:** Desertificación progresiva, pérdida acelerada de carbono orgánico y alta vulnerabilidad ante años con eventos de sequía prolongada (fase La Niña).
+La rotación actual debe conservar las fechas del productor cuando se registren. El motor todavía optimiza también esa referencia; corregir o explicitar la diferencia antes de atribuirle una mejora frente al manejo observado.
 
----
+## Opciones presentes en la ejecución guardada
 
-## Estrategia 2: Sucesión Resiliente Field Shift (Consorcio Sorgo + Caupí)
+Con POWER 2011–2025, secano, pendiente suave y prioridades predeterminadas, el escenario base devolvió:
 
-* **Esquema:** Siembra consorciada de **Sorgo granífero rústico (*Sorghum bicolor*)** intercalado con **Caupí (*Vigna unguiculata*)** en verano temprano $\rightarrow$ Cobertura de rastrojo estructurado en invierno.
-* **Por qué se sugiere:** Ambas especies son nativas o adaptadas a climas semiáridos extremos. El sorgo aporta biomasa carbonada resistente y el caupí actúa como fijador biológico de nitrógeno y cobertura viva del entresurco.
-* **Evidencia NASA de respaldo:**
-  * **NASA POWER API:** Los Grados Día de Desarrollo (GDD base $10^\circ\text{C}$) en Añatuya ($> 2200$) garantizan el cierre de ciclo de ambas especies dentro de la ventana libre de heladas.
-  * **SMAP:** La humedad superficial post-siembra requerida para la emergencia del sorgo y caupí es menor a $0.18\text{ m}^3/\text{m}^3$, tolerando períodos de hasta 20 días sin lluvia.
-  * **FAO GAEZ:** Califica al sorgo y leguminosas tropicales con aptitud agroecológica alta para suelos con drenaje moderado y estrés hídrico recurrente.
-* **Beneficios tangibles:**
-  * **Fijación de Nitrógeno:** El Caupí aporta entre $40\text{ y }70\text{ kg N/ha}$, reduciendo la necesidad de urea sintética.
-  * **Ahorro Hídrico:** El dosel combinado reduce la evaporación del suelo en un $\sim 30\%$.
-  * **Seguridad Alimentaria y Forraje:** Doble propósito: grano/forraje para ganado y grano proteico para consumo familiar o venta local.
-* **Lagunas de información y riesgos locales:**
-  * *Riesgo local:* Competencia hídrica si la densidad de siembra es excesiva.
-  * *Revisión requerida:* Validar con el técnico de INTA local la fecha de siembra y la inoculación bacteriana específica (*Bradyrhizobium*) para el suelo chaqueño.
+| Rol | Identificador del motor | Secuencia principal | Revisión pendiente |
+| --- | --- | --- | --- |
+| Referencia | `soy_maize_fallow` | Soja / maíz | Confirmar que represente el manejo del caso |
+| Alternativa 1 | `sorghum_soy` | Sorgo / soja, con coberturas según reglas | Agua, destino productivo y terminación de coberturas |
+| Alternativa 2 | `cotton_maize` | Algodón / maíz, con coberturas según reglas | Maquinaria, mercado, parámetros y calendario local |
+| Alternativa 3 | `cotton_wheat_soy2` | Algodón / trigo / soja de segunda, con coberturas según reglas | Ajuste de secuencia, fechas y disponibilidad de agua |
 
----
+Los calendarios y puntajes exactos están en [resultado-motor.json](../Field%20Shift%20-%20Obsidian/99%20Recursos/Revision%20prototipo/resultado-motor.json). Son salidas del algoritmo con supuestos genéricos. Otro contexto o prioridades pueden cambiar el ranking y la cantidad de alternativas.
 
-## Estrategia 3: Regeneración Estructural (Abono Verde / Cultivo de Cobertura Rolado)
+## Qué debe incluir cada comparación
 
-* **Esquema:** Cultivo de renta de ciclo corto (ej. Girasol o Maíz temprano) $\rightarrow$ Cultivo de servicio invernal (Vicia villosa / Centeno / Melilotus) rolado para crear un "mulching" denso no cosechable.
-* **Por qué se sugiere:** Diseñado específicamente para campos con alta degradación estructural, compactación y riesgo de erosión hídrica en laderas leves.
-* **Evidencia NASA de respaldo:**
-  * **ECOSTRESS / OpenET:** Demuestra que mantener un colchón de rastrojo rolado sobre el suelo disminuye la temperatura máxima del suelo en $3\text{ a }5^\circ\text{C}$ y reduce la tasa de evapotranspiración de referencia en un $\sim 45\%$.
-  * **GEDI:** La densidad de biomasa generada antes del rolado actúa como barrera física contra malezas resistentes, interrumpiendo el ciclo biológico de plagas del cultivo estival.
-* **Beneficios tangibles:**
-  * Máxima infiltración del agua de lluvia (GPM) y recarga de la zona radicular (SMAP).
-  * Aumento del contenido de materia orgánica del suelo a mediano plazo (3 a 5 temporadas).
-* **Lagunas de información y riesgos locales:**
-  * *Riesgo crítico:* Si el invierno resulta excepcionalmente seco (detectable por anomalías de precipitación en GPM), el cultivo de cobertura puede "robar" agua del perfil destinada al cultivo siguiente si no se rola o termina a tiempo.
-  * *Revisión requerida:* Monitoreo estricto del umbral SMAP en Agosto para decidir la fecha exacta de secado químico o mecánico del abono verde.
+- Calendario, variedad/parámetros y manejo en el mismo horizonte.
+- Razón por la que aparece y reglas que la limitan.
+- Evidencia con valor, fuente, período, unidad y escala.
+- Beneficios potenciales y contrapartidas, sin ahorro garantizado.
+- Restricciones de agua, suelo, maquinaria, semillas y mercado.
+- Datos faltantes y revisión local necesaria.
 
----
+Los períodos sin cultivo programado no equivalen a suelo desnudo observado. Rastrojo y cobertura requieren información adicional.
 
-## Matriz Comparativa Resumen para el Jurado
+## Líneas agronómicas para un piloto posterior
 
-| Criterio | Estrategia 1 (Monocultivo + Barbecho) | Estrategia 2 (Sorgo + Caupí Consorciado) | Estrategia 3 (Cultivo de Servicio / Mulching) |
-|---|---|---|---|
-| **Consumo Neto de Agua** | Ineficiente (alta evaporación) | **-45%** de demanda neta | **-50%** evaporación directa |
-| **Balance de Nitrógeno** | Deficitario (depende de urea) | **Positivo** ($+40\text{–}70\text{ kg N/ha}$) | Neutro a moderadamente positivo |
-| **Erosión de Suelo** | Alta (suelo descubierto en invierno) | Muy baja (rastrojo de sorgo) | Mínima (colchón protector continuo) |
-| **Ingreso Económico** | Mono-dependiente (riesgo alto) | Diversificado (grano + forraje + legumbre) | Indirecto (ahorro futuro en insumos) |
-| **Misiones NASA de Monitoreo** | Landsat, MODIS | SMAP, NASA POWER, GPM | ECOSTRESS, GEDI, OpenET |
-| **Nivel de Madurez Operativa** | Tradicional actual | **Listo para piloto inmediato** | Requiere maquinaria de rolado |
+| Idea | Estado | Qué falta |
+| --- | --- | --- |
+| Sustitución de un cultivo por sorgo | Hay sorgo en el catálogo; pertinencia local pendiente | Parámetros por variedad, objetivo y restricciones |
+| Incorporación de una leguminosa | Hay soja, garbanzo y vicia; caupí ausente | Elegir especie y función con revisión local |
+| Cultivos de servicio y rastrojo | El motor agrega ciertas coberturas por reglas | Consumo de agua, fecha de terminación y manejo real |
+| Intercultivo sorgo–caupí | Propuesta experimental, no implementada | Modelo de simultaneidad, densidades, competencia, parámetros y ensayo |
+
+Rotación es sucesión en el tiempo; intercultivo implica simultaneidad. Una misma propuesta puede combinar ambos, pero hay que representarlo explícitamente. El modelo actual asigna un cultivo por mes y no soporta ese consorcio simultáneo.
+
+## Afirmaciones que requieren evidencia específica
+
+No se asignan porcentajes de ahorro de agua, reducción de pérdidas, fijación de nitrógeno o retención hídrica al caso. Tampoco se garantizan ciclos por un total genérico de grados-día ni se usan umbrales universales de humedad para emergencia.
+
+Para sostener esos efectos hacen falta referencias identificables y aplicables, parámetros locales y, cuando se afirme impacto del proyecto, mediciones o modelos calibrados pertinentes. Una referencia al Sahel o a una misión satelital no constituye validación de un lote chaqueño.
+
+La cobertura puede consumir agua antes del cultivo siguiente: registrar esa contrapartida y evitar un beneficio automático. El cálculo hídrico actual no propaga ese consumo entre cultivos; ver [auditoría](AUDITORIA_ESTRATEGICA_NASA.md).

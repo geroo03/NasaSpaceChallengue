@@ -26,12 +26,13 @@ Añatuya sigue siendo el territorio propuesto para el piloto. El punto predeterm
 4. [[Plan de trabajo]] — tareas desde el estado real.
 5. [[Entrega 2026]] — campos y formato de presentación.
 6. [[Consigna oficial y encaje]] — lectura directa del enunciado y ajuste de prioridades.
+7. [[Preparación para Claude]] — stack, README y prompt para continuar el frontend.
 
 ## Mapa
 
 | Tema | Notas |
 | --- | --- |
-| Producto | [[MVP y demo]] · [[Decisiones]] · [[Caso Añatuya]] |
+| Producto | [[MVP y demo]] · [[Decisiones]] · [[Caso Añatuya]] · [[Preparación para Claude]] |
 | Evidencia | [[Inventario de datos]] · [[Protocolo reproducible]] · [[Matriz de evidencia]] |
 | Ciencia | [[Consigna oficial y encaje]] · [[Correcciones técnicas]] · [[Fuentes verificadas]] |
 | Presentación | [[Pitch y guion]] · [[Evaluación y prioridades]] · [[Entrega 2026]] · [[Prompt para Stitch]] |

@@ -1,87 +1,65 @@
-# 🛰️ Matriz Técnica de Datos y APIs: NASA & Agencias Socias
-### Field Shift: Adapting Farms with NASA Data
+# Matriz de datos y APIs — estado de integración
 
-Este documento detalla cada conjunto de datos, API y plataforma oficial de la NASA, ESA, USDA y FAO utilizados por **Field Shift**, describiendo su mecanismo de consumo, resolución y rol agronómico específico en la herramienta.
+Actualizado el 14 de noviembre de 2026. Distingue capacidades documentadas de funciones presentes en el proyecto. La presencia de una misión en el catálogo del desafío no implica una integración realizada.
 
----
+## Datos presentes
 
-## 1. Misiones y APIs de la NASA
+| Fuente | Consumo actual | Uso y límite |
+| --- | --- | --- |
+| NASA POWER | `src/data/power.ts`, JSON diario por punto | Alimenta indicadores; contexto regional, no medición del lote |
+| GIBS MODIS NDVI | Teselas en `src/main.ts` | Contexto visual; no serie numérica usada en el ranking |
+| GIBS SMAP L4 | Teselas en `src/main.ts` | Contexto visual; no humedad numérica incorporada al motor |
+| Catálogo de cultivos | `src/domain/crops.ts` | Parámetros de referencia; revisión por zona/variedad pendiente |
+| Suelo, pendiente y mercado | Supuestos o inputs genéricos | Falta procedencia local y validación |
 
-### 1.1 NASA POWER API (Prediction Of Worldwide Energy Resources)
-* **Tipo:** REST API pública (formato JSON / CSV).
-* **Parámetros Clave:** Temperatura a 2m (`T2M`), Precipitación diaria (`PRECTOTCORR`), Radiación solar (`ALLSKY_SFC_SW_DWN`), Humedad relativa (`RH2M`), Grados Día de Desarrollo (`GDD`).
-* **Endpoint de consulta:**
-  ```text
-  https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,PRECTOTCORR,ALLSKY_SFC_SW_DWN&community=AG&longitude=-62.83&latitude=-28.46&start=20240101&end=20241231&format=JSON
-  ```
-* **Rol en Field Shift:** Provee la serie meteorológica continua e histórica para el balance hídrico diario y el cálculo de ventanas térmicas de siembra sin necesidad de descargar archivos ráster pesados.
+### POWER
 
-### 1.2 AppEEARS API (LP DAAC)
-* **Qué es:** *Application for Extracting and Exploring Analysis Ready Samples*.
-* **Misiones Accesibles:** ECOSTRESS, SMAP L3/L4, MODIS, VIIRS, HLS.
-* **Rol en Field Shift:** Permite enviar un polígono vectorial (el límite de la parcela agrícola en Añatuya) y recibir únicamente la serie temporal extraída y filtrada por calidad (*Analysis-Ready Data*), optimizando el tiempo de procesamiento.
+El cliente consulta `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `GWETROOT` y `GWETTOP`. Los grados-día se calculan en el motor con temperatura; no son un parámetro solicitado por ese cliente.
 
-### 1.3 SMAP (Soil Moisture Active Passive)
-* **Productos:** L3/L4 Soil Moisture (9 km a 36 km, resolución temporal de 2 a 3 días).
-* **Variables:** Humedad en superficie ($0\text{–}5\text{ cm}$) y humedad en zona radicular ($0\text{–}100\text{ cm}$).
-* **Rol en Field Shift:** Alimenta el algoritmo de decisión de siembra y el protocolo de riego de precisión, determinando si el perfil edáfico tiene agua disponible para la emergencia radicular del Sorgo o Caupí.
+Ejemplo del snapshot revisado, correspondiente al punto predeterminado del prototipo:
 
-### 1.4 ECOSTRESS (ECOsystem Spaceborne Thermal Radiometer)
-* **Ubicación:** Estación Espacial Internacional (ISS).
-* **Resolución:** $\sim 70\text{ metros}$, muestreo diurno/nocturno variable.
-* **Variables:** Land Surface Temperature (LST), Evaporative Stress Index (ESI), Water Use Efficiency (WUE).
-* **Rol en Field Shift:** Detección de anomalías térmicas a nivel de lote individual. Si el dosel vegetal eleva su temperatura respecto a la ambiental, el sistema dispara una alerta temprana de estrés hídrico 72 a 120 horas antes de que el daño sea irreversible.
-
-### 1.5 GPM IMERG (Global Precipitation Measurement)
-* **Resolución:** $0.1^\circ$ ($\sim 10\text{ km}$), frecuencia cada 30 minutos.
-* **Rol en Field Shift:** Registro de acumulados de lluvias convectivas de verano. Permite validar si un evento de tormenta aportó agua efectiva o si generó riesgo de escorrentía rápida.
-
-### 1.6 Shuttle Radar Topography Mission (SRTM)
-* **Resolución:** 30 metros (1 arco-segundo).
-* **Variables:** Elevación digital, mapa de pendientes, dirección de flujo hidrológico.
-* **Rol en Field Shift:** Cruza la topografía con las lluvias de GPM para identificar sectores propensos a erosión hídrica en laderas o anegamiento en bajos topográficos.
-
-### 1.7 Harmonized Landsat Sentinel-2 (HLS) & MODIS/VIIRS
-* **Resolución:** 30 m (Landsat) / 10–20 m (Sentinel-2) / 250 m (MODIS).
-* **Variables:** NDVI, EVI, NDWI (Índice de Agua en Vegetación).
-* **Rol en Field Shift:** Seguimiento fenológico multianual. Detecta períodos de suelo baldío (NDVI bajo continuo) y valida el incremento de biomasa de las rotaciones regenerativas.
-
----
-
-## 2. Recursos de Agencias Socias (ESA, FAO, USDA)
-
-### 2.1 Copernicus Sentinel-2 (ESA)
-* Bandas espectrales Red-Edge y SWIR ideales para discriminar estrés clorofílico y contenido de humedad foliar a escala de 10 a 20 metros.
-
-### 2.2 FAO GAEZ (Global Agro-Ecological Zones)
-* Modelos globales de idoneidad agroclimática y limitaciones de suelo para Sorgo, Leguminosas y Maíz, que respaldan la viabilidad agronómica del consorcio propuesto en biomas semiáridos.
-
-### 2.3 OpenET (NASA / USGS / DRI)
-* Marco de referencia para la estimación de Evapotranspiración (ET) a escala de campo (30 m). Sirve como base metodológica para cuantificar el ahorro hídrico del mulching.
-
-### 2.4 USDA Ag Data Commons, CDL & SSURGO
-* Provee la estructura de datos para rotaciones validadas y propiedades edáficas que permiten que la arquitectura de Field Shift sea directamente transferible y escalable a regiones agrícolas de Estados Unidos (ej. Great Plains).
-
----
-
-## 3. Arquitectura del Flujo de Datos
-
+```text
+https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M_MAX,T2M_MIN,PRECTOTCORR,GWETROOT,GWETTOP&community=AG&latitude=-27.7834&longitude=-64.2642&start=20110101&end=20251231&format=JSON
 ```
-[NASA Earthdata / APIs]
-  ├── NASA POWER API (Meteorología diaria en tiempo real)
-  ├── AppEEARS API (Extracción SMAP + ECOSTRESS por parcela)
-  ├── GPM IMERG (Eventos extremos de lluvia)
-  └── SRTM 30m (Topografía y riesgo de escorrentía)
-            │
-            ▼
-[FIELD SHIFT PIPELINE]
-  ├── Armonización espacial a cuadrícula común (30m)
-  ├── Cálculo de Evapotranspiración y Balance Hídrico (FAO-56)
-  ├── Evaluación de Ventana de Siembra y Riesgo Térmico
-  └── Comparador Multicriterio de Rotaciones
-            │
-            ▼
-[CANAL DE ENTREGA]
-  ├── Web Dashboard para Técnicos y Cooperativas
-  └── Alertas SMS / Offline para Productores Rurales
+
+La respuesta guardada indica fuentes MERRA2/POWER, API v2.10.3 y tiempo LST. `GWETROOT`/`GWETTOP` son humedad relativa, unidad `1`. El parser distingue rellenos; la presentación debe mostrar cobertura y supuestos.
+
+[Documentación POWER](https://power.larc.nasa.gov/docs/services/api/temporal/daily/).
+
+## Integraciones propuestas
+
+| Fuente | Objetivo posible | Condición antes de usarla |
+| --- | --- | --- |
+| SMAP numérico | Contexto regional de humedad | Producto/versión, extracción, unidades, profundidad, calidad y período |
+| AppEEARS | Extraer productos compatibles | Verificar catálogo vigente, autenticación, tarea asíncrona y resultado |
+| GPM IMERG | Episodios y distribución histórica de lluvia | Distinguir tasa/acumulado y Early/Final; documentar cobertura |
+| ECOSTRESS | Contexto superficial de ET/temperatura | Escena válida, calidad, unidades y alcance espacial |
+| HLS | Contexto de vegetación y fenología | Escenas/bandas y máscara de calidad; indicadores reproducibles |
+| SRTM | Contexto de terreno | Modelo, escala y método para derivar pendiente |
+| Suelo local/SoilGrids | Propiedades y restricciones | Identificar medición o estimación y su incertidumbre |
+| MAGyP | Contexto departamental de producción/rendimiento | CSV y período; no atribuir valores agregados al lote |
+| GAEZ, GEDI, OpenET, USDA/ESA | Ampliaciones según caso | Justificar variable y cobertura geográfica del producto concreto |
+
+## Precisiones de producto
+
+- [SMAP L4 SPL4SMGP v8](https://nsidc.org/data/spl4smgp/versions/8) combina modelado y asimilación, en grilla de 9 km y pasos de tres horas. L3 y L4 tienen métodos y variables distintos; no tratarlos como una medición idéntica de raíces.
+- [HLS](https://hls.gsfc.nasa.gov/) armoniza productos L30/S30 a 30 m. Esa es la resolución de HLS, distinta de las bandas originales de Sentinel-2.
+- [ECOSTRESS](https://ecostress.jpl.nasa.gov/data) aporta información superficial y productos derivados; no demuestra por sí solo una alerta con anticipación fija ni temperatura radicular.
+- NDVI bajo indica poca vegetación verde; no determina por sí solo ausencia de rastrojo o una causa de degradación.
+- Un remuestreo a 30 m no crea observaciones independientes a esa escala. El proyecto todavía no implementa un downscaling validado.
+- ET₀, ET real y agua aplicada son magnitudes diferentes. El método presente de ET₀ es Hargreaves; el balance por cultivo es aproximado. [Definiciones FAO](https://www.fao.org/4/x0490e/x0490e04.htm).
+
+## Flujo implementado
+
+```text
+POWER JSON → parser → perfil climático → motor de reglas → interfaz ES/EN
+GIBS → capas visuales del mapa
 ```
+
+Una extracción futura puede producir un JSON preparado con metadatos, que la capa de datos lea antes de evaluar su uso en el motor. El backend se agregará si la integración necesita credenciales o tareas protegidas. Las claves y tokens se mantienen fuera del cliente y del repositorio.
+
+## Contrato mínimo de un dato nuevo
+
+Fuente, producto, versión, variable, unidad, profundidad, soporte espacial, intervalo/estándar temporal, fecha de descarga, calidad, faltantes, transformación y archivo original. Etiquetar estado: `implementado`, `extraído`, `propuesto` o `no disponible`, y distinguir `observado`, `modelado` o `supuesto`.
+
+El catálogo enlazado por la consigna está registrado en [recursos oficiales](../Field%20Shift%20-%20Obsidian/99%20Recursos/Revision%20consigna%20oficial/enlaces-recursos.json). La disponibilidad se comprueba por servicio, no por inclusión en esa lista.
