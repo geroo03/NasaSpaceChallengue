@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { strToU8, zipSync } from 'fflate';
 import shp from 'shpjs';
-import { polygonsFromGeoJson } from './lotImport';
+import { polygonsFromGeoJson, shapefileListing } from './lotImport';
 
 /** Minimal single-polygon shapefile writer (just enough to exercise the real shpjs reader). */
-function shapefileZip(ring: [number, number][], prj: string, name: string): ArrayBuffer {
+function shapefileZip(ring: [number, number][], prj: string | null, name: string): ArrayBuffer {
   const pts = [...ring, ring[0]!];
   const xs = pts.map((p) => p[0]);
   const ys = pts.map((p) => p[1]);
@@ -43,7 +43,7 @@ function shapefileZip(ring: [number, number][], prj: string, name: string): Arra
     'parcela.shp': new Uint8Array(shpBuf.buffer),
     'parcela.shx': new Uint8Array(shx.buffer),
     'parcela.dbf': new Uint8Array(dbf.buffer),
-    'parcela.prj': strToU8(prj),
+    ...(prj ? { 'parcela.prj': strToU8(prj) } : {}),
   });
   return zip.buffer.slice(zip.byteOffset, zip.byteOffset + zip.byteLength) as ArrayBuffer;
 }
@@ -67,5 +67,13 @@ describe('cadastre shapefile import (real shpjs reader)', () => {
     expect(lo).toBeLessThan(-61.5);
     expect(polys[0]!.areaHa).toBeGreaterThan(99);
     expect(polys[0]!.areaHa).toBeLessThan(101);
+  });
+});
+
+describe('shapefile zip checks', () => {
+  it('lists the parts of a zip so a missing .prj is reported instead of guessed', () => {
+    const ring: [number, number][] = [[612000, 6850000], [612000, 6851000], [613000, 6851000], [613000, 6850000]];
+    expect(shapefileListing(new Uint8Array(shapefileZip(ring, UTM20S, 'x')))).toEqual({ shp: true, prj: true });
+    expect(shapefileListing(new Uint8Array(shapefileZip(ring, null, 'x')))).toEqual({ shp: true, prj: false });
   });
 });

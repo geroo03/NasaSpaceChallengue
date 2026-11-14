@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FileText, FileUp, Loader2 } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import type { LatLon } from '../../imagery/flightOrder';
-import type { CandidatePolygon, LotProblem } from '../../imagery/lotImport';
+import type { CandidatePolygon, ImportNotice, LotProblem } from '../../imagery/lotImport';
 import type { LotSource } from '../../case/model';
 import { Notice, secondaryBtn } from '../ui';
 
@@ -27,6 +27,7 @@ export function LotDocsPanel({ onLot }: { onLot: (ring: LatLon[], source: LotSou
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [pending, setPending] = useState<{ file: string; format: string; items: (CandidatePolygon & { problem: LotProblem | null })[] } | null>(null);
+  const [notices, setNotices] = useState<ImportNotice[]>([]);
   const [docs, setDocs] = useState<Doc[]>([]);
 
   useEffect(() => () => docs.forEach((d) => URL.revokeObjectURL(d.url)), [docs]);
@@ -35,6 +36,7 @@ export function LotDocsPanel({ onLot }: { onLot: (ring: LatLon[], source: LotSou
     if (!file) return;
     setErr(null);
     setPending(null);
+    setNotices([]);
     if (/\.(pdf|png|jpe?g)$/i.test(file.name)) {
       setDocs((d) => [...d, { name: file.name, url: URL.createObjectURL(file), kind: /\.pdf$/i.test(file.name) ? 'pdf' : 'image' }]);
       return;
@@ -43,16 +45,17 @@ export function LotDocsPanel({ onLot }: { onLot: (ring: LatLon[], source: LotSou
     try {
       const mod = await import('../../imagery/lotImport');
       try {
-        const { format, polygons } = await mod.importLotFile(file, dxfEpsg);
-        const items = polygons.map((p) => ({ ...p, problem: mod.validateLot(p.ring) }));
+        const { format, polygons, notices: found } = await mod.importLotFile(file, dxfEpsg);
+        setNotices(found);
+        const items = polygons.map((p) => ({ ...p, problem: p.blocked ?? mod.validateLot(p.ring) }));
         const valid = items.filter((p) => !p.problem);
         if (items.length === 1 && valid.length === 1) {
-          onLot(valid[0]!.ring, { kind: 'file', fileName: file.name, format });
+          onLot(valid[0]!.ring, { kind: 'file', fileName: file.name, format, parcel: valid[0]!.name });
         } else {
           setPending({ file: file.name, format, items });
         }
       } catch (e) {
-        setErr(e instanceof mod.LotImportError ? t(`docs.err.${e.code}`, { detail: e.detail }) : String(e));
+        setErr(e instanceof mod.LotImportError ? t(`docs.err.${e.code}`, { detail: e.detail, mb: 30 }) : String(e));
       }
     } finally {
       setBusy(false);
@@ -90,7 +93,8 @@ export function LotDocsPanel({ onLot }: { onLot: (ring: LatLon[], source: LotSou
           <select value={dxfEpsg} onChange={(e) => setDxfEpsg(Number(e.target.value))} className="mt-1 block w-full rounded-lg border border-[#DECFA7] bg-white px-2 py-2 text-sm font-normal">
             {DXF_CRS.map((c) => (
               <option key={c.epsg} value={c.epsg}>
-                {t(`docs.crs.${c.key}`)} (EPSG:{c.epsg})
+                {t(`docs.crs.${c.key}`)}
+                {c.epsg === 5346 ? ` · ${t('docs.crs.sde')}` : ''} (EPSG:{c.epsg})
               </option>
             ))}
           </select>
@@ -98,6 +102,15 @@ export function LotDocsPanel({ onLot }: { onLot: (ring: LatLon[], source: LotSou
       </div>
       <p className="text-xs text-[#3B2F20]/80">{t('docs.privacy')}</p>
       {err && <Notice tone="error">{err}</Notice>}
+      {notices.length > 0 && (
+        <Notice tone="warn">
+          <ul className="list-disc pl-5 space-y-0.5">
+            {notices.map((n, i) => (
+              <li key={i}>{t(`docs.notice.${n.key}`, n.params ?? {})}</li>
+            ))}
+          </ul>
+        </Notice>
+      )}
 
       {pending && (
         <div className="space-y-2" role="group" aria-label={t('docs.choose')}>
@@ -109,7 +122,7 @@ export function LotDocsPanel({ onLot }: { onLot: (ring: LatLon[], source: LotSou
                   type="button"
                   disabled={p.problem !== null}
                   onClick={() => {
-                    onLot(p.ring, { kind: 'file', fileName: pending.file, format: pending.format });
+                    onLot(p.ring, { kind: 'file', fileName: pending.file, format: pending.format, parcel: p.name });
                     setPending(null);
                   }}
                   className="w-full flex justify-between gap-3 rounded-lg border border-[#DECFA7] bg-white px-3 py-2 text-left text-sm hover:border-[#283618] disabled:opacity-60 disabled:hover:border-[#DECFA7] focus-visible:outline-2 focus-visible:outline-[#BC6C25]"

@@ -1,9 +1,10 @@
 import area from '@turf/area';
 import kinks from '@turf/kinks';
+import centroid from '@turf/centroid';
 import { polygon as turfPolygon } from '@turf/helpers';
 import { unzipSync, strFromU8 } from 'fflate';
 import proj4 from 'proj4';
-import { proj4DefFor } from './crs';
+import { decidePosgarAxes, proj4DefFor } from './crs';
 import type { LatLon } from './flightOrder';
 
 /**
@@ -18,9 +19,19 @@ export interface CandidatePolygon {
   name: string;
   ring: LatLon[]; // open ring (first vertex not repeated)
   areaHa: number;
+  /** Set when the shape can never be a lot regardless of its geometry (e.g. a multi-part parcel). */
+  blocked?: LotProblem;
 }
 
-export type ImportErrorCode = 'format' | 'empty' | 'projected' | 'needCrs' | 'parse';
+/** Translatable notice about how a file was interpreted. */
+export interface ImportNotice {
+  key: 'axesSwapped' | 'stripCorrected' | 'dxfLooksLatLon';
+  params?: Record<string, string | number>;
+}
+
+export type ImportErrorCode = 'format' | 'empty' | 'projected' | 'needCrs' | 'parse' | 'tooBig' | 'noShp' | 'noPrj';
+
+export const MAX_IMPORT_BYTES = 30 * 1024 * 1024;
 
 export class LotImportError extends Error {
   constructor(
@@ -35,7 +46,7 @@ export class LotImportError extends Error {
 export const AREA_MIN_HA = 0.5;
 export const AREA_MAX_HA = 5000;
 
-export type LotProblem = 'tooFewVertices' | 'selfIntersection' | 'tooSmall' | 'tooLarge';
+export type LotProblem = 'tooFewVertices' | 'selfIntersection' | 'tooSmall' | 'tooLarge' | 'multiPart';
 
 // ---------------------------------------------------------------------------
 // Geometry helpers
@@ -51,6 +62,12 @@ function closed(ring: LatLon[]): [number, number][] {
 export function areaHa(ring: LatLon[]): number {
   if (ring.length < 3) return 0;
   return area(turfPolygon([closed(ring)])) / 10_000;
+}
+
+/** Centroid of the lot as [lat, lon]: used as the analysis point when a lot exists. */
+export function lotCentroid(ring: LatLon[]): LatLon {
+  const [lon, lat] = centroid(turfPolygon([closed(ring)])).geometry.coordinates as [number, number];
+  return [lat, lon];
 }
 
 export function validateLot(ring: LatLon[]): LotProblem | null {
@@ -81,11 +98,11 @@ function assertGeographic(ring: LatLon[]): void {
   }
 }
 
-function candidate(name: string, ring: LatLon[]): CandidatePolygon | null {
+function candidate(name: string, ring: LatLon[], blocked?: LotProblem): CandidatePolygon | null {
   const open = openRing(ring);
   if (open.length < 3) return null;
   assertGeographic(open);
-  return { name, ring: open, areaHa: areaHa(open) };
+  return blocked ? { name, ring: open, areaHa: areaHa(open), blocked } : { name, ring: open, areaHa: areaHa(open) };
 }
 
 // ---------------------------------------------------------------------------
@@ -99,10 +116,21 @@ interface Geom {
   geometries?: Geom[];
 }
 
-function ringsFromGeometry(g: Geom | null | undefined): Pos[][] {
+/** Outer rings of a geometry. A multipolygon with several parts is flagged: a lot is one piece of land. */
+function ringsFromGeometry(g: Geom | null | undefined): { ring: Pos[]; multiPart: boolean }[] {
   if (!g) return [];
-  if (g.type === 'Polygon') return [((g.coordinates as Pos[][]) ?? [])[0] ?? []];
-  if (g.type === 'MultiPolygon') return ((g.coordinates as Pos[][][]) ?? []).map((p) => p[0] ?? []);
+  if (g.type === 'Polygon') return [{ ring: ((g.coordinates as Pos[][]) ?? [])[0] ?? [], multiPart: false }];
+  if (g.type === 'MultiPolygon') {
+    const parts = (g.coordinates as Pos[][][]) ?? [];
+    return parts.map((p) => ({ ring: p[0] ?? [], multiPart: parts.length > 1 }));
+  }
+  if (g.type === 'LineString') {
+    // Cadastre exports often store parcels as closed lines.
+    const c = (g.coordinates as Pos[]) ?? [];
+    const a = c[0];
+    const z = c[c.length - 1];
+    return c.length >= 4 && a && z && a[0] === z[0] && a[1] === z[1] ? [{ ring: c, multiPart: false }] : [];
+  }
   if (g.type === 'GeometryCollection') return (g.geometries ?? []).flatMap(ringsFromGeometry);
   return [];
 }
@@ -123,9 +151,9 @@ export function polygonsFromGeoJson(json: unknown, label = 'Polígono'): Candida
     if (o.type === 'FeatureCollection') return (o.features ?? []).forEach(visit);
     const geom = o.type === 'Feature' ? o.geometry : (o as Geom);
     const rings = ringsFromGeometry(geom);
-    rings.forEach((r, i) => {
+    rings.forEach(({ ring: r, multiPart }, i) => {
       const name = featureName(o.properties, `${label} ${out.length + 1}`) + (rings.length > 1 ? ` (${i + 1})` : '');
-      const c = candidate(name, r.map((p) => [Number(p[1]), Number(p[0])] as LatLon));
+      const c = candidate(name, r.map((p) => [Number(p[1]), Number(p[0])] as LatLon), multiPart ? 'multiPart' : undefined);
       if (c) out.push(c);
     });
   };
@@ -182,25 +210,45 @@ interface DxfEntity {
   closed?: boolean;
 }
 
-export function polygonsFromDxfEntities(entities: DxfEntity[], epsg: number): CandidatePolygon[] {
-  const def = proj4DefFor(epsg);
-  if (!def) throw new LotImportError('needCrs');
-  const out: CandidatePolygon[] = [];
-  for (const e of entities) {
-    if (e.type !== 'LWPOLYLINE' && e.type !== 'POLYLINE') continue;
+export function polygonsFromDxfEntities(entities: DxfEntity[], epsg: number): { polygons: CandidatePolygon[]; notices: ImportNotice[] } {
+  const closedPolys = entities.filter((e) => {
+    if (e.type !== 'LWPOLYLINE' && e.type !== 'POLYLINE') return false;
     const v = e.vertices ?? [];
     const first = v[0];
     const last = v[v.length - 1];
-    const isClosed = e.shape || e.closed || (first && last && v.length > 3 && first.x === last.x && first.y === last.y);
-    if (!isClosed || v.length < 3) continue;
-    const ring = v.map((p) => {
-      const [lon, lat] = (epsg === 4326 ? [p.x, p.y] : proj4(def, 'EPSG:4326', [p.x, p.y])) as [number, number];
+    return v.length >= 3 && Boolean(e.shape || e.closed || (first && last && v.length > 3 && first.x === last.x && first.y === last.y));
+  });
+  const notices: ImportNotice[] = [];
+  let used = epsg;
+  let swap = false;
+  const sample = closedPolys[0]?.vertices?.[0];
+  if (sample && epsg >= 5343 && epsg <= 5349) {
+    const chosen = epsg - 5342;
+    const d = decidePosgarAxes(sample.x, sample.y, chosen);
+    swap = d.swap;
+    if (swap) notices.push({ key: 'axesSwapped' });
+    if (d.strip !== null && d.strip !== chosen) {
+      used = 5342 + d.strip;
+      notices.push({ key: 'stripCorrected', params: { chosen, detected: d.strip } });
+    }
+  } else if (sample && epsg !== 4326 && Math.abs(sample.x) <= 180 && Math.abs(sample.y) <= 90) {
+    // Numbers this small are degrees, not metres: the plan is already in lat/lon.
+    used = 4326;
+    notices.push({ key: 'dxfLooksLatLon' });
+  }
+  const def = proj4DefFor(used);
+  if (!def) throw new LotImportError('needCrs');
+  const polygons: CandidatePolygon[] = [];
+  for (const e of closedPolys) {
+    const ring = (e.vertices ?? []).map((p) => {
+      const [ex, ny] = swap ? [p.y, p.x] : [p.x, p.y];
+      const [lon, lat] = (used === 4326 ? [ex, ny] : proj4(def, 'EPSG:4326', [ex, ny])) as [number, number];
       return [lat, lon] as LatLon;
     });
-    const c = candidate(`${e.layer ?? 'DXF'} · ${out.length + 1}`, ring);
-    if (c) out.push(c);
+    const c = candidate(`${e.layer && e.layer !== '0' ? e.layer : 'DXF'} · ${polygons.length + 1}`, ring);
+    if (c) polygons.push(c);
   }
-  return out;
+  return { polygons, notices };
 }
 
 // ---------------------------------------------------------------------------
@@ -217,28 +265,51 @@ export function formatOf(fileName: string): ImportFormat | null {
   return null;
 }
 
-export async function importLotFile(file: File, dxfEpsg: number | null): Promise<{ format: ImportFormat; polygons: CandidatePolygon[] }> {
+export async function importLotFile(
+  file: File,
+  dxfEpsg: number | null,
+): Promise<{ format: ImportFormat; polygons: CandidatePolygon[]; notices: ImportNotice[] }> {
+  if (file.size > MAX_IMPORT_BYTES) throw new LotImportError('tooBig', String(MAX_IMPORT_BYTES / 1024 / 1024));
   const format = formatOf(file.name);
   if (!format) throw new LotImportError('format');
   let polygons: CandidatePolygon[];
+  let notices: ImportNotice[] = [];
   try {
     if (format === 'kml') polygons = polygonsFromKml(await file.text());
     else if (format === 'kmz') polygons = polygonsFromKmz(new Uint8Array(await file.arrayBuffer()));
     else if (format === 'geojson') polygons = polygonsFromGeoJson(JSON.parse(await file.text()));
     else if (format === 'shp') {
+      const buffer = await file.arrayBuffer();
+      const listing = shapefileListing(new Uint8Array(buffer));
+      if (!listing.shp) throw new LotImportError('noShp');
+      // Without the .prj we cannot know the coordinate system; guessing would misplace the lot.
+      if (!listing.prj) throw new LotImportError('noPrj');
       // shpjs reads .shp/.dbf/.prj from the zip and reprojects to WGS84 using the .prj.
       const { default: shp } = await import('shpjs');
-      polygons = polygonsFromGeoJson(await shp(await file.arrayBuffer()));
+      polygons = polygonsFromGeoJson(await shp(buffer));
     } else {
       if (dxfEpsg === null) throw new LotImportError('needCrs');
       const { default: DxfParser } = await import('dxf-parser');
       const parsed = new DxfParser().parseSync(await file.text()) as { entities?: DxfEntity[] } | null;
-      polygons = polygonsFromDxfEntities(parsed?.entities ?? [], dxfEpsg);
+      ({ polygons, notices } = polygonsFromDxfEntities(parsed?.entities ?? [], dxfEpsg));
     }
   } catch (err) {
     if (err instanceof LotImportError) throw err;
     throw new LotImportError('parse', err instanceof Error ? err.message : String(err));
   }
   if (!polygons.length) throw new LotImportError('empty');
-  return { format, polygons: polygons.sort((a, b) => b.areaHa - a.areaHa) };
+  return { format, polygons: polygons.sort((a, b) => b.areaHa - a.areaHa), notices };
+}
+
+/** Which shapefile parts a zip contains, without decompressing them. */
+export function shapefileListing(zip: Uint8Array): { shp: boolean; prj: boolean } {
+  const seen = { shp: false, prj: false };
+  unzipSync(zip, {
+    filter: (f) => {
+      if (/\.shp$/i.test(f.name)) seen.shp = true;
+      if (/\.prj$/i.test(f.name)) seen.prj = true;
+      return false; // list only
+    },
+  });
+  return seen;
 }

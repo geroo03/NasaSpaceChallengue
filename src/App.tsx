@@ -23,10 +23,12 @@ export default function App() {
   const patch = useCallback((p: Partial<FarmCase>) => setFarmCase((c) => ({ ...c, ...p })), []);
 
   const run = useCallback(
-    async (useSaved: boolean) => {
+    async (useSaved: boolean, at?: { lat: number; lon: number }) => {
+      const lat = at?.lat ?? farmCase.lat;
+      const lon = at?.lon ?? farmCase.lon;
       setView({ kind: 'results' });
       window.scrollTo({ top: 0 });
-      const key = useSaved ? 'saved' : `${farmCase.lat.toFixed(4)},${farmCase.lon.toFixed(4)},${farmCase.years}`;
+      const key = useSaved ? 'saved' : `${lat.toFixed(4)},${lon.toFixed(4)},${farmCase.years}`;
       const hit = cache.current.get(key);
       if (hit) {
         setLoad({ status: 'ready', data: hit });
@@ -34,14 +36,14 @@ export default function App() {
       }
       setLoad({ status: 'loading', saved: useSaved });
       try {
-        const data = useSaved ? await loadSaved() : await loadLive(farmCase.lat, farmCase.lon, farmCase.years);
+        const data = useSaved ? await loadSaved() : await loadLive(lat, lon, farmCase.years);
         cache.current.set(key, data);
         setLoad({ status: 'ready', data });
       } catch (err) {
         setLoad({
           status: 'error',
           message: err instanceof Error ? err.message : String(err),
-          canUseSaved: !useSaved && snapshotMatches(farmCase.lat, farmCase.lon),
+          canUseSaved: !useSaved && snapshotMatches(lat, lon),
         });
       }
     },
@@ -68,6 +70,10 @@ export default function App() {
           <ResultsScreen
             farmCase={farmCase}
             onLot={(lotPolygon, lotSource) => patch({ lotPolygon, lotSource })}
+            onAnalyseAt={(lat, lon) => {
+              patch({ lat, lon, placeId: null });
+              void run(false, { lat, lon });
+            }}
             load={load}
             onEdit={() => setView({ kind: 'wizard', step: 4 })}
             onRetry={() => void run(false)}

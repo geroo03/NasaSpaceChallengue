@@ -61,6 +61,10 @@ export interface LotSource {
   kind: 'drawn' | 'file' | 'drone';
   fileName?: string;
   format?: string;
+  /** Parcel name inside the file (cadastre nomenclature, layer…). */
+  parcel?: string;
+  /** Vertices were moved by hand after importing. */
+  edited?: boolean;
 }
 
 const ALL_UNKNOWN = Object.fromEntries(RESOURCES.map((r) => [r, 'unknown'])) as Record<ResourceId, Access>;
@@ -162,4 +166,31 @@ export function saveCase(c: FarmCase): void {
   } catch {
     // storage unavailable (private mode, quota): the app keeps working in memory
   }
+}
+
+/** Area-weighted centroid of a small lat/lon polygon, as [lat, lon] (planar approximation, fine for a field). */
+export function ringCentroid(ring: [number, number][]): [number, number] | null {
+  if (ring.length < 3) return null;
+  let a = 0;
+  let cx = 0;
+  let cy = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const [y1, x1] = ring[i]!;
+    const [y2, x2] = ring[(i + 1) % ring.length]!;
+    const f = x1 * y2 - x2 * y1;
+    a += f;
+    cx += (x1 + x2) * f;
+    cy += (y1 + y2) * f;
+  }
+  if (Math.abs(a) < 1e-14) return null;
+  return [cy / (3 * a), cx / (3 * a)];
+}
+
+/** Great-circle distance in km. */
+export function distanceKm(a: [number, number], b: [number, number]): number {
+  const r = Math.PI / 180;
+  const dLat = (b[0] - a[0]) * r;
+  const dLon = (b[1] - a[1]) * r;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(h));
 }

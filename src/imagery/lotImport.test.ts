@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { strToU8, zipSync } from 'fflate';
 import proj4 from 'proj4';
 import DxfParser from 'dxf-parser';
-import { proj4DefFor } from './crs';
+
 import {
   areaHa,
   formatOf,
@@ -83,22 +83,53 @@ describe('survey document import', () => {
     expect(() => polygonsFromGeoJson(projected)).toThrow(LotImportError);
   });
 
-  it('reads a closed polyline from a real DXF in POSGAR 2007 faja 4', () => {
-    const def = proj4DefFor(5346)!;
-    const pts = square.map(([a, o]) => proj4('EPSG:4326', def, [o, a]) as [number, number]);
-    const dxf = [
+  // Survey plan in POSGAR 2007 faja 4, built with the official parameters written out by hand
+  // (not with the app's own definition), so a wrong false easting in the app would fail here.
+  const OFFICIAL_FAJA4 = '+proj=tmerc +lat_0=-90 +lon_0=-63 +k=1 +x_0=4500000 +y_0=0 +ellps=GRS80 +units=m +no_defs';
+  const planPts = square.map(([a, o]) => proj4('EPSG:4326', OFFICIAL_FAJA4, [o, a]) as [number, number]);
+  const dxfOf = (pts: [number, number][]) =>
+    [
       '0', 'SECTION', '2', 'ENTITIES',
       '0', 'LWPOLYLINE', '8', 'MENSURA', '90', String(pts.length), '70', '1',
       ...pts.flatMap(([x, y]) => ['10', x.toFixed(3), '20', y.toFixed(3)]),
       '0', 'ENDSEC', '0', 'EOF',
     ].join('\n');
-    const parsed = new DxfParser().parseSync(dxf) as unknown as { entities: never[] };
-    const polys = polygonsFromDxfEntities(parsed.entities, 5346);
-    expect(polys).toHaveLength(1);
-    expect(polys[0]?.name).toContain('MENSURA');
-    expect(polys[0]?.ring[0]?.[0]).toBeCloseTo(lat, 5);
-    expect(polys[0]?.ring[0]?.[1]).toBeCloseTo(lon, 5);
-    expect(polys[0]?.areaHa).toBeGreaterThan(99);
+  const entitiesOf = (pts: [number, number][]) => (new DxfParser().parseSync(dxfOf(pts)) as unknown as { entities: never[] }).entities;
+
+  it('places a real DXF in POSGAR 2007 faja 4 where it belongs', () => {
+    expect(planPts[0]![0]).toBeGreaterThan(4_000_000); // sanity: easting carries the strip in its millions
+    const { polygons, notices } = polygonsFromDxfEntities(entitiesOf(planPts), 5346);
+    expect(polygons).toHaveLength(1);
+    expect(polygons[0]?.name).toContain('MENSURA');
+    expect(polygons[0]?.ring[0]?.[0]).toBeCloseTo(lat, 5);
+    expect(polygons[0]?.ring[0]?.[1]).toBeCloseTo(lon, 5);
+    expect(polygons[0]?.areaHa).toBeGreaterThan(99);
+    expect(notices).toEqual([]);
+  });
+
+  it('fixes surveyor plans written as X = north, Y = east, and says so', () => {
+    const swapped = planPts.map(([x, y]) => [y, x] as [number, number]);
+    const { polygons, notices } = polygonsFromDxfEntities(entitiesOf(swapped), 5346);
+    expect(polygons[0]?.ring[0]?.[0]).toBeCloseTo(lat, 5);
+    expect(notices.map((n) => n.key)).toContain('axesSwapped');
+  });
+
+  it('corrects a wrongly chosen strip from the easting and says so', () => {
+    const { polygons, notices } = polygonsFromDxfEntities(entitiesOf(planPts), 5347); // user picked faja 5
+    expect(polygons[0]?.ring[0]?.[1]).toBeCloseTo(lon, 5);
+    expect(notices).toContainEqual({ key: 'stripCorrected', params: { chosen: 5, detected: 4 } });
+  });
+
+  it('blocks multi-part parcels and accepts closed lines from cadastre exports', () => {
+    const ring = [...square, square[0]!].map(([a, o]) => [o, a]);
+    const multi = polygonsFromGeoJson({ type: 'MultiPolygon', coordinates: [[ring], [ring]] });
+    expect(multi.every((p) => p.blocked === 'multiPart')).toBe(true);
+    const single = polygonsFromGeoJson({ type: 'MultiPolygon', coordinates: [[ring]] });
+    expect(single[0]?.blocked).toBeUndefined();
+    const line = polygonsFromGeoJson({ type: 'Feature', properties: { PARCELA: 'A-1' }, geometry: { type: 'LineString', coordinates: ring } });
+    expect(line[0]?.name).toBe('A-1');
+    const open = polygonsFromGeoJson({ type: 'LineString', coordinates: ring.slice(0, 3) });
+    expect(open).toHaveLength(0);
   });
 
   it('maps file extensions to formats', () => {

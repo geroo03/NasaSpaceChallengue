@@ -3,7 +3,7 @@ import { Database, Loader2, Pencil, RefreshCw } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import { applyScenario, buildClimateProfile, type Scenario } from '../../engine/analysis/climate';
 import { compareStrategiesDetailed, GLOBAL_GAPS } from '../../engine/domain/rotations';
-import { toFarmContext, type FarmCase } from '../../case/model';
+import { distanceKm, ringCentroid, toFarmContext, type FarmCase } from '../../case/model';
 import type { LoadedSeries } from '../../case/climateSource';
 import { Card, Collapsible, Notice, SectionTitle, primaryBtn, secondaryBtn } from '../ui';
 import { FieldScene } from './FieldScene';
@@ -24,13 +24,14 @@ export type LoadState =
 interface Props {
   farmCase: FarmCase;
   onLot: (p: FarmCase['lotPolygon'], source: FarmCase['lotSource']) => void;
+  onAnalyseAt: (lat: number, lon: number) => void;
   load: LoadState;
   onEdit: () => void;
   onRetry: () => void;
   onUseSaved: () => void;
 }
 
-export function ResultsScreen({ farmCase, onLot, load, onEdit, onRetry, onUseSaved }: Props) {
+export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRetry, onUseSaved }: Props) {
   const { t } = useLang();
 
   if (load.status === 'loading') {
@@ -65,10 +66,22 @@ export function ResultsScreen({ farmCase, onLot, load, onEdit, onRetry, onUseSav
       </div>
     );
   }
-  return <Results farmCase={farmCase} data={load.data} onEdit={onEdit} onLot={onLot} />;
+  return <Results farmCase={farmCase} data={load.data} onEdit={onEdit} onLot={onLot} onAnalyseAt={onAnalyseAt} />;
 }
 
-function Results({ farmCase, data, onEdit, onLot }: { farmCase: FarmCase; data: LoadedSeries; onEdit: () => void; onLot: Props['onLot'] }) {
+function Results({
+  farmCase,
+  data,
+  onEdit,
+  onLot,
+  onAnalyseAt,
+}: {
+  farmCase: FarmCase;
+  data: LoadedSeries;
+  onEdit: () => void;
+  onLot: Props['onLot'];
+  onAnalyseAt: Props['onAnalyseAt'];
+}) {
   const { t, m, num } = useLang();
   const [scenario, setScenario] = useState<Scenario>({ precipPct: 0, tempC: 0 });
   const [selectedId, setSelectedId] = useState('current');
@@ -99,6 +112,8 @@ function Results({ farmCase, data, onEdit, onLot }: { farmCase: FarmCase; data: 
   }
 
   const { profile, outcome } = computed;
+  const lotCentre = farmCase.lotPolygon ? ringCentroid(farmCase.lotPolygon) : null;
+  const lotCentreKm = lotCentre ? distanceKm(lotCentre, [farmCase.lat, farmCase.lon]) : null;
   const strategies = outcome.strategies;
   const selected = strategies.find((s) => s.id === selectedId) ?? strategies[0]!;
   const reference = strategies[0]!;
@@ -108,7 +123,12 @@ function Results({ farmCase, data, onEdit, onLot }: { farmCase: FarmCase; data: 
   const from = years[0] ?? data.startYear;
   const to = years[years.length - 1] ?? data.endYear;
   const scenarioOn = scenario.precipPct !== 0 || scenario.tempC !== 0;
-  const place = farmCase.placeId ? t(`loc.place.${farmCase.placeId}`) : t('loc.place.custom');
+  const place =
+    lotCentreKm !== null && lotCentreKm <= 1
+      ? t('lot.centreLabel')
+      : farmCase.placeId
+        ? t(`loc.place.${farmCase.placeId}`)
+        : t('loc.place.custom');
 
   return (
     <div className="space-y-8">
@@ -189,6 +209,19 @@ function Results({ farmCase, data, onEdit, onLot }: { farmCase: FarmCase; data: 
 
       <Card>
         <SectionTitle>{t('lot.title')}</SectionTitle>
+        {lotCentre && lotCentreKm !== null && lotCentreKm > 1 && (
+          <div className="mb-4">
+            <Notice tone="warn">
+              <strong className="block">{t('lot.centroidTitle')}</strong>
+              {t('lot.centroidText', { lat: farmCase.lat.toFixed(4), lon: farmCase.lon.toFixed(4), km: num(lotCentreKm, 1) })}
+              <div className="mt-2">
+                <button type="button" className={secondaryBtn} onClick={() => onAnalyseAt(Number(lotCentre[0].toFixed(5)), Number(lotCentre[1].toFixed(5)))}>
+                  {t('lot.centroidGo')}
+                </button>
+              </div>
+            </Notice>
+          </div>
+        )}
         {snapshotMatches(farmCase.lat, farmCase.lon) && !farmCase.lotPolygon && (
           <div className="mb-4">
             <Notice tone="warn">{t('lot.cityWarn')}</Notice>

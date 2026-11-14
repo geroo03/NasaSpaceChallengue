@@ -10,10 +10,11 @@ export function proj4DefFor(epsg: number): string | null {
   if (epsg === 3857) return '+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +no_defs';
   if (epsg >= 32601 && epsg <= 32660) return `+proj=utm +zone=${epsg - 32600} +datum=WGS84 +units=m +no_defs`;
   if (epsg >= 32701 && epsg <= 32760) return `+proj=utm +zone=${epsg - 32700} +south +datum=WGS84 +units=m +no_defs`;
-  // POSGAR 2007 / Argentina 1–7 (EPSG:5343–5349): faja n has central meridian −72 + 3(n−1) and false easting n·500000.
+  // POSGAR 2007 / Argentina 1–7 (EPSG:5343–5349): faja n has central meridian −72 + 3(n−1)
+  // and false easting n·1 000 000 + 500 000 (faja 4 → 4 500 000 m), origin at the South Pole.
   if (epsg >= 5343 && epsg <= 5349) {
     const faja = epsg - 5342;
-    return `+proj=tmerc +lat_0=-90 +lon_0=${-72 + 3 * (faja - 1)} +k=1 +x_0=${faja * 500000} +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
+    return `+proj=tmerc +lat_0=-90 +lon_0=${-72 + 3 * (faja - 1)} +k=1 +x_0=${faja * 1_000_000 + 500_000} +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
   }
   return null;
 }
@@ -53,4 +54,34 @@ export function boundsSizeM(b: LatLonBounds): { widthM: number; heightM: number 
     widthM: (b.east - b.west) * 111_320 * Math.cos(midLat),
     heightM: (b.north - b.south) * 110_574,
   };
+}
+
+/**
+ * The POSGAR false easting encodes the strip in its millions digit (4 5xx xxx m → faja 4), and a real
+ * easting sits within ~250 km of its strip's central meridian. Returns that strip, or null.
+ * (Ported from the AgroCordS-based Field Shift lot module.)
+ */
+export function posgarStripFromEasting(easting: number): number | null {
+  const faja = Math.floor(easting / 1_000_000);
+  if (faja < 1 || faja > 7) return null;
+  return Math.abs(easting - (faja * 1_000_000 + 500_000)) <= 250_000 ? faja : null;
+}
+
+/** Northings of POSGAR Gauss–Krüger in Argentina (origin at the South Pole): ≈ 3.5 to 7.8 million m. */
+function looksLikeNorthing(v: number): boolean {
+  return v >= 3_500_000 && v <= 7_800_000;
+}
+
+/**
+ * Argentine survey plans often write Gauss–Krüger as X = north, Y = east (the reverse of CAD's x = east).
+ * Decides from one sample vertex, preferring the strip the user chose.
+ */
+export function decidePosgarAxes(x: number, y: number, chosenStrip: number): { swap: boolean; strip: number | null } {
+  const fx = posgarStripFromEasting(x);
+  const fy = posgarStripFromEasting(y);
+  if (fx === chosenStrip && looksLikeNorthing(y)) return { swap: false, strip: fx };
+  if (fy === chosenStrip && looksLikeNorthing(x)) return { swap: true, strip: fy };
+  if (fx !== null && looksLikeNorthing(y)) return { swap: false, strip: fx };
+  if (fy !== null && looksLikeNorthing(x)) return { swap: true, strip: fy };
+  return { swap: false, strip: null };
 }

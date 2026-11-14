@@ -14,7 +14,11 @@ El caso inicial es un **punto ilustrativo de Santiago del Estero**. Añatuya es 
 6. **Imagen del lote**: mapa con NASA HLS a 30 m (Sentinel-2 y Landsat armonizados). Las escenas salen del catálogo CMR con su porcentaje de nubes y se elige sola la más reciente y limpia. MODIS NDVI y SMAP L4 quedan como capas regionales. Las imágenes no entran al cálculo.
 7. **Drones**: carga de ortomosaicos GeoTIFF exportados por DJI Terra u otras plataformas, en WGS84, UTM o POSGAR 2007. Se procesan en el navegador sin subir el archivo y se superponen al mapa.
 8. **Delimitar el lote**: se dibuja y se editan los vértices con Leaflet-Geoman, igual que en AgroCordS, sobre la imagen NASA HLS o sobre la base Esri de alta resolución. Valida con Turf: no puede cruzarse a sí mismo y tiene que medir entre 0,5 y 5.000 ha.
-9. **Documentación del relevamiento**: importa el límite desde KML/KMZ, Shapefile .zip (reproyectado según su .prj), GeoJSON o DXF del plano de mensura (POSGAR 2007 fajas 1–7, UTM 19–21S o WGS84). Si el archivo trae varias parcelas, el usuario elige cuál es su lote. Los PDF o fotos del plano se adjuntan como guía. Santiago del Estero no publica catastro en línea, por eso la carga es por archivo.
+9. **Documentación del relevamiento** (portado del módulo `lote/` basado en AgroCordS): importa el límite desde KML/KMZ, Shapefile .zip (reproyectado según su .prj), GeoJSON o DXF del plano de mensura (POSGAR 2007 fajas 1–7, UTM 19–21S o WGS84). Si el archivo trae varias parcelas, el usuario elige cuál es su lote. Los PDF o fotos del plano se adjuntan como guía. Santiago del Estero no publica catastro en línea, por eso la carga es por archivo.
+   - DXF: detecta planos escritos con X = norte e Y = este, y corrige la faja POSGAR si no coincide con las coordenadas, avisando en ambos casos.
+   - Shapefile sin `.prj`: se rechaza en vez de suponer coordenadas. Las líneas cerradas de catastro cuentan como polígono y las parcelas de varias partes quedan bloqueadas. Tope de 30 MB por archivo.
+   - Un lote importado y después editado a mano queda registrado como tal.
+   - Con lote cargado, el punto del análisis es su centro: si el clima se calculó lejos, la app ofrece recalcular ahí. «Ampliar mapa» lo abre a pantalla completa (Esc cierra).
 10. **Orden de vuelo**: el lote se dibuja en el mapa y se exporta en KML (importable en DJI Pilot 2) y GeoJSON, con qué revisar en cada mes según la opción elegida. Field Shift no define altura ni solapamiento: eso lo decide el piloto, por ejemplo de Vuelo Verde.
 11. **Rotaciones descartadas** con su motivo. No se inventan alternativas.
 12. **Estados** de carga, error de red con respaldo en la serie guardada, y aviso cuando hay pocas alternativas o ninguna.
@@ -35,7 +39,7 @@ React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet, geotiff.js + proj
 ```sh
 npm install
 npm run dev        # servidor local
-npm test           # 62 pruebas (motor, caso, verificación, HLS, coordenadas, orden de vuelo e importación de catastro/planos)
+npm test           # 70 pruebas (motor, caso, verificación, HLS, coordenadas, orden de vuelo e importación de catastro/planos)
 npm run build      # typecheck + build estático en dist/
 npm run preview
 ```

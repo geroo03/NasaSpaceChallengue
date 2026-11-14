@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
-import { Download, Eraser, Loader2, PenLine, SquarePen, Upload, X } from 'lucide-react';
+import { Download, Eraser, Loader2, Maximize2, Minimize2, PenLine, SquarePen, Upload, X } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import { bestScene, hlsTileUrl, searchHlsScenes, type HlsScene } from '../../imagery/hls';
 import type { Orthomosaic } from '../../imagery/drone';
@@ -76,6 +76,7 @@ export function LotImagery({
   const droneLayer = useRef<L.ImageOverlay | null>(null);
   const polyLayer = useRef<L.Polygon | null>(null);
   const baseLayer = useRef<L.TileLayer | null>(null);
+  const marker = useRef<L.CircleMarker | null>(null);
   const onLotRef = useRef(onLot);
   onLotRef.current = onLot;
   const sourceRef = useRef(source);
@@ -87,6 +88,7 @@ export function LotImagery({
   const [overlays, setOverlays] = useState<Record<Overlay, boolean>>({ ndvi: false, smap: false });
   const [base, setBase] = useState<Base>('hls');
   const [editing, setEditing] = useState(false);
+  const [big, setBig] = useState(false);
   const [lotErr, setLotErr] = useState<string | null>(null);
   const [drone, setDrone] = useState<Orthomosaic | null>(null);
   const [droneBusy, setDroneBusy] = useState(false);
@@ -99,7 +101,7 @@ export function LotImagery({
     const m = L.map(host.current, { scrollWheelZoom: false, maxZoom: 19 }).setView([lat, lon], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, zIndex: 0, attribution: '© OpenStreetMap' }).addTo(m);
     L.control.scale({ metric: true, imperial: false }).addTo(m);
-    L.circleMarker([lat, lon], { radius: 7, color: '#BC6C25', weight: 3, fillColor: '#FEFAE0', fillOpacity: 0.9, pmIgnore: true }).addTo(m);
+    marker.current = L.circleMarker([lat, lon], { radius: 7, color: '#BC6C25', weight: 3, fillColor: '#FEFAE0', fillOpacity: 0.9, pmIgnore: true }).addTo(m);
     // Drawing like AgroCordS: Geoman polygon tool with finish / undo / cancel actions on the map.
     m.pm.addControls({
       position: 'topleft',
@@ -139,7 +141,8 @@ export function LotImagery({
   }, []);
 
   useEffect(() => {
-    map.current?.setView([lat, lon], map.current.getZoom());
+    marker.current?.setLatLng([lat, lon]);
+    if (!polyLayer.current) map.current?.setView([lat, lon], map.current.getZoom());
   }, [lat, lon]);
 
   // --- HLS scenes ----------------------------------------------------------------------------
@@ -226,6 +229,26 @@ export function LotImagery({
     droneLayer.current?.setOpacity(droneOpacity);
   }, [droneOpacity]);
 
+  // --- enlarged map (Esc closes) -----------------------------------------------------------
+  useEffect(() => {
+    const t1 = setTimeout(() => {
+      const m = map.current;
+      if (!m) return;
+      m.invalidateSize();
+      const lot = polyLayer.current;
+      if (lot) m.fitBounds(lot.getBounds(), { padding: [32, 32] });
+    }, 60);
+    if (!big) return () => clearTimeout(t1);
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setBig(false);
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      clearTimeout(t1);
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [big]);
+
   // --- lot polygon ---------------------------------------------------------------------------
   useEffect(() => {
     const m = map.current;
@@ -244,7 +267,9 @@ export function LotImagery({
         return;
       }
       setLotErr(null);
-      onLotRef.current(ring, sourceRef.current ? { ...sourceRef.current, kind: sourceRef.current.kind === 'file' ? 'file' : 'drawn' } : { kind: 'drawn' });
+      const src = sourceRef.current;
+      // An imported boundary stays 'file' but is marked as hand-edited, so its provenance stays honest.
+      onLotRef.current(ring, src?.kind === 'file' ? { ...src, edited: true } : { kind: 'drawn' });
     });
     polyLayer.current = layer;
     if (!m.getBounds().contains(layer.getBounds())) m.fitBounds(layer.getBounds(), { padding: [24, 24] });
@@ -315,7 +340,21 @@ export function LotImagery({
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] items-start">
         <div>
-          <div ref={host} role="application" aria-label={t('lot.mapLabel')} className="h-[380px] sm:h-[460px] w-full rounded-xl border border-[#DECFA7] z-0" />
+          <div className={big ? 'fixed inset-0 z-[1500] bg-[#C9C2B2] p-2 sm:p-4 flex flex-col' : 'relative'}>
+            {/* className must stay constant: Leaflet adds its own classes to this element and React would wipe them. */}
+            <div className={big ? 'flex-1 min-h-0' : 'h-[380px] sm:h-[460px]'}>
+              <div ref={host} role="application" aria-label={t('lot.mapLabel')} className="h-full w-full rounded-xl border border-[#DECFA7] z-0" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setBig(!big)}
+              aria-pressed={big}
+              className={`absolute ${big ? 'top-5 right-5 sm:top-7 sm:right-7' : 'top-3 right-3'} z-[1000] inline-flex items-center gap-1.5 rounded-lg bg-white/95 border border-[#DECFA7] px-3 py-2 text-sm font-bold text-[#283618] shadow focus-visible:outline-2 focus-visible:outline-[#BC6C25]`}
+            >
+              {big ? <Minimize2 aria-hidden className="h-4 w-4" /> : <Maximize2 aria-hidden className="h-4 w-4" />}
+              {big ? t('lot.closeMap') : t('lot.bigMap')}
+            </button>
+          </div>
           <div className="mt-2 flex flex-wrap gap-2">
             <button type="button" className={secondaryBtn} onClick={startDraw}>
               <PenLine aria-hidden className="h-4 w-4" /> {polygon ? t('lot.redraw') : t('lot.draw')}
@@ -342,7 +381,8 @@ export function LotImagery({
               <ProvTag kind="declared" />
               <span>
                 {t('lot.area', { ha: num(areaHa(polygon), 1) })}{' '}
-                {source && t(`lot.source.${source.kind}`, { file: source.fileName ?? '' })}
+                {source && t(`lot.source.${source.kind}`, { file: source.parcel && source.parcel !== source.fileName ? `${source.fileName ?? ''} · ${source.parcel}` : (source.fileName ?? '') })}
+                {source?.edited && ` ${t('lot.source.edited')}`}
               </span>
             </p>
           )}

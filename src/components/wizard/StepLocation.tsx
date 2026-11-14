@@ -27,7 +27,20 @@ export function StepLocation({ value, onChange }: { value: FarmCase; onChange: (
         ))}
       </div>
 
-      <MapPicker lat={value.lat} lon={value.lon} label={t('loc.map')} onPick={(lat, lon) => onChange({ lat, lon, placeId: null })} />
+      {value.lotPolygon && (
+        <Notice>
+          {t('lot.centroidNote')}{' '}
+          <button type="button" className="font-bold underline" onClick={() => onChange({ lotPolygon: null, lotSource: null })}>
+            {t('lot.clear')}
+          </button>
+        </Notice>
+      )}
+      <MapPicker
+        lat={value.lat}
+        lon={value.lon}
+        label={t('loc.map')}
+        onPick={(lat, lon) => (value.lotPolygon ? undefined : onChange({ lat, lon, placeId: null }))}
+      />
       <p className="text-sm text-[#3B2F20]/85">
         {value.placeId === null && <strong className="text-[#283618]">{t('loc.place.custom')} · </strong>}
         {value.lat.toFixed(4)}, {value.lon.toFixed(4)} — {t('loc.pointNote')}
@@ -43,6 +56,7 @@ export function StepLocation({ value, onChange }: { value: FarmCase; onChange: (
               min={-60}
               max={75}
               value={Number.isFinite(value.lat) ? value.lat : ''}
+              readOnly={value.lotPolygon !== null}
               onChange={(e) => onChange({ lat: Number.parseFloat(e.target.value), placeId: null })}
               className="w-full rounded-lg border border-[#DECFA7] bg-white px-3 py-2 tabular-nums"
             />
@@ -55,6 +69,7 @@ export function StepLocation({ value, onChange }: { value: FarmCase; onChange: (
               min={-180}
               max={180}
               value={Number.isFinite(value.lon) ? value.lon : ''}
+              readOnly={value.lotPolygon !== null}
               onChange={(e) => onChange({ lon: Number.parseFloat(e.target.value), placeId: null })}
               className="w-full rounded-lg border border-[#DECFA7] bg-white px-3 py-2 tabular-nums"
             />
