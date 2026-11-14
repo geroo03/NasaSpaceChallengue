@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HeaderBar, type Screen } from './components/HeaderBar';
-import { Wizard } from './components/wizard/Wizard';
+import { LotScreen, coordsValid } from './components/flow/LotScreen';
+import { FarmScreen } from './components/flow/FarmScreen';
+import { StepNav, type FlowView } from './components/flow/StepNav';
 import { ResultsScreen, type LoadState } from './components/results/ResultsScreen';
 import { MethodScreen } from './components/MethodScreen';
 import { loadCase, saveCase, withDeclaredSlope, withLot, withTerrain, type FarmCase } from './case/model';
@@ -9,13 +11,17 @@ import { sampleSrtm } from './imagery/terrain';
 import { loadLive, loadSaved, snapshotMatches } from './case/climateSource';
 import { useLang } from './i18n/LangContext';
 
-type View = { kind: 'wizard'; step: number } | { kind: 'results' };
+const HASH: Record<FlowView, string> = { lot: '#/lote', farm: '#/campana', results: '#/opciones' };
+function viewFromHash(): FlowView {
+  const h = window.location.hash;
+  return h === HASH.farm ? 'farm' : 'lot'; // results need a run, so a reload lands on the farm or lot screen
+}
 
 export default function App() {
   const { t } = useLang();
   const [screen, setScreen] = useState<Screen>('explore');
   const [farmCase, setFarmCase] = useState<FarmCase>(loadCase);
-  const [view, setView] = useState<View>({ kind: 'wizard', step: 0 });
+  const [view, setViewState] = useState<FlowView>(viewFromHash);
   const [load, setLoad] = useState<LoadState>({ status: 'loading', saved: false });
   // In-memory cache so re-entering results for the same point does not download again.
   const cache = useRef<Map<string, Awaited<ReturnType<typeof loadLive>>>>(new Map());
@@ -71,32 +77,49 @@ export default function App() {
     [terrainStatus],
   );
 
+  const setView = useCallback((v: FlowView) => {
+    setViewState(v);
+    if (window.location.hash !== HASH[v]) window.history.pushState(null, '', HASH[v]);
+    window.scrollTo({ top: 0 });
+  }, []);
+  useEffect(() => {
+    const onPop = () => setViewState(window.location.hash === HASH.results ? 'results' : viewFromHash());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  /** Live NASA POWER first; if it fails and this point has a saved series, use it and say so. */
   const run = useCallback(
-    async (useSaved: boolean, at?: { lat: number; lon: number }) => {
+    async (at?: { lat: number; lon: number }) => {
       const lat = at?.lat ?? farmCase.lat;
       const lon = at?.lon ?? farmCase.lon;
-      setView({ kind: 'results' });
-      window.scrollTo({ top: 0 });
-      const key = useSaved ? 'saved' : `${lat.toFixed(4)},${lon.toFixed(4)},${farmCase.years}`;
+      setView('results');
+      const key = `${lat.toFixed(4)},${lon.toFixed(4)},${farmCase.years}`;
       const hit = cache.current.get(key);
       if (hit) {
         setLoad({ status: 'ready', data: hit });
         return;
       }
-      setLoad({ status: 'loading', saved: useSaved });
+      setLoad({ status: 'loading', saved: false });
       try {
-        const data = useSaved ? await loadSaved() : await loadLive(lat, lon, farmCase.years);
+        const data = await loadLive(lat, lon, farmCase.years);
         cache.current.set(key, data);
         setLoad({ status: 'ready', data });
       } catch (err) {
-        setLoad({
-          status: 'error',
-          message: err instanceof Error ? err.message : String(err),
-          canUseSaved: !useSaved && snapshotMatches(lat, lon),
-        });
+        const message = err instanceof Error ? err.message : String(err);
+        if (snapshotMatches(lat, lon)) {
+          try {
+            const data = { ...(await loadSaved(lat, lon)), liveError: message };
+            setLoad({ status: 'ready', data });
+            return;
+          } catch {
+            // fall through to the error screen
+          }
+        }
+        setLoad({ status: 'error', message, canUseSaved: false });
       }
     },
-    [farmCase.lat, farmCase.lon, farmCase.years],
+    [farmCase.lat, farmCase.lon, farmCase.years, setView],
   );
 
   const navigate = (s: Screen) => {
@@ -112,26 +135,29 @@ export default function App() {
       <HeaderBar screen={screen} onNavigate={navigate} />
       <main id="main" className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-10">
         {screen === 'method' && <MethodScreen />}
-        {screen === 'explore' && view.kind === 'wizard' && (
-          <Wizard value={farmCase} onChange={patch} step={view.step} setStep={(step) => setView({ kind: 'wizard', step })} onRun={(s) => void run(s)} lot={lot} />
+        {screen === 'explore' && (
+          <div className="print:hidden">
+            <StepNav view={view} canGo={coordsValid(farmCase)} onGo={(v) => (v === 'results' ? void run() : setView(v))} />
+          </div>
         )}
-        {screen === 'explore' && view.kind === 'results' && (
+        {screen === 'explore' && view === 'lot' && <LotScreen value={farmCase} onChange={patch} lot={lot} onNext={() => setView('farm')} />}
+        {screen === 'explore' && view === 'farm' && <FarmScreen value={farmCase} onChange={patch} onBack={() => setView('lot')} onRun={() => void run()} />}
+        {screen === 'explore' && view === 'results' && (
           <ResultsScreen
             farmCase={farmCase}
             onLot={(lotPolygon, lotSource) => lot.setLot(lotPolygon, lotSource, false)}
             lot={lot}
             onAnalyseAt={(lat, lon) => {
               patch({ lat, lon, placeId: null });
-              void run(false, { lat, lon });
+              void run({ lat, lon });
             }}
             load={load}
-            onEdit={(step = 4) => setView({ kind: 'wizard', step })}
-            onRetry={() => void run(false)}
-            onUseSaved={() => void run(true)}
+            onEdit={(v) => setView(v)}
+            onRetry={() => void run()}
           />
         )}
       </main>
-      <footer className="bg-[#283618] text-[#FEFAE0] mt-12">
+      <footer className="print:hidden bg-[#283618] text-[#FEFAE0] mt-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 py-8 space-y-2">
           <p className="text-base tracking-[0.06em]">
             <span className="font-extralight uppercase">FIELD</span>

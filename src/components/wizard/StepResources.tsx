@@ -2,7 +2,7 @@ import { Droplets, Hand, Layers, SprayCan, Sprout, Tractor, Wheat, type LucideIc
 import { useLang } from '../../i18n/LangContext';
 import { ACCESS_LEVELS, RESOURCES, hasIrrigationAccess, type Access, type Availability, type FarmCase, type ResourceId } from '../../case/model';
 import { Notice } from '../ui';
-import { Pill } from './StepLocation';
+import { Pill } from '../flow/LotScreen';
 
 const ICONS: Record<ResourceId, LucideIcon> = {
   manual: Hand,
@@ -14,19 +14,36 @@ const ICONS: Record<ResourceId, LucideIcon> = {
   coverMgmt: Layers,
 };
 
-export function StepResources({ value, onChange }: { value: FarmCase; onChange: (patch: Partial<FarmCase>) => void }) {
+type Props = { value: FarmCase; onChange: (patch: Partial<FarmCase>) => void };
+
+/** The only resource the engine uses today: irrigation (access, confirmation, mm per season). */
+export function IrrigationQuestion(props: Props) {
+  return <ResourceCards {...props} only={['irrigation']} />;
+}
+
+/** Machinery and services: recorded for the field sheet and the checklist, not used by the calculation yet. */
+export function MachineryList(props: Props) {
+  const { t } = useLang();
+  return (
+    <div className="space-y-3">
+      <Notice tone="warn">
+        <strong className="block">{t('res.pending')}</strong>
+        {t('res.pendingNote')}
+      </Notice>
+      <ResourceCards {...props} only={RESOURCES.filter((r) => r !== 'irrigation')} />
+    </div>
+  );
+}
+
+function ResourceCards({ value, onChange, only }: Props & { only: readonly ResourceId[] }) {
   const { t } = useLang();
   const setAccess = (r: ResourceId, a: Access) => onChange({ resources: { ...value.resources, [r]: a } });
   const setAvail = (r: ResourceId, a: Availability) => onChange({ availability: { ...value.availability, [r]: a } });
 
   return (
     <div className="space-y-4">
-      <Notice tone="warn">
-        <strong className="block">{t('res.pending')}</strong>
-        {t('res.pendingNote')}
-      </Notice>
       <ul className="space-y-3">
-        {RESOURCES.map((r) => {
+        {only.map((r) => {
           const Icon = ICONS[r];
           const access = value.resources[r];
           const needsWindow = access === 'shared' || access === 'contracted';

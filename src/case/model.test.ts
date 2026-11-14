@@ -147,3 +147,12 @@ describe('lot-first flow', () => {
     expect(back.slopeSource).toBe('srtm');
   });
 });
+
+describe('example lot', () => {
+  it('centres on the point that has a saved NASA POWER series', async () => {
+    const { EXAMPLE_LOT } = await import('./model');
+    const { snapshotFor } = await import('./climateSource');
+    const c = withLot(base, EXAMPLE_LOT, { kind: 'example' }, { movePoint: true });
+    expect(snapshotFor(c.lat, c.lon)?.id).toBe('anatuya-example');
+  });
+});

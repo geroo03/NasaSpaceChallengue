@@ -1,10 +1,10 @@
 import { lazy, Suspense, useState } from 'react';
-import { Crosshair, Loader2, MapPin, PenLine } from 'lucide-react';
+import { ArrowRight, Crosshair, Loader2, MapPin, PenLine, Sparkles } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
-import { PLACE_PRESETS, type FarmCase, type Slope, type SoilTexture } from '../../case/model';
+import { EXAMPLE_LOT, PLACE_PRESETS, type FarmCase, type Slope, type SoilTexture } from '../../case/model';
 import type { LotApi } from '../../case/lotApi';
-import { ChoiceCard, Collapsible, Notice, ProvTag } from '../ui';
-import { MapPicker } from './MapPicker';
+import { ChoiceCard, Collapsible, Notice, ProvTag, primaryBtn, secondaryBtn } from '../ui';
+import { MapPicker } from '../wizard/MapPicker';
 
 // Lot editor, importers and terrain tools load only when this step shows them.
 const LotStep = lazy(() => import('../lot/LotStep').then((m) => ({ default: m.LotStep })));
@@ -18,13 +18,39 @@ export function coordsValid(c: FarmCase): boolean {
   return Number.isFinite(c.lat) && Number.isFinite(c.lon) && c.lat >= -60 && c.lat <= 75 && c.lon >= -180 && c.lon <= 180;
 }
 
-export function StepLocation({ value, onChange, lot }: { value: FarmCase; onChange: (patch: Partial<FarmCase>) => void; lot: LotApi }) {
+/** Screen 1: the lot (drawn, imported or the demo example) or, failing that, a point. */
+export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; onChange: (patch: Partial<FarmCase>) => void; lot: LotApi; onNext: () => void }) {
   const { t } = useLang();
   const slopes: Slope[] = ['flat', 'gentle', 'steep', 'unknown'];
   const soils: SoilTexture[] = ['sandy', 'loam', 'clay', 'unknown'];
   const [mode, setMode] = useState<'lot' | 'point'>('lot');
+  const isExample = value.lotSource?.kind === 'example';
   return (
-    <div className="space-y-5">
+    <div className="max-w-5xl mx-auto space-y-5">
+      <header>
+        <h1 className="headline-display headline-display--bold text-3xl sm:text-4xl text-[#283618]">{t('loc.q')}</h1>
+        <p className="mt-2 text-[#3B2F20]/90">{t('loc.help')}</p>
+      </header>
+      {!isExample && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border-2 border-dashed border-[#DDA15E] bg-[#FEFAE0] p-4">
+          <Sparkles aria-hidden className="h-6 w-6 shrink-0 text-[#BC6C25]" />
+          <p className="flex-1 text-sm text-[#3B2F20]">
+            <strong className="block text-[#283618]">{t('example.title')}</strong>
+            {t('example.help')}
+          </p>
+          <button
+            type="button"
+            className={secondaryBtn}
+            onClick={() => {
+              setMode('lot');
+              lot.setLot(EXAMPLE_LOT, { kind: 'example' }, true);
+            }}
+          >
+            {t('example.load')}
+          </button>
+        </div>
+      )}
+      {isExample && <Notice>{t('example.loaded')}</Notice>}
       <div role="radiogroup" aria-label={t('loc.mode.label')} className="grid gap-3 sm:grid-cols-2">
         <ChoiceCard
           selected={mode === 'lot'}
@@ -160,6 +186,11 @@ export function StepLocation({ value, onChange, lot }: { value: FarmCase; onChan
           <p className="mt-2 text-xs text-[#3B2F20]/85">{t('loc.soilNote')}</p>
         </fieldset>
       </Collapsible>
+      <div className="flex justify-end border-t border-[#DECFA7] pt-6">
+        <button type="button" className={primaryBtn} disabled={!coordsValid(value)} onClick={onNext}>
+          {t('flow.toFarm')} <ArrowRight aria-hidden className="h-4 w-4" />
+        </button>
+      </div>
     </div>
   );
 }

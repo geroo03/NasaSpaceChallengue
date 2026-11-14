@@ -22,6 +22,8 @@ export interface SurveyRequest {
   posgar: { faja: number; epsg: number; x: number; y: number } | null;
   terrain: TerrainSummary | null;
   lotLabel: string | null;
+  /** Suggested check windows from the chosen rotation (Field Shift plans; the flight confirms). */
+  checks?: { when: string; what: string }[];
 }
 
 type T = (key: string, params?: Record<string, string | number>) => string;
@@ -43,6 +45,10 @@ export function buildSurveyText(r: SurveyRequest, t: T, num: Num): string {
   }
   lines.push('', t('req.text.services'));
   for (const s of r.services) lines.push(`• ${t(`req.svc.${s}`)} — ${t(`req.svc.${s}.deliver`)}`);
+  if (r.checks?.length) {
+    lines.push('', t('req.text.checks'));
+    for (const c of r.checks) lines.push(`• ${c.when}: ${c.what}`);
+  }
   lines.push('', r.posgar ? t('req.text.crs', { faja: r.posgar.faja }) : t('req.text.crsWgs'));
   lines.push(t('req.text.when', { when: t(`req.when.${r.window}`) }));
   if (r.notes.trim()) lines.push(t('req.text.notes', { notes: r.notes.trim() }));

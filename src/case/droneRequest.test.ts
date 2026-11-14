@@ -42,3 +42,16 @@ describe('drone survey request', () => {
     expect(whatsappLink('+54 9 385 000-0000', 'a b')).toBe('https://wa.me/5493850000000?text=a%20b');
   });
 });
+
+describe('drone survey request with check windows', () => {
+  it('lists the suggested check dates from the chosen rotation', () => {
+    const text = buildSurveyText(
+      { services: ['ortho'], window: 'toAgree', notes: '', areaHa: 46, centre: [-28.38, -62.74], posgar: null, terrain: null, lotLabel: null, checks: [{ when: 'Oct · Año 1', what: 'humedad antes de sembrar' }] },
+      t,
+      num,
+    );
+    expect(text).toContain('req.text.checks');
+    expect(text).toContain('• Oct · Año 1: humedad antes de sembrar');
+    expect(text).toContain('req.text.crsWgs');
+  });
+});

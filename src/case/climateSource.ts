@@ -8,18 +8,48 @@ export interface LoadedSeries {
   retrievedOn: string;
   startYear: number;
   endYear: number;
+  /** Set when the live request failed and this saved series was used instead. */
+  liveError?: string;
 }
 
-/** The snapshot shipped with the app (downloaded and checked on 2026-11-14). */
-export const SAVED_SNAPSHOT = {
-  url: `${import.meta.env.BASE_URL}data/power-sde-2011-2025.json`,
-  lat: -27.7834,
-  lon: -64.2642,
-  startYear: 2011,
-  endYear: 2025,
-  retrievedOn: '2026-11-14',
-  sha256: 'c5c4cab935fbfe2b74bf634ef560cb2a7bcdd7d830d1e6f85dd1a5e4db0f5725',
-};
+export interface Snapshot {
+  id: string;
+  url: string;
+  lat: number;
+  lon: number;
+  startYear: number;
+  endYear: number;
+  retrievedOn: string;
+  sha256: string;
+}
+
+/** NASA POWER responses shipped with the app, downloaded unmodified, so the demo works without a connection. */
+export const SNAPSHOTS: Snapshot[] = [
+  {
+    id: 'sde',
+    url: `${import.meta.env.BASE_URL}data/power-sde-2011-2025.json`,
+    lat: -27.7834,
+    lon: -64.2642,
+    startYear: 2011,
+    endYear: 2025,
+    retrievedOn: '2026-11-14',
+    sha256: 'c5c4cab935fbfe2b74bf634ef560cb2a7bcdd7d830d1e6f85dd1a5e4db0f5725',
+  },
+  {
+    // Centre of the example lot near Añatuya (see EXAMPLE_LOT).
+    id: 'anatuya-example',
+    url: `${import.meta.env.BASE_URL}data/power-anatuya-2011-2025.json`,
+    lat: -28.38175,
+    lon: -62.73655,
+    startYear: 2011,
+    endYear: 2025,
+    retrievedOn: '2026-11-14',
+    sha256: '45f21d5a8325f9d288fda8b24d684b574c14c8fbab909151f492cb5277761f2b',
+  },
+];
+
+/** The illustrative Santiago del Estero point (inside the city). */
+export const SAVED_SNAPSHOT = SNAPSHOTS[0]!;
 
 export function yearRange(years: number, today = new Date()): { startYear: number; endYear: number } {
   const endYear = today.getFullYear() - 1; // last complete year
@@ -27,8 +57,12 @@ export function yearRange(years: number, today = new Date()): { startYear: numbe
   return { startYear: endYear - n + 1, endYear };
 }
 
+export function snapshotFor(lat: number, lon: number): Snapshot | undefined {
+  return SNAPSHOTS.find((s) => Math.abs(lat - s.lat) < 1e-4 && Math.abs(lon - s.lon) < 1e-4);
+}
+
 export function snapshotMatches(lat: number, lon: number): boolean {
-  return Math.abs(lat - SAVED_SNAPSHOT.lat) < 1e-4 && Math.abs(lon - SAVED_SNAPSHOT.lon) < 1e-4;
+  return snapshotFor(lat, lon) !== undefined;
 }
 
 export async function loadLive(lat: number, lon: number, years: number): Promise<LoadedSeries> {
@@ -37,11 +71,12 @@ export async function loadLive(lat: number, lon: number, years: number): Promise
   return { series, origin: 'live', retrievedOn: new Date().toISOString().slice(0, 10), startYear, endYear };
 }
 
-export async function loadSaved(): Promise<LoadedSeries> {
-  const res = await fetch(SAVED_SNAPSHOT.url);
+export async function loadSaved(lat: number, lon: number): Promise<LoadedSeries> {
+  const s = snapshotFor(lat, lon);
+  if (!s) throw new Error('No saved series for this point');
+  const res = await fetch(s.url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json: unknown = await res.json();
-  const s = SAVED_SNAPSHOT;
   return {
     series: parsePowerResponse(json, s.lat, s.lon, s.startYear, s.endYear),
     origin: 'saved',

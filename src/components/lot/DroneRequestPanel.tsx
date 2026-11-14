@@ -23,7 +23,7 @@ function download(name: string, mime: string, text: string) {
 }
 
 /** Drone survey request built from the lot, modelled on the services in Vuelo Verde's technical report. */
-export function DroneRequestPanel({ farmCase }: { farmCase: FarmCase }) {
+export function DroneRequestPanel({ farmCase, checks }: { farmCase: FarmCase; checks?: { when: string; what: string }[] }) {
   const { t, num } = useLang();
   const [services, setServices] = useState<SurveyService[]>(['altimetry', 'ortho']);
   const [when, setWhen] = useState<SurveyWindow>('beforeSowing');
@@ -44,11 +44,12 @@ export function DroneRequestPanel({ farmCase }: { farmCase: FarmCase }) {
         posgar: toPosgar(centre[0], centre[1]),
         terrain: farmCase.terrain,
         lotLabel: farmCase.lotSource?.parcel ?? null,
+        checks,
       },
       t,
       num,
     );
-  }, [ring, services, when, notes, farmCase.terrain, farmCase.lotSource, farmCase.lat, farmCase.lon, t, num]);
+  }, [ring, services, when, notes, farmCase.terrain, farmCase.lotSource, farmCase.lat, farmCase.lon, checks, t, num]);
 
   const toggle = (s: SurveyService) => setServices((cur) => (cur.includes(s) ? cur.filter((x) => x !== s) : SURVEY_SERVICES.filter((x) => x === s || cur.includes(x))));
   const ready = ring !== null && services.length > 0;
@@ -70,7 +71,7 @@ export function DroneRequestPanel({ farmCase }: { farmCase: FarmCase }) {
     download(
       `lote-relevamiento-${createdOn}.kml`,
       'application/vnd.google-earth.kml+xml',
-      buildFlightKml({ title: farmCase.lotSource?.parcel ?? t('req.kmlTitle'), polygon: ring, checks: [], createdOn, notes: [t('req.kmlNote')] }),
+      buildFlightKml({ title: farmCase.lotSource?.parcel ?? t('req.kmlTitle'), polygon: ring, checks: checks ?? [], createdOn, notes: [t('req.kmlNote')] }),
     );
   };
 

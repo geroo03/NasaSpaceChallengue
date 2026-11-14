@@ -1,24 +1,24 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { Database, Loader2, Pencil, RefreshCw } from 'lucide-react';
+import { ArrowRight, FileText, Loader2, Pencil, RefreshCw } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import { applyScenario, buildClimateProfile, type Scenario } from '../../engine/analysis/climate';
-import { compareStrategiesDetailed, GLOBAL_GAPS } from '../../engine/domain/rotations';
+import { compareStrategiesDetailed, GLOBAL_GAPS, type StrategyResult } from '../../engine/domain/rotations';
 import { distanceKm, ringCentroid, toFarmContext, type FarmCase } from '../../case/model';
-import type { LoadedSeries } from '../../case/climateSource';
-import { Card, Collapsible, Notice, SectionTitle, primaryBtn, secondaryBtn } from '../ui';
+import { SAVED_SNAPSHOT, type LoadedSeries } from '../../case/climateSource';
+import type { LotApi } from '../../case/lotApi';
+import { planFieldChecks } from '../../case/verification';
+import { Card, Collapsible, CROP_COLORS, Notice, SectionTitle, cropAbbr, primaryBtn, secondaryBtn, textOn } from '../ui';
 import { FieldScene } from './FieldScene';
 import { RotationCalendar } from './RotationCalendar';
-import { StrategyPanel, StrategyTabs } from './StrategyPanel';
+import { StrategyPanel } from './StrategyPanel';
 import { ClimatePanel } from './ClimatePanel';
 import { VerificationPanel } from './VerificationPanel';
 import { AssumptionList, DiscardedList, SensitivityPanel } from './ContextPanels';
-import { WorkspaceNav, type ResultView } from './WorkspaceNav';
-import { DecisionChecklist } from './DecisionChecklist';
-// Map tools (Geoman, Turf, file importers) load only when the results screen needs them.
+import { FieldSheet } from './FieldSheet';
+// Map tools (Geoman, Turf, file importers) load only when someone opens them.
 const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
-const LotExtras = lazy(() => import('../lot/LotStep').then((m) => ({ default: m.LotExtras })));
-import type { LotApi } from '../../case/lotApi';
-import { snapshotMatches } from '../../case/climateSource';
+const DroneRequestPanel = lazy(() => import('../lot/DroneRequestPanel').then((m) => ({ default: m.DroneRequestPanel })));
+const TerrainCard = lazy(() => import('../lot/TerrainCard').then((m) => ({ default: m.TerrainCard })));
 
 export type LoadState =
   | { status: 'loading'; saved: boolean }
@@ -30,20 +30,26 @@ interface Props {
   onLot: (p: FarmCase['lotPolygon'], source: FarmCase['lotSource']) => void;
   onAnalyseAt: (lat: number, lon: number) => void;
   load: LoadState;
-  onEdit: (step?: number) => void;
+  onEdit: (view: 'lot' | 'farm') => void;
   onRetry: () => void;
-  onUseSaved: () => void;
   lot: LotApi;
 }
 
-export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRetry, onUseSaved, lot }: Props) {
-  const { t } = useLang();
+/** Year presets instead of free sliders: perturbations of the historical series, never forecasts. */
+const YEARS: { id: string; scenario: Scenario }[] = [
+  { id: 'history', scenario: { precipPct: 0, tempC: 0 } },
+  { id: 'dry', scenario: { precipPct: -30, tempC: 0 } },
+  { id: 'hot', scenario: { precipPct: 0, tempC: 2 } },
+  { id: 'dryHot', scenario: { precipPct: -30, tempC: 2 } },
+];
 
+export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRetry, lot }: Props) {
+  const { t } = useLang();
   if (load.status === 'loading') {
     return (
       <div className="max-w-3xl mx-auto py-16 text-center" role="status" aria-live="polite">
         <Loader2 aria-hidden className="mx-auto h-10 w-10 animate-spin text-[#606C38] motion-reduce:animate-none" />
-        <p className="mt-4 font-bold text-[#283618]">{load.saved ? t('load.loadingSaved') : t('load.loading', { years: farmCase.years })}</p>
+        <p className="mt-4 font-bold text-[#283618]">{t('load.loading', { years: farmCase.years })}</p>
       </div>
     );
   }
@@ -54,17 +60,12 @@ export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRe
           <strong className="block">{t('load.error')}</strong>
           {t('load.errorDetail', { msg: load.message })}
         </Notice>
-        {!load.canUseSaved && <p className="text-sm">{t('load.noSaved')}</p>}
+        <p className="text-sm">{t('load.noSaved')}</p>
         <div className="flex flex-col sm:flex-row gap-3">
           <button type="button" className={primaryBtn} onClick={onRetry}>
             <RefreshCw aria-hidden className="h-4 w-4" /> {t('load.retry')}
           </button>
-          {load.canUseSaved && (
-            <button type="button" className={secondaryBtn} onClick={onUseSaved}>
-              <Database aria-hidden className="h-4 w-4" /> {t('load.useSaved')}
-            </button>
-          )}
-          <button type="button" className={secondaryBtn} onClick={() => onEdit()}>
+          <button type="button" className={secondaryBtn} onClick={() => onEdit('farm')}>
             <Pencil aria-hidden className="h-4 w-4" /> {t('res.editData')}
           </button>
         </div>
@@ -72,6 +73,60 @@ export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRe
     );
   }
   return <Results farmCase={farmCase} data={load.data} onEdit={onEdit} onLot={onLot} onAnalyseAt={onAnalyseAt} lot={lot} />;
+}
+
+/** Crop sequence of a strategy as coloured chips (sow month), read from its own calendar. */
+export function StrategyChips({ s }: { s: StrategyResult }) {
+  const { crop, lang, months } = useLang();
+  const slots = [...s.slots].sort((a, b) => a.startIndex - b.startIndex);
+  return (
+    <span className="flex flex-wrap gap-1.5">
+      {slots.map((a, i) => {
+        const first = s.timeline[a.months[0] ?? 0];
+        const bg = CROP_COLORS[a.crop.id];
+        return (
+          <span key={i} className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-bold" style={{ background: bg, color: textOn(bg) }}>
+            {cropAbbr(lang, a.crop.id)} · {crop(a.crop.id)} · {first ? months[first.calendarMonth - 1] : ''}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
+function OptionCard({ s, label, tone, delta }: { s: StrategyResult; label: string; tone: 'ref' | 'alt'; delta?: number }) {
+  const { t } = useLang();
+  return (
+    <div className={`rounded-2xl border-2 p-5 ${tone === 'alt' ? 'border-[#283618] bg-white' : 'border-[#DECFA7] bg-white/70'}`}>
+      <p className={`text-xs font-bold uppercase tracking-[0.08em] ${tone === 'alt' ? 'text-[#BC6C25]' : 'text-[#606C38]'}`}>{label}</p>
+      <h3 className="mt-1 text-xl font-bold text-[#283618]">{t(`template.${s.templateId}`)}</h3>
+      <div className="mt-3">
+        <StrategyChips s={s} />
+      </div>
+      <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-[#EFE3C2] pt-3">
+        <div>
+          <dt className="text-xs font-bold text-[#3B2F20]/80">{t('cmp.index')}</dt>
+          <dd className="text-2xl font-bold tabular-nums text-[#283618]">
+            {Math.round(s.overall)}
+            <span className="text-sm text-[#3B2F20]/70">/100</span>
+            {delta !== undefined && delta !== 0 && (
+              <span className={`ml-2 text-sm ${delta > 0 ? 'text-[#3F6B2A]' : 'text-[#9A3412]'}`}>
+                {delta > 0 ? '+' : '−'}
+                {Math.abs(delta)}
+              </span>
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs font-bold text-[#3B2F20]/80">{t('hero.bare')}</dt>
+          <dd className="text-2xl font-bold tabular-nums text-[#283618]">
+            {s.bareMonths}
+            <span className="text-sm text-[#3B2F20]/70"> / 24</span>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  );
 }
 
 function Results({
@@ -82,23 +137,21 @@ function Results({
   onAnalyseAt,
   lot,
 }: {
-  lot: LotApi;
   farmCase: FarmCase;
   data: LoadedSeries;
   onEdit: Props['onEdit'];
   onLot: Props['onLot'];
   onAnalyseAt: Props['onAnalyseAt'];
+  lot: LotApi;
 }) {
-  const { t, m, num } = useLang();
-  const [scenario, setScenario] = useState<Scenario>({ precipPct: 0, tempC: 0 });
-  const [selectedId, setSelectedId] = useState('current');
+  const { t, m, num, months, crop } = useLang();
+  const [yearId, setYearId] = useState('history');
+  const [custom, setCustom] = useState<Scenario | null>(null);
+  const scenario = custom ?? YEARS.find((y) => y.id === yearId)!.scenario;
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [month, setMonth] = useState(19); // February of year 2 in the south: summer crops on the field
-  const [view, setView] = useState<ResultView>('compare');
-  const [lotVisited, setLotVisited] = useState(false);
-  const changeView = (next: ResultView) => {
-    setView(next);
-    if (next === 'lot') setLotVisited(true);
-  };
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const [sheet, setSheet] = useState(false);
 
   const { farm, assumptions } = useMemo(() => toFarmContext(farmCase), [farmCase]);
   const computed = useMemo(() => {
@@ -117,7 +170,7 @@ function Results({
         <Notice tone="error">
           {t('load.empty')} {computed.error}
         </Notice>
-        <button type="button" className={secondaryBtn} onClick={() => onEdit()}>
+        <button type="button" className={secondaryBtn} onClick={() => onEdit('farm')}>
           {t('res.editData')}
         </button>
       </div>
@@ -125,175 +178,289 @@ function Results({
   }
 
   const { profile, outcome } = computed;
+  const strategies = outcome.strategies;
+  const reference = strategies[0]!;
+  const alts = strategies.slice(1);
+  const selected = alts.find((s) => s.id === selectedId) ?? alts[0] ?? reference;
+  const shown = selected;
   const lotCentre = farmCase.lotPolygon ? ringCentroid(farmCase.lotPolygon) : null;
   const lotCentreKm = lotCentre ? distanceKm(lotCentre, [farmCase.lat, farmCase.lon]) : null;
-  const strategies = outcome.strategies;
-  const selected = strategies.find((s) => s.id === selectedId) ?? strategies[0]!;
-  const reference = strategies[0]!;
-  const altIndex = strategies.filter((s) => !s.isCurrent).indexOf(selected) + 1;
-  const nAlt = strategies.length - 1;
   const years = profile.yearsAnalysed;
   const from = years[0] ?? data.startYear;
   const to = years[years.length - 1] ?? data.endYear;
   const scenarioOn = scenario.precipPct !== 0 || scenario.tempC !== 0;
   const place =
     lotCentreKm !== null && lotCentreKm <= 1
-      ? t('lot.centreLabel')
+      ? t(farmCase.lotSource?.kind === 'example' ? 'example.name' : 'lot.centreLabel')
       : farmCase.placeId
         ? t(`loc.place.${farmCase.placeId}`)
         : t('loc.place.custom');
+  const why = shown.rationale.map(m).slice(0, 3);
+  const watch = [...shown.risks, ...shown.gaps].map(m).slice(0, 3);
+  const checks = planFieldChecks(shown).map((c) => {
+    const at = (i: number) => {
+      const cell = shown.timeline[i];
+      return `${cell ? months[cell.calendarMonth - 1] : ''} · ${t('scene.year', { n: i < 12 ? 1 : 2 })}`;
+    };
+    const when = c.untilMonth !== undefined && c.untilMonth !== c.month ? `${at(c.month)} → ${at(c.untilMonth)}` : at(c.month);
+    return { when, what: t(`verify.${c.kind}`, { crop: c.crop ? crop(c.crop) : '', deficit: c.deficitPct ?? 0 }) };
+  });
+
+  if (sheet) {
+    return (
+      <FieldSheet
+        farmCase={farmCase}
+        data={data}
+        from={from}
+        to={to}
+        scenario={scenarioOn ? scenario : null}
+        reference={reference}
+        option={shown}
+        why={why}
+        watch={watch}
+        checks={checks}
+        assumptions={assumptions}
+        onClose={() => setSheet(false)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-8">
+      {/* 1. Where, with which data */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
-          <h1 className="headline-display text-3xl sm:text-4xl text-[#283618]">{t('res.title')}</h1>
+          <h1 className="headline-display headline-display--bold text-3xl sm:text-4xl text-[#283618]">{t('hero.title')}</h1>
           <p className="mt-2 text-sm text-[#3B2F20]">
-            <strong>{place}</strong> · {t('res.point', { lat: farmCase.lat.toFixed(4), lon: farmCase.lon.toFixed(4) })} · {t('review.current')}:{' '}
-            {farmCase.currentChoice === 'other' && farmCase.otherCrop ? `${farmCase.otherCrop} → ` : ''}
-            {t(`template.${farmCase.currentTemplate}`)}
+            <strong>{place}</strong> · {t('res.point', { lat: farmCase.lat.toFixed(4), lon: farmCase.lon.toFixed(4) })}
           </p>
           <p className="mt-1 text-xs text-[#3B2F20]/85">
             {data.origin === 'saved'
               ? t('res.dataSaved', { from, to, date: data.retrievedOn })
               : t('res.dataLive', { from, to, date: data.retrievedOn })}{' '}
-            · {t('res.days', { days: num(data.series.days.length) })} · <strong>{t('res.illustrative')}</strong>
+            · {t('res.days', { days: num(data.series.days.length) })}
           </p>
         </div>
-        <button type="button" className={secondaryBtn} onClick={() => onEdit()}>
-          <Pencil aria-hidden className="h-4 w-4" /> {t('res.editData')}
-        </button>
-      </div>
-
-      {scenarioOn && (
-        <div role="status" className="rounded-xl bg-[#FBE9D0] border-2 border-[#DDA15E] px-4 py-3 text-sm font-bold text-[#5C3209]">
-          {t('res.scenarioOn', {
-            p: `${scenario.precipPct > 0 ? '+' : ''}${scenario.precipPct}`,
-            t: `${scenario.tempC > 0 ? '+' : ''}${num(scenario.tempC, 1)}`,
-          })}
-        </div>
-      )}
-      <WorkspaceNav active={view} onChange={changeView} />
-      <AssumptionList keys={assumptions.filter((key) => key === 'irrigationPending' || key === 'referenceSubstitute')} />
-      {lotCentreKm !== null && lotCentreKm > 1 && view !== 'lot' && (
-        <Notice tone="warn">
-          <strong>{t('lot.centroidTitle')}</strong>{' '}
-          <button type="button" className="font-bold underline underline-offset-2" onClick={() => changeView('lot')}>
-            {t('workspace.reviewLocation')}
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className={secondaryBtn} onClick={() => onEdit('farm')}>
+            <Pencil aria-hidden className="h-4 w-4" /> {t('res.editData')}
           </button>
+          <button type="button" className={primaryBtn} onClick={() => setSheet(true)}>
+            <FileText aria-hidden className="h-4 w-4" /> {t('sheet.open')}
+          </button>
+        </div>
+      </div>
+      {data.liveError && <Notice tone="warn">{t('res.fallback')}</Notice>}
+      {lotCentreKm !== null && lotCentreKm > 1 && lotCentre && (
+        <Notice tone="warn">
+          <strong className="block">{t('lot.centroidTitle')}</strong>
+          {t('lot.centroidText', { lat: farmCase.lat.toFixed(4), lon: farmCase.lon.toFixed(4), km: num(lotCentreKm, 1) })}
+          <div className="mt-2">
+            <button type="button" className={secondaryBtn} onClick={() => onAnalyseAt(Number(lotCentre[0].toFixed(5)), Number(lotCentre[1].toFixed(5)))}>
+              {t('lot.centroidGo')}
+            </button>
+          </div>
         </Notice>
       )}
+      {!farmCase.lotPolygon && Math.abs(farmCase.lat - SAVED_SNAPSHOT.lat) < 1e-4 && Math.abs(farmCase.lon - SAVED_SNAPSHOT.lon) < 1e-4 && (
+        <Notice tone="warn">{t('lot.cityWarn')}</Notice>
+      )}
 
-      <section id="workspace-panel-compare" role="tabpanel" aria-labelledby="workspace-tab-compare" hidden={view !== 'compare'} className="space-y-6">
-        <p className="max-w-3xl text-sm text-[#3B2F20]">{t('workspace.compareHelp')}</p>
-        {nAlt === 0 && <Notice tone="warn">{t('cmp.none')}</Notice>}
-        {nAlt > 0 && nAlt < 3 && <Notice tone="warn">{t('cmp.fewer', { n: nAlt })}</Notice>}
+      {/* 2. Which year */}
+      <fieldset>
+        <legend className="text-sm font-bold text-[#283618]">{t('year.q')}</legend>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {YEARS.map((y) => {
+            const active = !custom && yearId === y.id;
+            return (
+              <button
+                key={y.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => {
+                  setCustom(null);
+                  setYearId(y.id);
+                }}
+                className={`rounded-full border-2 px-4 min-h-[44px] text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25] ${
+                  active ? 'border-[#283618] bg-[#283618] text-[#FEFAE0]' : 'border-[#DECFA7] bg-white text-[#3B2F20] hover:border-[#A3B18A]'
+                }`}
+              >
+                {t(`year.${y.id}`)}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-1.5 text-xs text-[#3B2F20]/85">{scenarioOn ? t('year.note') : t('year.historyNote', { from, to })}</p>
+      </fieldset>
 
-        <section aria-labelledby="scene-h" className="space-y-4">
-          <h2 id="scene-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
-            {t('scene.title')}
-          </h2>
-          <StrategyTabs strategies={strategies} selectedId={selected.id} onSelect={setSelectedId} />
-          <div className="grid gap-6 lg:grid-cols-12 items-start">
-            <Card className="lg:col-span-5" as="div">
-              <FieldScene strategy={selected} month={month} setMonth={setMonth} />
-            </Card>
-            <div className="lg:col-span-7">
-              <StrategyPanel strategy={selected} reference={reference} altIndex={altIndex} farm={farm} />
+      {/* 3. The comparison */}
+      {alts.length === 0 && <Notice tone="warn">{t('cmp.none')}</Notice>}
+      {alts.length > 0 && alts.length < 3 && <Notice tone="warn">{t('cmp.fewer', { n: alts.length })}</Notice>}
+      <section aria-labelledby="hero-h" className="space-y-4">
+        <h2 id="hero-h" className="sr-only">
+          {t('hero.title')}
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2 items-stretch">
+          <OptionCard s={reference} label={t('hero.today')} tone="ref" />
+          {shown !== reference ? (
+            <OptionCard
+              s={shown}
+              label={alts.indexOf(shown) === 0 ? t('hero.best') : t('hero.alt', { n: alts.indexOf(shown) + 1 })}
+              tone="alt"
+              delta={Math.round(shown.overall) - Math.round(reference.overall)}
+            />
+          ) : (
+            <div className="rounded-2xl border-2 border-dashed border-[#DECFA7] p-5 text-sm">{t('cmp.none')}</div>
+          )}
+        </div>
+        {alts.length > 1 && (
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-bold text-[#283618]">{t('hero.others')}</span>
+            {alts.map((s, i) => (
+              <button
+                key={s.id}
+                type="button"
+                aria-pressed={s === shown}
+                onClick={() => setSelectedId(s.id)}
+                className={`rounded-full border px-3 min-h-[40px] font-bold focus-visible:outline-2 focus-visible:outline-[#BC6C25] ${
+                  s === shown ? 'border-[#283618] bg-[#E3EBDD] text-[#283618]' : 'border-[#DECFA7] bg-white text-[#3B2F20] hover:border-[#A3B18A]'
+                }`}
+              >
+                {i === 0 ? t('hero.bestShort') : t('hero.alt', { n: i + 1 })} · {Math.round(s.overall)}
+              </button>
+            ))}
+          </div>
+        )}
+        {shown !== reference && (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl bg-[#E3EBDD] border border-[#A3B18A] p-5">
+              <h3 className="font-bold text-[#283618]">{t('hero.why')}</h3>
+              <ul className="mt-2 list-disc pl-5 space-y-1 text-sm text-[#283618]">
+                {why.length ? why.map((x, i) => <li key={i}>{x}</li>) : <li>—</li>}
+              </ul>
+            </div>
+            <div className="rounded-2xl bg-[#FBE9D0] border border-[#DDA15E] p-5">
+              <h3 className="font-bold text-[#5C3209]">{t('hero.watch')}</h3>
+              <ul className="mt-2 list-disc pl-5 space-y-1 text-sm text-[#5C3209]">
+                {watch.length ? watch.map((x, i) => <li key={i}>{x}</li>) : <li>—</li>}
+              </ul>
             </div>
           </div>
-          <Card>
-            <SectionTitle sub={t('verify.help')}>{t('verify.title')}</SectionTitle>
-            <VerificationPanel strategy={selected} onPickMonth={setMonth} />
-          </Card>
-        </section>
-
-        <Card>
-          <SectionTitle sub={t('cal.help')}>{t('cal.title')}</SectionTitle>
-          <RotationCalendar
-            strategies={strategies}
-            selectedId={selected.id}
-            month={month}
-            onSelect={(id, mm) => {
-              setSelectedId(id);
-              if (mm !== undefined) setMonth(mm);
-            }}
-          />
-        </Card>
-
-        <DecisionChecklist farmCase={farmCase} onLot={() => changeView('lot')} onEdit={onEdit} />
-        {assumptions.length > 0 && (
-          <Collapsible title={t('res.assumptions')}>
-            <AssumptionList keys={assumptions} />
-          </Collapsible>
         )}
+        <p className="text-xs text-[#3B2F20]/85">{t('cmp.indexNote')}</p>
+      </section>
+
+      {/* 4. The field, month by month */}
+      <section aria-labelledby="scene-h" className="space-y-4">
+        <h2 id="scene-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
+          {t('scene.title')}
+        </h2>
+        <div className="grid gap-6 lg:grid-cols-12 items-start">
+          <Card className="min-w-0 lg:col-span-5" as="div">
+            <FieldScene strategy={shown} month={month} setMonth={setMonth} />
+          </Card>
+          <Card className="min-w-0 lg:col-span-7" as="div">
+            <SectionTitle sub={t('cal.help')}>{t('cal.title')}</SectionTitle>
+            <RotationCalendar
+              strategies={strategies}
+              selectedId={shown.id}
+              month={month}
+              onSelect={(id, mm) => {
+                if (id !== reference.id) setSelectedId(id);
+                if (mm !== undefined) setMonth(mm);
+              }}
+            />
+          </Card>
+        </div>
+      </section>
+
+      {/* 5. Before sowing: what to check, and the drone flight that checks it */}
+      <section aria-labelledby="verify-h" className="space-y-4">
+        <h2 id="verify-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
+          {t('verify.titleShort')}
+        </h2>
+        <p className="max-w-3xl text-sm text-[#3B2F20]">{t('verify.help')}</p>
+        <div className="grid gap-5 xl:grid-cols-2 items-start">
+          <Card className="min-w-0" as="div">
+            <VerificationPanel strategy={shown} onPickMonth={setMonth} />
+          </Card>
+          <Suspense fallback={null}>
+            {farmCase.lotPolygon ? (
+              <DroneRequestPanel farmCase={farmCase} checks={checks} />
+            ) : (
+              <div className="rounded-xl border border-[#DECFA7] bg-[#FEFAE0] p-4 text-sm">
+                <p className="font-bold text-[#283618]">{t('req.title')}</p>
+                <p className="mt-1">{t('req.needLot')}</p>
+                <button type="button" className={`${secondaryBtn} mt-3`} onClick={() => onEdit('lot')}>
+                  {t('decision.lot')} <ArrowRight aria-hidden className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </Suspense>
+        </div>
+      </section>
+
+      {/* 6. Everything behind the result, folded */}
+      <section aria-labelledby="behind-h" className="space-y-3">
+        <h2 id="behind-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
+          {t('behind.title')}
+        </h2>
+        {assumptions.length > 0 && <AssumptionList keys={assumptions} />}
+        <Collapsible title={t('behind.option')}>
+          <StrategyPanel strategy={shown} reference={reference} altIndex={Math.max(1, alts.indexOf(shown) + 1)} farm={farm} />
+        </Collapsible>
+        <Collapsible title={t('clim.title')}>
+          <p className="mb-3 text-sm text-[#3B2F20]/90">{t('clim.help')}</p>
+          <ClimatePanel profile={profile} from={from} to={to} />
+        </Collapsible>
+        <Collapsible title={t('behind.fine')}>
+          <SensitivityPanel scenario={scenario} onChange={(sc) => setCustom(sc.precipPct === 0 && sc.tempC === 0 ? null : sc)} />
+        </Collapsible>
         {outcome.discarded.length > 0 && (
-          <Collapsible title={`${t('disc.title')} (${outcome.discarded.length})`} defaultOpen={nAlt < 3}>
+          <Collapsible title={`${t('disc.title')} (${outcome.discarded.length})`} defaultOpen={alts.length < 3}>
             <DiscardedList items={outcome.discarded} />
           </Collapsible>
         )}
-      </section>
-
-      <section id="workspace-panel-climate" role="tabpanel" aria-labelledby="workspace-tab-climate" hidden={view !== 'climate'} className="space-y-6">
-        <p className="max-w-3xl text-sm text-[#3B2F20]">{t('workspace.climateHelp')}</p>
-        <Card>
-          <SectionTitle>{t('sens.title')}</SectionTitle>
-          <SensitivityPanel scenario={scenario} onChange={setScenario} />
-          <button type="button" className={`${secondaryBtn} mt-4`} onClick={() => changeView('compare')}>
-            {t('workspace.compareScenario')}
-          </button>
-        </Card>
-
-        <Card>
-          <SectionTitle sub={t('clim.help')}>{t('clim.title')}</SectionTitle>
-          <ClimatePanel profile={profile} from={from} to={to} />
-        </Card>
-        <AssumptionList keys={assumptions} />
         <Collapsible title={t('gaps.title')}>
           <ul className="list-disc pl-5 space-y-1 text-sm">
-            {GLOBAL_GAPS.map((g) => <li key={g.key}>{m(g)}</li>)}
+            {GLOBAL_GAPS.map((g) => (
+              <li key={g.key}>{m(g)}</li>
+            ))}
           </ul>
         </Collapsible>
         <Collapsible title={t('sources.title')}>
           <ul className="list-disc pl-5 space-y-1 text-sm">
-            {['source.power', 'source.gibs', 'source.fao'].map((k) => <li key={k}>{t(k)}</li>)}
+            {['source.power', 'source.srtm', 'source.gibs', 'source.fao'].map((k) => (
+              <li key={k}>{t(k)}</li>
+            ))}
           </ul>
         </Collapsible>
-      </section>
-
-      <section id="workspace-panel-lot" role="tabpanel" aria-labelledby="workspace-tab-lot" hidden={view !== 'lot'} className="space-y-6">
-        <p className="max-w-3xl text-sm text-[#3B2F20]">{t('workspace.lotHelp')}</p>
-        <Card>
-          <SectionTitle>{t('lot.title')}</SectionTitle>
-          {lotCentre && lotCentreKm !== null && lotCentreKm > 1 && (
-            <div className="mb-4">
-              <Notice tone="warn">
-                <strong className="block">{t('lot.centroidTitle')}</strong>
-                {t('lot.centroidText', { lat: farmCase.lat.toFixed(4), lon: farmCase.lon.toFixed(4), km: num(lotCentreKm, 1) })}
-                <div className="mt-2">
-                  <button type="button" className={secondaryBtn} onClick={() => onAnalyseAt(Number(lotCentre[0].toFixed(5)), Number(lotCentre[1].toFixed(5)))}>
-                    {t('lot.centroidGo')}
-                  </button>
-                </div>
-              </Notice>
-            </div>
-          )}
-          {snapshotMatches(farmCase.lat, farmCase.lon) && !farmCase.lotPolygon && (
-            <div className="mb-4">
-              <Notice tone="warn">{t('lot.cityWarn')}</Notice>
-            </div>
-          )}
-          <Suspense
-            fallback={
-              <p role="status" className="flex items-center gap-2 text-sm">
-                <Loader2 aria-hidden className="h-4 w-4 animate-spin motion-reduce:animate-none" /> {t('lot.loadingMap')}
-              </p>
-            }
+        <div className="rounded-2xl border border-[#DECFA7] bg-white/60">
+          <button
+            type="button"
+            aria-expanded={toolsOpen}
+            onClick={() => setToolsOpen(!toolsOpen)}
+            className="w-full flex items-center justify-between px-5 py-4 text-left font-bold text-[#283618] focus-visible:outline-2 focus-visible:outline-[#BC6C25] rounded-2xl"
           >
-            {lotVisited && <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} source={farmCase.lotSource} onLot={onLot} strategy={selected} />}
-          </Suspense>
-        </Card>
-        <Suspense fallback={null}>{lotVisited && <LotExtras farmCase={farmCase} lot={lot} />}</Suspense>
+            {t('behind.tools')}
+            <span aria-hidden>{toolsOpen ? '−' : '+'}</span>
+          </button>
+          {toolsOpen && (
+            <div className="px-5 pb-5 space-y-5">
+              <p className="text-sm text-[#3B2F20]/90">{t('behind.toolsHelp')}</p>
+              <Suspense
+                fallback={
+                  <p role="status" className="flex items-center gap-2 text-sm">
+                    <Loader2 aria-hidden className="h-4 w-4 animate-spin motion-reduce:animate-none" /> {t('lot.loadingMap')}
+                  </p>
+                }
+              >
+                {farmCase.lotPolygon && <TerrainCard farmCase={farmCase} lot={lot} />}
+                <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} source={farmCase.lotSource} onLot={onLot} strategy={shown} />
+              </Suspense>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );

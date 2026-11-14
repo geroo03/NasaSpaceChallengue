@@ -75,7 +75,7 @@ export interface TerrainSummary {
 }
 
 export interface LotSource {
-  kind: 'drawn' | 'file' | 'drone';
+  kind: 'drawn' | 'file' | 'drone' | 'example';
   fileName?: string;
   format?: string;
   /** Parcel name inside the file (cadastre nomenclature, layer…). */
@@ -83,6 +83,17 @@ export interface LotSource {
   /** Vertices were moved by hand after importing. */
   edited?: boolean;
 }
+
+/**
+ * Demo lot: a cleared, sown field ~10 km NE of Añatuya, traced by us on Esri World Imagery for the demo.
+ * Not a validated farm: its owner, soil and management are unknown. Its centre has a saved NASA POWER series.
+ */
+export const EXAMPLE_LOT: [number, number][] = [
+  [-28.3803, -62.7439],
+  [-28.3803, -62.7292],
+  [-28.3832, -62.7292],
+  [-28.3832, -62.7439],
+];
 
 const ALL_UNKNOWN = Object.fromEntries(RESOURCES.map((r) => [r, 'unknown'])) as Record<ResourceId, Access>;
 const ALL_PENDING = Object.fromEntries(RESOURCES.map((r) => [r, 'pending'])) as Record<ResourceId, Availability>;
