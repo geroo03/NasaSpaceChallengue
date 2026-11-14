@@ -8,6 +8,10 @@ Explora rotaciones de cultivos durante dos años según clima histórico de NASA
 
 | Ruta | Contenido |
 | --- | --- |
+| [`docs/AUDITORIA_ESTRATEGICA_NASA.md`](docs/AUDITORIA_ESTRATEGICA_NASA.md) | Auditoría conceptual, narrativa y de alineación estratégica para el jurado |
+| [`docs/MATRIZ_DATOS_Y_APIS_NASA.md`](docs/MATRIZ_DATOS_Y_APIS_NASA.md) | Mapeo técnico de APIs y satélites (NASA POWER, AppEEARS, SMAP, ECOSTRESS, GPM, etc.) |
+| [`docs/ESTRATEGIAS_ROTACION_CULTIVOS.md`](docs/ESTRATEGIAS_ROTACION_CULTIVOS.md) | Comparativa de las 3 estrategias de rotación requeridas por el desafío |
+| [`docs/GUIA_PRESENTACION_Y_VIDEO.md`](docs/GUIA_PRESENTACION_Y_VIDEO.md) | Guión audiovisual en 5 actos, resumen oficial de 178 palabras y defensa ante el jurado |
 | [`prototipo/field-shift`](prototipo/field-shift) | Aplicación Vite/TypeScript, Leaflet y Chart.js |
 | [`prototipo/revisar-caso.ts`](prototipo/revisar-caso.ts) | Reproducción del motor con la serie guardada de POWER |
 | [`Field Shift - Obsidian`](Field%20Shift%20-%20Obsidian) | Bóveda con investigación, decisiones, auditoría, tareas y presentación |
