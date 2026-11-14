@@ -1,125 +1,59 @@
-import React, { useState } from 'react';
-import { Menu, Plus, X } from 'lucide-react';
-import { AppScreen } from '../types/agronomy';
+import { useLang, type Lang } from '../i18n/LangContext';
 
-interface HeaderBarProps {
-  activeScreen: AppScreen;
-  onNavigate: (screen: AppScreen) => void;
-  onOpenNewLot: () => void;
-}
+export type Screen = 'explore' | 'method';
 
-const NAV_ITEMS: Array<{ id: AppScreen; label: string }> = [
-  { id: AppScreen.LOTES, label: 'Lotes' },
-  { id: AppScreen.SATELITE, label: 'Satélite' },
-  { id: AppScreen.CUADERNO, label: 'Cuaderno' },
-  { id: AppScreen.HISTORIA, label: 'Historia' },
-];
-
-export const HeaderBar: React.FC<HeaderBarProps> = ({
-  activeScreen,
-  onNavigate,
-  onOpenNewLot,
-}) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+export function HeaderBar({ screen, onNavigate }: { screen: Screen; onNavigate: (s: Screen) => void }) {
+  const { t, lang, setLang } = useLang();
+  const items: Screen[] = ['explore', 'method'];
   return (
-    <header className="sticky top-0 z-30 bg-[#FEFAE0]/95 backdrop-blur-sm border-b border-[#DECFA7]">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between gap-8">
-        {/* Zone 1: Single-element brand wordmark */}
+    <header className="sticky top-0 z-[1100] bg-[#FEFAE0]/95 backdrop-blur-sm border-b border-[#DECFA7]">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 min-h-16 py-2 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
         <button
           type="button"
-          onClick={() => {
-            onNavigate(AppScreen.LOTES);
-            setMobileMenuOpen(false);
-          }}
-          className="text-xl tracking-[0.06em] text-[#283618] whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#606C38] rounded"
+          onClick={() => onNavigate('explore')}
+          className="text-left text-[#283618] rounded focus-visible:outline-2 focus-visible:outline-[#BC6C25]"
         >
-          <span className="font-extralight uppercase">TERRA</span>
-          <span className="font-bold">VIVA</span>
+          <span className="block text-xl tracking-[0.06em] leading-none">
+            <span className="font-extralight uppercase">FIELD</span>
+            <span className="font-bold uppercase">SHIFT</span>
+            <span className="ml-1.5 text-sm font-bold text-[#BC6C25] align-top">{t('brand.lab')}</span>
+          </span>
+          <span className="hidden sm:block text-xs text-[#3B2F20]/80 mt-1">{t('brand.tagline')}</span>
         </button>
 
-        {/* Zone 2: 4 single-line text navigation links */}
-        <nav
-          aria-label="Navegación principal"
-          className="hidden md:flex items-center gap-7"
-        >
-          {NAV_ITEMS.map((item) => {
-            const isActive = activeScreen === item.id;
-            return (
+        <div className="flex items-center gap-4 sm:gap-7">
+          <nav aria-label={t('nav.main')} className="flex items-center gap-4 sm:gap-6">
+            {items.map((id) => (
               <button
-                key={item.id}
+                key={id}
                 type="button"
-                onClick={() => onNavigate(item.id)}
-                aria-current={isActive ? 'page' : undefined}
-                className={`relative py-2 text-sm font-bold tracking-[0.06em] whitespace-nowrap shrink-0 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-[#606C38] rounded ${
-                  isActive
-                    ? 'text-[#283618]'
-                    : 'text-[#3B2F20]/75 hover:text-[#9A5518]'
+                onClick={() => onNavigate(id)}
+                aria-current={screen === id ? 'page' : undefined}
+                className={`text-sm font-bold py-1 border-b-2 rounded-sm focus-visible:outline-2 focus-visible:outline-[#BC6C25] ${
+                  screen === id ? 'text-[#283618] border-[#BC6C25]' : 'text-[#3B2F20]/80 border-transparent hover:text-[#283618]'
                 }`}
               >
-                {item.label}
-                {isActive && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-x-0 bottom-0 h-[2.5px] rounded-full bg-[#606C38]"
-                  />
-                )}
+                {t(`nav.${id}`)}
               </button>
-            );
-          })}
-        </nav>
-
-        {/* Zone 3: 1 primary action + mobile menu trigger */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={onOpenNewLot}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#BC6C25] hover:bg-[#9A5518] active:scale-[0.98] active:bg-[#814612] text-white text-xs sm:text-sm font-bold tracking-[0.05em] px-4 py-2 whitespace-nowrap shrink-0 transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#283618]"
-          >
-            <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
-            <span>Nuevo lote</span>
-          </button>
-
-          <button
-            type="button"
-            aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
-            aria-expanded={mobileMenuOpen}
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-[#DECFA7] bg-[#EFE3C2]/60 text-[#283618] hover:bg-[#EFE3C2]"
-          >
-            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+            ))}
+          </nav>
+          <div role="group" aria-label={t('lang.label')} className="flex rounded-lg border border-[#DECFA7] bg-white p-0.5">
+            {(['es', 'en'] as Lang[]).map((l) => (
+              <button
+                key={l}
+                type="button"
+                aria-pressed={lang === l}
+                onClick={() => setLang(l)}
+                className={`px-2.5 py-1 text-xs font-bold rounded-md min-w-9 focus-visible:outline-2 focus-visible:outline-[#BC6C25] ${
+                  lang === l ? 'bg-[#283618] text-[#FEFAE0]' : 'text-[#3B2F20]'
+                }`}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-
-      {/* Mobile navigation drawer */}
-      {mobileMenuOpen && (
-        <nav
-          aria-label="Navegación móvil"
-          className="md:hidden border-t border-[#DECFA7] bg-[#FEFAE0] px-4 py-3 flex flex-wrap gap-2"
-        >
-          {NAV_ITEMS.map((item) => {
-            const isActive = activeScreen === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  onNavigate(item.id);
-                  setMobileMenuOpen(false);
-                }}
-                className={`px-3.5 py-2 rounded-lg text-sm font-bold tracking-[0.05em] whitespace-nowrap ${
-                  isActive
-                    ? 'bg-[#283618] text-[#FEFAE0]'
-                    : 'bg-[#EFE3C2]/70 text-[#3B2F20] hover:bg-[#EFE3C2]'
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-      )}
     </header>
   );
-};
+}

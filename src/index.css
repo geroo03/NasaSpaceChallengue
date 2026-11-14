@@ -66,3 +66,27 @@
   letter-spacing: 0.06em;
   text-wrap: balance;
 }
+
+/* Months with no crop scheduled: hatched earth, so the state never depends on colour alone. */
+.empty-month {
+  background-color: #F4EAD2;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #F4EAD2 0px,
+    #F4EAD2 4px,
+    rgba(176, 138, 90, 0.45) 4px,
+    rgba(176, 138, 90, 0.45) 5.5px
+  );
+}
+
+.leaflet-container {
+  font-family: 'Raleway', system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
