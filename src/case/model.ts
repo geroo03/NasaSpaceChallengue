@@ -53,6 +53,14 @@ export interface FarmCase {
   customPriorities: boolean;
   /** Lot boundary drawn by the user, [lat, lon] vertices. Used for imagery and flight orders, not by the engine. */
   lotPolygon: [number, number][] | null;
+  /** Where the lot boundary came from (shown as provenance). */
+  lotSource: LotSource | null;
+}
+
+export interface LotSource {
+  kind: 'drawn' | 'file' | 'drone';
+  fileName?: string;
+  format?: string;
 }
 
 const ALL_UNKNOWN = Object.fromEntries(RESOURCES.map((r) => [r, 'unknown'])) as Record<ResourceId, Access>;
@@ -75,6 +83,7 @@ export const DEFAULT_CASE: FarmCase = {
   priorities: prioritiesFromGoals(['water', 'cover']),
   customPriorities: false,
   lotPolygon: null,
+  lotSource: null,
 };
 
 export const PRESET_TEMPLATES: TemplateId[] = Object.values(TEMPLATES)

@@ -6,7 +6,7 @@ export function HeaderBar({ screen, onNavigate }: { screen: Screen; onNavigate: 
   const { t, lang, setLang } = useLang();
   const items: Screen[] = ['explore', 'method'];
   return (
-    <header className="sticky top-0 z-[1100] bg-[#FEFAE0]/95 backdrop-blur-sm border-b border-[#DECFA7]">
+    <header className="sticky top-0 z-[1100] bg-[#C9C2B2]/95 backdrop-blur-sm border-b border-[#A89F8B]">
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 min-h-16 py-2 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
         <button
           type="button"
@@ -30,7 +30,7 @@ export function HeaderBar({ screen, onNavigate }: { screen: Screen; onNavigate: 
                 onClick={() => onNavigate(id)}
                 aria-current={screen === id ? 'page' : undefined}
                 className={`text-sm font-bold py-1 border-b-2 rounded-sm focus-visible:outline-2 focus-visible:outline-[#BC6C25] ${
-                  screen === id ? 'text-[#283618] border-[#BC6C25]' : 'text-[#3B2F20]/80 border-transparent hover:text-[#283618]'
+                  screen === id ? 'text-[#283618] border-[#BC6C25]' : 'text-[#3B2F20] border-transparent hover:text-[#283618]'
                 }`}
               >
                 {t(`nav.${id}`)}

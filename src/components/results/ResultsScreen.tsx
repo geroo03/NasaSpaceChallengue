@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { Database, Loader2, Pencil, RefreshCw } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import { applyScenario, buildClimateProfile, type Scenario } from '../../engine/analysis/climate';
@@ -12,7 +12,8 @@ import { StrategyPanel, StrategyTabs } from './StrategyPanel';
 import { ClimatePanel } from './ClimatePanel';
 import { VerificationPanel } from './VerificationPanel';
 import { AssumptionList, DiscardedList, SensitivityPanel } from './ContextPanels';
-import { LotImagery } from './LotImagery';
+// Map tools (Geoman, Turf, file importers) load only when the results screen needs them.
+const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
 import { snapshotMatches } from '../../case/climateSource';
 
 export type LoadState =
@@ -22,14 +23,14 @@ export type LoadState =
 
 interface Props {
   farmCase: FarmCase;
-  onPolygon: (p: FarmCase['lotPolygon']) => void;
+  onLot: (p: FarmCase['lotPolygon'], source: FarmCase['lotSource']) => void;
   load: LoadState;
   onEdit: () => void;
   onRetry: () => void;
   onUseSaved: () => void;
 }
 
-export function ResultsScreen({ farmCase, onPolygon, load, onEdit, onRetry, onUseSaved }: Props) {
+export function ResultsScreen({ farmCase, onLot, load, onEdit, onRetry, onUseSaved }: Props) {
   const { t } = useLang();
 
   if (load.status === 'loading') {
@@ -64,10 +65,10 @@ export function ResultsScreen({ farmCase, onPolygon, load, onEdit, onRetry, onUs
       </div>
     );
   }
-  return <Results farmCase={farmCase} data={load.data} onEdit={onEdit} onPolygon={onPolygon} />;
+  return <Results farmCase={farmCase} data={load.data} onEdit={onEdit} onLot={onLot} />;
 }
 
-function Results({ farmCase, data, onEdit, onPolygon }: { farmCase: FarmCase; data: LoadedSeries; onEdit: () => void; onPolygon: Props['onPolygon'] }) {
+function Results({ farmCase, data, onEdit, onLot }: { farmCase: FarmCase; data: LoadedSeries; onEdit: () => void; onLot: Props['onLot'] }) {
   const { t, m, num } = useLang();
   const [scenario, setScenario] = useState<Scenario>({ precipPct: 0, tempC: 0 });
   const [selectedId, setSelectedId] = useState('current');
@@ -193,7 +194,15 @@ function Results({ farmCase, data, onEdit, onPolygon }: { farmCase: FarmCase; da
             <Notice tone="warn">{t('lot.cityWarn')}</Notice>
           </div>
         )}
-        <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} onPolygon={onPolygon} strategy={selected} />
+        <Suspense
+          fallback={
+            <p role="status" className="flex items-center gap-2 text-sm">
+              <Loader2 aria-hidden className="h-4 w-4 animate-spin motion-reduce:animate-none" /> {t('lot.loadingMap')}
+            </p>
+          }
+        >
+          <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} source={farmCase.lotSource} onLot={onLot} strategy={selected} />
+        </Suspense>
       </Card>
 
       {outcome.discarded.length > 0 && (

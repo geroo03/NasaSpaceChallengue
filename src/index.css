@@ -14,12 +14,13 @@
   --color-terracota-oscuro: #9A5518;
   --color-ocre: #DDA15E;
   --color-tierra: #3B2F20;
+  --color-fondo: #C9C2B2;
 }
 
 @layer base {
   html,
   body {
-    background-color: #FEFAE0;
+    background-color: #C9C2B2;
     color: #3B2F20;
     font-family: 'Raleway', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;

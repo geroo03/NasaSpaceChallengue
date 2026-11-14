@@ -1,16 +1,33 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Download, Eraser, Loader2, MousePointerClick, PenLine, Upload, X } from 'lucide-react';
+import '@geoman-io/leaflet-geoman-free';
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+import { Download, Eraser, Loader2, PenLine, SquarePen, Upload, X } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import { bestScene, hlsTileUrl, searchHlsScenes, type HlsScene } from '../../imagery/hls';
 import type { Orthomosaic } from '../../imagery/drone';
-import { buildFlightGeoJson, buildFlightKml, polygonAreaHa, type LatLon } from '../../imagery/flightOrder';
+import { buildFlightGeoJson, buildFlightKml, type LatLon } from '../../imagery/flightOrder';
+import { areaHa, validateLot } from '../../imagery/lotImport';
+import type { LotSource } from '../../case/model';
+import { LotDocsPanel } from './LotDocsPanel';
 import { planFieldChecks } from '../../case/verification';
 import type { StrategyResult } from '../../engine/domain/rotations';
 import { Notice, ProvTag, secondaryBtn } from '../ui';
 
 type Overlay = 'ndvi' | 'smap';
+type Base = 'hls' | 'esri';
+
+const ESRI_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const LOT_STYLE: L.PathOptions = { color: '#BC6C25', weight: 3, fillColor: '#BC6C25', fillOpacity: 0.12 };
+
+function ringOf(layer: L.Polygon): LatLon[] {
+  const rings = layer.getLatLngs() as L.LatLng[][];
+  return (rings[0] ?? []).map((p) => [Number(p.lat.toFixed(7)), Number(p.lng.toFixed(7))] as LatLon);
+}
+function sameRing(a: LatLon[], b: LatLon[]): boolean {
+  return a.length === b.length && a.every((p, i) => Math.abs(p[0] - b[i]![0]) < 1e-7 && Math.abs(p[1] - b[i]![1]) < 1e-7);
+}
 
 const gibsDate = new Date(Date.now() - 20 * 86_400_000).toISOString().slice(0, 10);
 const OVERLAY_URL: Record<Overlay, { url: string; native: number }> = {
@@ -40,29 +57,37 @@ export function LotImagery({
   lat,
   lon,
   polygon,
-  onPolygon,
+  source,
+  onLot,
   strategy,
 }: {
   lat: number;
   lon: number;
   polygon: LatLon[] | null;
-  onPolygon: (p: LatLon[] | null) => void;
+  source: LotSource | null;
+  onLot: (p: LatLon[] | null, source: LotSource | null) => void;
   strategy: StrategyResult;
 }) {
-  const { t, months, crop } = useLang();
+  const { t, months, crop, lang } = useLang();
   const host = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const hlsLayer = useRef<L.TileLayer | null>(null);
   const overlayLayers = useRef<Partial<Record<Overlay, L.TileLayer>>>({});
   const droneLayer = useRef<L.ImageOverlay | null>(null);
-  const polyLayer = useRef<L.Polygon | L.Polyline | null>(null);
+  const polyLayer = useRef<L.Polygon | null>(null);
+  const baseLayer = useRef<L.TileLayer | null>(null);
+  const onLotRef = useRef(onLot);
+  onLotRef.current = onLot;
+  const sourceRef = useRef(source);
+  sourceRef.current = source;
 
   const [scenes, setScenes] = useState<HlsScene[] | null>(null);
   const [sceneErr, setSceneErr] = useState<string | null>(null);
   const [scene, setScene] = useState<HlsScene | null>(null);
   const [overlays, setOverlays] = useState<Record<Overlay, boolean>>({ ndvi: false, smap: false });
-  const [drawing, setDrawing] = useState(false);
-  const [draft, setDraft] = useState<LatLon[]>([]);
+  const [base, setBase] = useState<Base>('hls');
+  const [editing, setEditing] = useState(false);
+  const [lotErr, setLotErr] = useState<string | null>(null);
   const [drone, setDrone] = useState<Orthomosaic | null>(null);
   const [droneBusy, setDroneBusy] = useState(false);
   const [droneErr, setDroneErr] = useState<string | null>(null);
@@ -74,7 +99,37 @@ export function LotImagery({
     const m = L.map(host.current, { scrollWheelZoom: false, maxZoom: 19 }).setView([lat, lon], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, zIndex: 0, attribution: '© OpenStreetMap' }).addTo(m);
     L.control.scale({ metric: true, imperial: false }).addTo(m);
-    L.circleMarker([lat, lon], { radius: 7, color: '#BC6C25', weight: 3, fillColor: '#FEFAE0', fillOpacity: 0.9 }).addTo(m);
+    L.circleMarker([lat, lon], { radius: 7, color: '#BC6C25', weight: 3, fillColor: '#FEFAE0', fillOpacity: 0.9, pmIgnore: true }).addTo(m);
+    // Drawing like AgroCordS: Geoman polygon tool with finish / undo / cancel actions on the map.
+    m.pm.addControls({
+      position: 'topleft',
+      drawPolygon: true,
+      drawMarker: false,
+      drawCircleMarker: false,
+      drawCircle: false,
+      drawPolyline: false,
+      drawRectangle: false,
+      drawText: false,
+      editMode: true,
+      dragMode: false,
+      cutPolygon: false,
+      removalMode: false,
+      rotateMode: false,
+    });
+    m.pm.setGlobalOptions({ allowSelfIntersection: false, snappable: false, pathOptions: LOT_STYLE });
+    m.on('pm:create', (e: { layer: L.Layer }) => {
+      const layer = e.layer as L.Polygon;
+      const ring = ringOf(layer);
+      layer.remove(); // the lot is rendered from state
+      const problem = validateLot(ring);
+      if (problem) {
+        setLotErr(problem);
+        return;
+      }
+      setLotErr(null);
+      onLotRef.current(ring, { kind: 'drawn' });
+    });
+    m.on('pm:globaleditmodetoggled', (e: { enabled: boolean }) => setEditing(e.enabled));
     map.current = m;
     return () => {
       m.remove();
@@ -105,11 +160,25 @@ export function LotImagery({
   }, [lat, lon]);
 
   useEffect(() => {
+    map.current?.pm.setLang(lang === 'es' ? 'es' : 'en', lang === 'es' ? { actions: { removeLastVertex: 'Deshacer' } } : undefined, 'en');
+  }, [lang]);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    baseLayer.current?.remove();
+    baseLayer.current = null;
+    if (base === 'esri') {
+      baseLayer.current = L.tileLayer(ESRI_URL, { maxNativeZoom: 17, maxZoom: 19, zIndex: 1, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics' }).addTo(m);
+    }
+  }, [base]);
+
+  useEffect(() => {
     const m = map.current;
     if (!m) return;
     hlsLayer.current?.remove();
     hlsLayer.current = null;
-    if (scene) {
+    if (scene && base === 'hls') {
       hlsLayer.current = L.tileLayer(hlsTileUrl(scene.sensor, scene.date), {
         maxNativeZoom: 12,
         maxZoom: 19,
@@ -117,7 +186,7 @@ export function LotImagery({
         attribution: `NASA HLS ${scene.sensor} · ${scene.date}`,
       }).addTo(m);
     }
-  }, [scene]);
+  }, [scene, base]);
 
   // --- regional overlays ---------------------------------------------------------------------
   useEffect(() => {
@@ -145,7 +214,7 @@ export function LotImagery({
     droneLayer.current = L.imageOverlay(drone.preview, [
       [b.south, b.west],
       [b.north, b.east],
-    ], { opacity: droneOpacity, interactive: false }).addTo(m);
+    ], { opacity: droneOpacity, interactive: false, pmIgnore: true }).addTo(m);
     m.fitBounds([
       [b.south, b.west],
       [b.north, b.east],
@@ -158,36 +227,34 @@ export function LotImagery({
   }, [droneOpacity]);
 
   // --- lot polygon ---------------------------------------------------------------------------
-  const shown = drawing ? draft : (polygon ?? []);
   useEffect(() => {
     const m = map.current;
-    polyLayer.current?.remove();
+    if (!m) return;
+    const current = polyLayer.current;
+    if (current && polygon && sameRing(ringOf(current), polygon)) return; // edit already reflected
+    current?.remove();
     polyLayer.current = null;
-    if (!m || shown.length === 0) return;
-    const style = { color: '#BC6C25', weight: 3, fillColor: '#BC6C25', fillOpacity: 0.12, dashArray: drawing ? '6 6' : undefined };
-    polyLayer.current = (drawing || shown.length < 3 ? L.polyline(shown, style) : L.polygon(shown, style)).addTo(m);
-  }, [shown, drawing]);
-
-  useEffect(() => {
-    const m = map.current;
-    if (!m || !drawing) return;
-    const onClick = (e: L.LeafletMouseEvent) => setDraft((d) => [...d, [Number(e.latlng.lat.toFixed(7)), Number(e.latlng.lng.toFixed(7))]]);
-    m.on('click', onClick);
-    m.getContainer().style.cursor = 'crosshair';
-    return () => {
-      m.off('click', onClick);
-      m.getContainer().style.cursor = '';
-    };
-  }, [drawing]);
+    if (!polygon || polygon.length < 3) return;
+    const layer = L.polygon(polygon, LOT_STYLE).addTo(m);
+    layer.on('pm:edit', () => {
+      const ring = ringOf(layer);
+      const problem = validateLot(ring);
+      if (problem) {
+        setLotErr(problem);
+        return;
+      }
+      setLotErr(null);
+      onLotRef.current(ring, sourceRef.current ? { ...sourceRef.current, kind: sourceRef.current.kind === 'file' ? 'file' : 'drawn' } : { kind: 'drawn' });
+    });
+    polyLayer.current = layer;
+    if (!m.getBounds().contains(layer.getBounds())) m.fitBounds(layer.getBounds(), { padding: [24, 24] });
+  }, [polygon]);
 
   const startDraw = () => {
-    setDraft([]);
-    setDrawing(true);
+    setLotErr(null);
+    map.current?.pm.enableDraw('Polygon');
   };
-  const finishDraw = () => {
-    setDrawing(false);
-    if (draft.length >= 3) onPolygon(draft);
-  };
+  const toggleEdit = () => map.current?.pm.toggleGlobalEditMode();
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
@@ -250,38 +317,55 @@ export function LotImagery({
         <div>
           <div ref={host} role="application" aria-label={t('lot.mapLabel')} className="h-[380px] sm:h-[460px] w-full rounded-xl border border-[#DECFA7] z-0" />
           <div className="mt-2 flex flex-wrap gap-2">
-            {!drawing ? (
-              <button type="button" className={secondaryBtn} onClick={startDraw}>
-                <PenLine aria-hidden className="h-4 w-4" /> {polygon ? t('lot.redraw') : t('lot.draw')}
+            <button type="button" className={secondaryBtn} onClick={startDraw}>
+              <PenLine aria-hidden className="h-4 w-4" /> {polygon ? t('lot.redraw') : t('lot.draw')}
+            </button>
+            {polygon && (
+              <button type="button" className={secondaryBtn} aria-pressed={editing} onClick={toggleEdit}>
+                <SquarePen aria-hidden className="h-4 w-4" /> {editing ? t('lot.editDone') : t('lot.edit')}
               </button>
-            ) : (
-              <>
-                <span className="inline-flex items-center gap-2 text-sm font-bold text-[#283618]">
-                  <MousePointerClick aria-hidden className="h-4 w-4" /> {t('lot.drawHint', { n: draft.length })}
-                </span>
-                <button type="button" className={secondaryBtn} disabled={draft.length < 3} onClick={finishDraw}>
-                  {t('lot.finish')}
-                </button>
-                <button type="button" className={secondaryBtn} onClick={() => setDrawing(false)}>
-                  {t('lot.cancel')}
-                </button>
-              </>
             )}
-            {polygon && !drawing && (
-              <button type="button" className={secondaryBtn} onClick={() => onPolygon(null)}>
+            {polygon && (
+              <button type="button" className={secondaryBtn} onClick={() => onLot(null, null)}>
                 <Eraser aria-hidden className="h-4 w-4" /> {t('lot.clear')}
               </button>
             )}
           </div>
-          {polygon && !drawing && (
-            <p className="mt-2 text-sm">
-              <ProvTag kind="declared" /> {t('lot.area', { ha: polygonAreaHa(polygon).toFixed(1) })}
+          <p className="mt-1.5 text-xs text-[#3B2F20]/85">{t('lot.drawHelp')}</p>
+          {lotErr && (
+            <div className="mt-2">
+              <Notice tone="error">{t(`lot.problem.${lotErr}`)}</Notice>
+            </div>
+          )}
+          {polygon && (
+            <p className="mt-2 text-sm flex flex-wrap items-center gap-2">
+              <ProvTag kind="declared" />
+              <span>
+                {t('lot.area', { ha: areaHa(polygon).toFixed(1) })}{' '}
+                {source && t(`lot.source.${source.kind}`, { file: source.fileName ?? '' })}
+              </span>
             </p>
           )}
+          <div className="mt-4">
+            <LotDocsPanel onLot={(ring, src) => { setLotErr(null); onLot(ring, src); }} />
+          </div>
         </div>
 
         <div className="space-y-4">
           <fieldset>
+            <legend className="text-sm font-bold text-[#283618]">{t('lot.base')}</legend>
+            {(['hls', 'esri'] as Base[]).map((b) => (
+              <label key={b} className="mt-1.5 flex items-start gap-2 text-sm">
+                <input type="radio" name="lot-base" className="mt-1 accent-[#BC6C25]" checked={base === b} onChange={() => setBase(b)} />
+                <span>
+                  {t(`lot.base.${b}`)}
+                  <span className="block text-xs text-[#3B2F20]/75">{t(`lot.base.${b}.d`)}</span>
+                </span>
+              </label>
+            ))}
+          </fieldset>
+
+          <fieldset disabled={base !== 'hls'} className="disabled:opacity-50">
             <legend className="text-sm font-bold text-[#283618]">{t('lot.scenes')}</legend>
             <p className="text-xs text-[#3B2F20]/80 mt-0.5">{t('lot.scenesHelp')}</p>
             {!scenes && !sceneErr && (
@@ -376,12 +460,15 @@ export function LotImagery({
                 type="button"
                 className={secondaryBtn}
                 onClick={() =>
-                  onPolygon([
-                    [drone.bounds.south, drone.bounds.west],
-                    [drone.bounds.south, drone.bounds.east],
-                    [drone.bounds.north, drone.bounds.east],
-                    [drone.bounds.north, drone.bounds.west],
-                  ])
+                  onLot(
+                    [
+                      [drone.bounds.south, drone.bounds.west],
+                      [drone.bounds.south, drone.bounds.east],
+                      [drone.bounds.north, drone.bounds.east],
+                      [drone.bounds.north, drone.bounds.west],
+                    ],
+                    { kind: 'drone', fileName: drone.name },
+                  )
                 }
               >
                 {t('drone.useAsLot')}

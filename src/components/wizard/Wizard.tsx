@@ -44,7 +44,7 @@ export function Wizard({
 
   return (
     <div className="max-w-3xl mx-auto">
-      <p className="text-sm font-bold uppercase tracking-[0.08em] text-[#606C38]">{t('wizard.title')}</p>
+      <p className="text-sm font-bold uppercase tracking-[0.08em] text-[#283618]">{t('wizard.title')}</p>
 
       <nav aria-label={t('wizard.progress', { n: step + 1, total: STEPS.length })} className="mt-4">
         <ol className="grid grid-cols-5 gap-1.5">
@@ -56,8 +56,8 @@ export function Wizard({
                 aria-current={i === step ? 'step' : undefined}
                 className="w-full text-left focus-visible:outline-2 focus-visible:outline-[#BC6C25] rounded"
               >
-                <span className={`block h-1.5 rounded-full ${i <= step ? 'bg-[#BC6C25]' : 'bg-[#DECFA7]'}`} />
-                <span className={`mt-1.5 hidden sm:block text-xs font-bold ${i === step ? 'text-[#283618]' : 'text-[#3B2F20]/70'}`}>
+                <span className={`block h-1.5 rounded-full ${i <= step ? 'bg-[#BC6C25]' : 'bg-[#A89F8B]'}`} />
+                <span className={`mt-1.5 hidden sm:block text-xs font-bold ${i === step ? 'text-[#283618]' : 'text-[#3B2F20]/90'}`}>
                   {t(`wizard.step.${s}`)}
                 </span>
               </button>

@@ -13,9 +13,11 @@ El caso inicial es un **punto ilustrativo de Santiago del Estero**. Añatuya es 
 5. **Clima NASA POWER**: lluvia, ET₀ (Hargreaves), lluvia/ET₀, días ≥ 35 °C y heladas. Cada valor lleva fuente, período, unidad y procedencia.
 6. **Imagen del lote**: mapa con NASA HLS a 30 m (Sentinel-2 y Landsat armonizados). Las escenas salen del catálogo CMR con su porcentaje de nubes y se elige sola la más reciente y limpia. MODIS NDVI y SMAP L4 quedan como capas regionales. Las imágenes no entran al cálculo.
 7. **Drones**: carga de ortomosaicos GeoTIFF exportados por DJI Terra u otras plataformas, en WGS84, UTM o POSGAR 2007. Se procesan en el navegador sin subir el archivo y se superponen al mapa.
-8. **Orden de vuelo**: el lote se dibuja en el mapa y se exporta en KML (importable en DJI Pilot 2) y GeoJSON, con qué revisar en cada mes según la opción elegida. Field Shift no define altura ni solapamiento: eso lo decide el piloto, por ejemplo de Vuelo Verde.
-9. **Rotaciones descartadas** con su motivo. No se inventan alternativas.
-10. **Estados** de carga, error de red con respaldo en la serie guardada, y aviso cuando hay pocas alternativas o ninguna.
+8. **Delimitar el lote**: se dibuja y se editan los vértices con Leaflet-Geoman, igual que en AgroCordS, sobre la imagen NASA HLS o sobre la base Esri de alta resolución. Valida con Turf: no puede cruzarse a sí mismo y tiene que medir entre 0,5 y 5.000 ha.
+9. **Documentación del relevamiento**: importa el límite desde KML/KMZ, Shapefile .zip (reproyectado según su .prj), GeoJSON o DXF del plano de mensura (POSGAR 2007 fajas 1–7, UTM 19–21S o WGS84). Si el archivo trae varias parcelas, el usuario elige cuál es su lote. Los PDF o fotos del plano se adjuntan como guía. Santiago del Estero no publica catastro en línea, por eso la carga es por archivo.
+10. **Orden de vuelo**: el lote se dibuja en el mapa y se exporta en KML (importable en DJI Pilot 2) y GeoJSON, con qué revisar en cada mes según la opción elegida. Field Shift no define altura ni solapamiento: eso lo decide el piloto, por ejemplo de Vuelo Verde.
+11. **Rotaciones descartadas** con su motivo. No se inventan alternativas.
+12. **Estados** de carga, error de red con respaldo en la serie guardada, y aviso cuando hay pocas alternativas o ninguna.
 
 ### Lo que todavía no hace
 
@@ -33,7 +35,7 @@ React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet, geotiff.js + proj
 ```sh
 npm install
 npm run dev        # servidor local
-npm test           # 53 pruebas (motor, caso, verificación, HLS, coordenadas y orden de vuelo)
+npm test           # 62 pruebas (motor, caso, verificación, HLS, coordenadas, orden de vuelo e importación de catastro/planos)
 npm run build      # typecheck + build estático en dist/
 npm run preview
 ```
@@ -48,7 +50,7 @@ src/engine/            Motor del prototipo Field Shift (puro, sin React)
   domain/rotations.ts    Calendario, evaluación, ranking y descartadas
   test/                  Pruebas del motor
 src/case/              Respuestas del productor → contexto del motor (con supuestos) y plan de verificación
-src/imagery/           Escenas HLS (CMR/GIBS), lectura de GeoTIFF de dron y orden de vuelo KML/GeoJSON
+src/imagery/           Escenas HLS (CMR/GIBS), GeoTIFF de dron, importación de límites (KML/KMZ/SHP/GeoJSON/DXF) y orden de vuelo
 src/i18n/              Textos ES/EN (motor + interfaz)
 src/components/        Recorrido, resultados y "Cómo funciona"
 public/data/           Serie NASA POWER 2011–2025 guardada (punto -27.7834, -64.2642)
