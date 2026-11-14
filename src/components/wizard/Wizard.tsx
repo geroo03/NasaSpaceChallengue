@@ -52,11 +52,13 @@ export function Wizard({
             <li key={s}>
               <button
                 type="button"
+                aria-label={t(`wizard.step.${s}`)}
+                disabled={i > step && !canAdvance}
                 onClick={() => (i <= step || canAdvance ? setStep(i) : undefined)}
                 aria-current={i === step ? 'step' : undefined}
-                className="w-full text-left focus-visible:outline-2 focus-visible:outline-[#BC6C25] rounded"
+                className="flex min-h-[44px] w-full flex-col justify-center text-left focus-visible:outline-2 focus-visible:outline-[#BC6C25] rounded disabled:opacity-50"
               >
-                <span className={`block h-1.5 rounded-full ${i <= step ? 'bg-[#BC6C25]' : 'bg-[#A89F8B]'}`} />
+                <span className={`block h-1.5 w-full rounded-full ${i <= step ? 'bg-[#BC6C25]' : 'bg-[#A89F8B]'}`} />
                 <span className={`mt-1.5 hidden sm:block text-xs font-bold ${i === step ? 'text-[#283618]' : 'text-[#3B2F20]/90'}`}>
                   {t(`wizard.step.${s}`)}
                 </span>

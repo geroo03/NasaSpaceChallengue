@@ -34,7 +34,7 @@ export function StrategyTabs({ strategies, selectedId, onSelect }: { strategies:
   const { t } = useLang();
   let alt = 0;
   return (
-    <div role="tablist" aria-label={t('cmp.choose')} className="flex gap-1.5 overflow-x-auto rounded-xl bg-[#EFE3C2]/70 border border-[#DECFA7] p-1.5">
+    <div role="group" aria-label={t('cmp.choose')} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {strategies.map((s) => {
         const n = s.isCurrent ? 0 : ++alt;
         const active = s.id === selectedId;
@@ -42,14 +42,18 @@ export function StrategyTabs({ strategies, selectedId, onSelect }: { strategies:
           <button
             key={s.id}
             type="button"
-            role="tab"
-            aria-selected={active}
+            aria-pressed={active}
             onClick={() => onSelect(s.id)}
-            className={`shrink-0 rounded-lg px-3 py-2 text-left text-xs sm:text-sm font-bold focus-visible:outline-2 focus-visible:outline-[#BC6C25] ${
-              active ? 'bg-[#283618] text-[#FEFAE0]' : 'text-[#3B2F20] hover:bg-[#FEFAE0]/70'
+            className={`flex min-w-0 flex-col rounded-2xl border-2 p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25] ${
+              active ? 'border-[#283618] bg-[#283618] text-white' : 'border-[#DECFA7] bg-white text-[#283618] hover:border-[#A3B18A]'
             }`}
           >
-            {s.isCurrent ? t('cmp.tabRef') : t('cmp.tabAlt', { n })}
+            <span className={`text-xs font-bold ${active ? 'text-[#E3EBDD]' : 'text-[#606C38]'}`}>{s.isCurrent ? t('cmp.tabRef') : t('cmp.tabAlt', { n })}</span>
+            <span className="mt-2 block flex-1 text-sm font-bold sm:text-base">{t(`template.${s.templateId}`)}</span>
+            <span className="mt-4 block text-xs">{t('workspace.bareMonths', { n: s.bareMonths })}</span>
+            <span className={`mt-2 block border-t pt-2 text-xs ${active ? 'border-white/25' : 'border-[#DECFA7]'}`}>
+              <strong className="text-lg tabular-nums">{Math.round(s.overall)}</strong>/100 · {t('cmp.index')}
+            </span>
           </button>
         );
       })}
@@ -61,6 +65,7 @@ export function StrategyPanel({ strategy, reference, altIndex, farm }: { strateg
   const { t, m, crop, months } = useLang();
   const [open, setOpen] = useState(false);
   const s = strategy;
+  const checks = [...s.risks.map(m), ...s.gaps.map(m)];
 
   // 1. What changes, derived from the two calendars (no new modelling).
   const changes: string[] = [];
@@ -120,7 +125,8 @@ export function StrategyPanel({ strategy, reference, altIndex, farm }: { strateg
           {farm.irrigationMm > 0 && <p className="mt-1">{t('cmp.irrigationUsed', { mm: farm.irrigationMm })}</p>}
         </Block>
         <Block title={`4. ${t('cmp.verify')}`}>
-          <List items={[...s.risks.map(m), ...s.gaps.map(m)]} empty="—" />
+          <List items={checks.slice(0, 2)} empty="—" />
+          {checks.length > 2 && <p className="mt-2 text-xs font-bold text-[#606C38]">{t('workspace.moreChecks', { n: checks.length - 2 })}</p>}
         </Block>
       </div>
 
@@ -139,6 +145,9 @@ export function StrategyPanel({ strategy, reference, altIndex, farm }: { strateg
 
       {open && (
         <div className="mt-4 grid gap-5 md:grid-cols-2 border-t border-[#EFE3C2] pt-4">
+          <Block title={t('cmp.verify')}>
+            <List items={checks} empty="—" />
+          </Block>
           <Block title={t('strategy.schedule')}>
             <List items={schedule} empty="—" />
           </Block>

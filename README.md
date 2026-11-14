@@ -23,6 +23,14 @@ El caso inicial es un **punto ilustrativo de Santiago del Estero**. Añatuya es 
 11. **Rotaciones descartadas** con su motivo. No se inventan alternativas.
 12. **Estados** de carga, error de red con respaldo en la serie guardada, y aviso cuando hay pocas alternativas o ninguna.
 
+### Propuesta de interfaz para evaluar
+
+Los resultados se organizan en **Comparar**, **Mi lote** y **Clima**, con navegación por teclado y sin perder los adjuntos al cambiar de vista. Las opciones muestran el nombre de la rotación, su índice orientativo y los meses sin cultivo programado. El bloque **Antes de decidir** permite ir directamente a revisar el lote, los recursos y el suelo. Las herramientas cartográficas se cargan al abrir **Mi lote**.
+
+En móvil, el calendario se desplaza dentro de su panel y conserva botones de al menos 44 px por mes, con etiquetas de mes/año y navegación mediante flechas.
+
+Se corrigieron la recuperación de coordenadas vacías, los enlaces de múltiples adjuntos y la entrada de riego desconocido. El riego compartido o contratado pendiente de confirmación se registra, pero aporta 0 mm al cálculo hasta confirmar disponibilidad. Las sugerencias de seguimiento muestran una ventana del ciclo, sin inventar un mes de máximo estrés. Ver [revisión y propuesta](docs/REVISION_FRONT_Y_PROPUESTA_2026-11-14.md).
+
 ### Lo que todavía no hace
 
 - **Compatibilidad con equipos**: el acceso a herramientas (propio, compartido, contratado, sin acceso, falta confirmar) se registra, pero no filtra ni ordena las alternativas. La app lo muestra como "Compatibilidad de equipos pendiente de evaluación".
@@ -39,7 +47,7 @@ React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet, geotiff.js + proj
 ```sh
 npm install
 npm run dev        # servidor local
-npm test           # 70 pruebas (motor, caso, verificación, HLS, coordenadas, orden de vuelo e importación de catastro/planos)
+npm test           # motor, caso, verificación, HLS, coordenadas, orden de vuelo e importación de catastro/planos
 npm run build      # typecheck + build estático en dist/
 npm run preview
 ```

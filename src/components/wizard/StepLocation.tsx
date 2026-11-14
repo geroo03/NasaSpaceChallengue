@@ -19,7 +19,7 @@ export function StepLocation({ value, onChange }: { value: FarmCase; onChange: (
           <ChoiceCard
             key={p.id}
             selected={value.placeId === p.id}
-            onSelect={() => onChange({ placeId: p.id, lat: p.lat, lon: p.lon })}
+            onSelect={() => onChange({ placeId: p.id, lat: p.lat, lon: p.lon, lotPolygon: null, lotSource: null })}
             icon={<MapPin aria-hidden className="h-5 w-5" />}
             title={t(`loc.place.${p.id}`)}
             description={t(`loc.place.${p.id}.note`)}
@@ -43,7 +43,7 @@ export function StepLocation({ value, onChange }: { value: FarmCase; onChange: (
       />
       <p className="text-sm text-[#3B2F20]/85">
         {value.placeId === null && <strong className="text-[#283618]">{t('loc.place.custom')} · </strong>}
-        {value.lat.toFixed(4)}, {value.lon.toFixed(4)} — {t('loc.pointNote')}
+        {Number.isFinite(value.lat) ? value.lat.toFixed(4) : '—'}, {Number.isFinite(value.lon) ? value.lon.toFixed(4) : '—'} — {t('loc.pointNote')}
       </p>
 
       <Collapsible title={t('loc.details')}>

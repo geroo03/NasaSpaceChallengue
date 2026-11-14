@@ -70,15 +70,15 @@ export function StepResources({ value, onChange }: { value: FarmCase; onChange: 
                       min={0}
                       max={800}
                       step={10}
-                      disabled={value.irrigationMm === null}
                       value={value.irrigationMm ?? ''}
-                      onChange={(e) => onChange({ irrigationMm: Math.max(0, Math.min(800, Number(e.target.value) || 0)) })}
+                      placeholder={t('res.irrigationPlaceholder')}
+                      onChange={(e) => onChange({ irrigationMm: e.target.value === '' ? null : Math.max(0, Math.min(800, Number(e.target.value) || 0)) })}
                       className="w-28 rounded-lg border border-[#DECFA7] bg-white px-3 py-2 tabular-nums disabled:bg-[#EFE3C2]/50"
                     />
                     <span className="text-sm">{t('res.irrigationUnit')}</span>
                     <Pill
                       selected={value.irrigationMm === null}
-                      onClick={() => onChange({ irrigationMm: value.irrigationMm === null ? 100 : null })}
+                      onClick={() => onChange({ irrigationMm: null })}
                     >
                       {t('res.irrigationUnknown')}
                     </Pill>

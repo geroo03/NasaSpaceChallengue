@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { DEFAULT_CASE, distanceKm, prioritiesFromGoals, ringCentroid, toFarmContext, type FarmCase } from './model';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { DEFAULT_CASE, distanceKm, loadCase, prioritiesFromGoals, ringCentroid, saveCase, toFarmContext, type FarmCase } from './model';
 
 const base: FarmCase = { ...DEFAULT_CASE };
 
@@ -11,7 +11,7 @@ describe('case → engine context', () => {
   });
 
   it('uses declared irrigation only when the farmer has some access to it', () => {
-    const owned = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'contracted' }, irrigationMm: 150 });
+    const owned = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'contracted' }, availability: { ...base.availability, irrigation: 'confirmed' }, irrigationMm: 150 });
     expect(owned.farm.irrigationMm).toBe(150);
     const none = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'unavailable' }, irrigationMm: 150 });
     expect(none.farm.irrigationMm).toBe(0);
@@ -22,6 +22,13 @@ describe('case → engine context', () => {
     const { farm, assumptions } = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'owned' }, irrigationMm: null });
     expect(farm.irrigationMm).toBe(0);
     expect(assumptions).toContain('irrigationUnknownMm');
+  });
+
+  it.each(['shared', 'contracted'] as const)('keeps %s irrigation out of the water supply until availability is confirmed', (access) => {
+    const pending: FarmCase = { ...base, resources: { ...base.resources, irrigation: access }, irrigationMm: 300 };
+    expect(toFarmContext(pending).farm.irrigationMm).toBe(0);
+    expect(toFarmContext(pending).assumptions).toContain('irrigationPending');
+    expect(toFarmContext({ ...pending, availability: { ...pending.availability, irrigation: 'confirmed' } }).farm.irrigationMm).toBe(300);
   });
 
   it('marks the slope as assumed when unknown', () => {
@@ -40,6 +47,27 @@ describe('case → engine context', () => {
   });
 });
 
+describe('case persistence during coordinate edits', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('recovers a legacy null coordinate and preserves the other answers', () => {
+    const getItem = vi.fn(() => JSON.stringify({ ...base, lat: null, lon: -62, placeId: null, otherCrop: 'caupí' }));
+    vi.stubGlobal('window', { localStorage: { getItem } });
+    const recovered = loadCase();
+    expect([recovered.lat, recovered.lon]).toEqual([base.lat, base.lon]);
+    expect(recovered.otherCrop).toBe('caupí');
+  });
+
+  it('retains the previous valid case when a coordinate is temporarily empty', () => {
+    const setItem = vi.fn();
+    vi.stubGlobal('window', { localStorage: { setItem } });
+    saveCase({ ...base, lat: NaN });
+    expect(setItem).not.toHaveBeenCalled();
+    saveCase(base);
+    expect(JSON.parse(setItem.mock.calls[0]![1])).toMatchObject({ lat: base.lat, lon: base.lon });
+  });
+});
+
 describe('lot centroid as analysis point', () => {
   it('finds the centre of an L-shaped lot by area, not by averaging vertices', () => {
     // L shape: big square [0,2]x[0,2] minus [1,2]x[1,2] (in degrees, lat/lon order)
@@ -53,5 +81,13 @@ describe('lot centroid as analysis point', () => {
     expect(distanceKm([-27.78, -64.26], [-27.78, -64.26])).toBe(0);
     expect(distanceKm([-28, -64], [-29, -64])).toBeGreaterThan(110);
     expect(distanceKm([-28, -64], [-29, -64])).toBeLessThan(112);
+  });
+});
+
+describe('slope provenance', () => {
+  it('reports when the slope comes from SRTM or a drone DSM instead of the farmer', () => {
+    expect(toFarmContext({ ...base, slope: 'flat', slopeSource: 'srtm' }).assumptions).toContain('slopeFromSrtm');
+    expect(toFarmContext({ ...base, slope: 'gentle', slopeSource: 'drone' }).assumptions).toContain('slopeFromDrone');
+    expect(toFarmContext({ ...base, slope: 'gentle', slopeSource: 'declared' }).assumptions).not.toContain('slopeFromSrtm');
   });
 });

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useLang } from '../../i18n/LangContext';
 import type { StrategyResult } from '../../engine/domain/rotations';
 import { CROP_COLORS, cropAbbr, textOn } from '../ui';
@@ -19,15 +20,28 @@ export function RotationCalendar({
   onSelect: (id: string, month?: number) => void;
 }) {
   const { t, lang, months, crop } = useLang();
+  const scroll = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const container = scroll.current;
+    const cell = document.getElementById(`calendar-${selectedId}-${month}`);
+    if (!container?.clientWidth || !cell) return;
+    const left = cell.getBoundingClientRect().left - container.getBoundingClientRect().left + container.scrollLeft;
+    if (left < container.scrollLeft || left + cell.clientWidth > container.scrollLeft + container.clientWidth) {
+      container.scrollLeft = Math.max(0, left - container.clientWidth / 2);
+    }
+  }, [selectedId, month]);
   const axis = strategies[0]?.timeline ?? [];
   let alt = 0;
   return (
     <div>
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
-        <div className="hidden sm:grid grid-cols-24 gap-[2px] pl-0 text-[10px] font-bold text-[#3B2F20]/70" aria-hidden>
+      <p className="mb-3 text-xs font-bold text-[#606C38]">{t('cal.scrollHelp')}</p>
+      <div ref={scroll} className="max-w-full overflow-x-auto rounded-xl pb-2">
+      <div className="grid min-w-[1152px] grid-cols-[minmax(0,1fr)] gap-3">
+        <div className="grid grid-cols-24 gap-[2px] px-3 text-[10px] font-bold text-[#3B2F20]/70" aria-hidden>
           {axis.map((c) => (
             <span key={c.index} className={`text-center ${c.index === month ? 'text-[#BC6C25]' : ''}`}>
-              {months[c.calendarMonth - 1]?.charAt(0)}
+              {months[c.calendarMonth - 1]}
+              <span className="block text-[9px]">{t('scene.year', { n: c.index < 12 ? 1 : 2 })}</span>
             </span>
           ))}
         </div>
@@ -44,31 +58,48 @@ export function RotationCalendar({
                 type="button"
                 onClick={() => onSelect(s.id)}
                 aria-pressed={selected}
-                className="w-full text-left text-sm font-bold text-[#283618] mb-1.5 rounded focus-visible:outline-2 focus-visible:outline-[#BC6C25]"
+                className="sticky left-3 mb-1.5 block max-w-[280px] rounded text-left text-sm font-bold text-[#283618] focus-visible:outline-2 focus-visible:outline-[#BC6C25] sm:max-w-none"
               >
                 <span className="text-xs uppercase tracking-wide text-[#606C38]">{strategyLabel(t, s, n)}</span>
                 <span className="block">{t(`template.${s.templateId}`)}</span>
                 <span className="sr-only">: {summary}</span>
               </button>
-              <div className="grid grid-cols-24 gap-[2px]" aria-hidden>
+              <div className="grid grid-cols-24 gap-[2px]" role="group" aria-label={t(`template.${s.templateId}`)}>
                 {s.timeline.map((c) => {
                   const color = c.crop ? CROP_COLORS[c.crop] : null;
                   const slot = s.slots.find((a) => a.months.includes(c.index));
                   const isStart = slot?.months[0] === c.index;
                   const cover = slot?.crop.role === 'cover';
                   return (
-                    <span
+                    <button
                       key={c.index}
+                      id={`calendar-${s.id}-${c.index}`}
+                      type="button"
+                      tabIndex={selected && c.index === month ? 0 : -1}
+                      aria-pressed={selected && c.index === month}
+                      aria-label={t('cal.monthLabel', { month: months[c.calendarMonth - 1] ?? '', year: c.index < 12 ? 1 : 2, crop: c.crop ? crop(c.crop) : t('timeline.bare'), pressure: Math.round(c.pressure * 100) })}
                       onClick={() => onSelect(s.id, c.index)}
+                      onKeyDown={(event) => {
+                        const index = strategies.indexOf(s);
+                        const targetMonth = event.key === 'ArrowLeft' ? Math.max(0, c.index - 1)
+                          : event.key === 'ArrowRight' ? Math.min(23, c.index + 1)
+                            : event.key === 'Home' ? 0 : event.key === 'End' ? 23 : c.index;
+                        const targetStrategy = event.key === 'ArrowUp' ? strategies[Math.max(0, index - 1)]!
+                          : event.key === 'ArrowDown' ? strategies[Math.min(strategies.length - 1, index + 1)]! : s;
+                        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+                        event.preventDefault();
+                        onSelect(targetStrategy.id, targetMonth);
+                        document.getElementById(`calendar-${targetStrategy.id}-${targetMonth}`)?.focus({ preventScroll: true });
+                      }}
                       title={`${months[c.calendarMonth - 1]} · ${c.crop ? crop(c.crop) : t('timeline.bare')} · ${Math.round(c.pressure * 100)}/100`}
-                      className={`relative h-9 sm:h-10 rounded-[3px] cursor-pointer flex items-center justify-center text-[9px] sm:text-[10px] font-bold overflow-hidden ${
+                      className={`relative flex h-11 items-center justify-center overflow-hidden rounded-[3px] text-[10px] font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#283618] ${
                         c.index === month ? 'ring-2 ring-[#BC6C25] ring-offset-1 z-10' : ''
                       } ${!color ? 'empty-month' : ''} ${cover ? 'cover-crop-hatch' : ''}`}
                       style={color && !cover ? { background: color, color: textOn(color) } : cover ? { color: '#283618' } : undefined}
                     >
-                      {isStart && c.crop ? <span className="hidden sm:inline">{cropAbbr(lang, c.crop)}</span> : null}
+                      {isStart && c.crop ? <span>{cropAbbr(lang, c.crop)}</span> : null}
                       <span className="absolute bottom-0 left-0 right-0 bg-[#B5462F]" style={{ height: `${Math.round(c.pressure * 6)}px` }} />
-                    </span>
+                    </button>
                   );
                 })}
               </div>
@@ -79,6 +110,7 @@ export function RotationCalendar({
             </div>
           );
         })}
+      </div>
       </div>
       <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#3B2F20]/90">
         <li className="flex items-center gap-1.5">

@@ -14,7 +14,7 @@ export interface FieldCheck {
   kind: CheckKind;
   /** Growing-year month index 0–23 where the check is suggested. */
   month: number;
-  /** For residue checks: last month of the window. */
+  /** Last month of a monitoring or residue-check window. */
   untilMonth?: number;
   crop?: CropId;
   /** Estimated water deficit of that crop (0–100) for peakStress. */
@@ -35,11 +35,12 @@ export function planFieldChecks(s: StrategyResult): FieldCheck[] {
     checks.push({ kind: 'preSowing', month: Math.max(0, sow - 1), crop: first.crop.id });
   }
 
-  // 2. Crop with the highest estimated deficit: the month of highest modelled pressure inside its cycle.
+  // 2. The deficit is a cycle aggregate, so suggest a monitoring window, never an invented monthly peak.
   const worst = [...productive].sort((a, b) => b.deficitRatio - a.deficitRatio)[0];
   if (worst && worst.deficitRatio >= STRESS_CHECK_MIN_DEFICIT) {
-    const peak = [...worst.months].sort((a, b) => (s.timeline[b]?.pressure ?? 0) - (s.timeline[a]?.pressure ?? 0))[0];
-    if (peak !== undefined) checks.push({ kind: 'peakStress', month: peak, crop: worst.crop.id, deficitPct: Math.round(worst.deficitRatio * 100) });
+    const start = worst.months[0];
+    const end = worst.months[worst.months.length - 1];
+    if (start !== undefined) checks.push({ kind: 'peakStress', month: start, untilMonth: end !== undefined && end >= start ? end : undefined, crop: worst.crop.id, deficitPct: Math.round(worst.deficitRatio * 100) });
   }
 
   // 3. Longest run of months with no crop scheduled: is there residue / cover, or weeds?

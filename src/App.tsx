@@ -75,7 +75,7 @@ export default function App() {
               void run(false, { lat, lon });
             }}
             load={load}
-            onEdit={() => setView({ kind: 'wizard', step: 4 })}
+            onEdit={(step = 4) => setView({ kind: 'wizard', step })}
             onRetry={() => void run(false)}
             onUseSaved={() => void run(true)}
           />

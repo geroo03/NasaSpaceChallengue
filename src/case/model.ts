@@ -55,6 +55,23 @@ export interface FarmCase {
   lotPolygon: [number, number][] | null;
   /** Where the lot boundary came from (shown as provenance). */
   lotSource: LotSource | null;
+  /** Terrain derived from the lot (SRTM estimate or drone DSM). */
+  terrain: TerrainSummary | null;
+  /** Who set the slope the engine uses. */
+  slopeSource: 'declared' | 'srtm' | 'drone' | null;
+}
+
+/** Plain copy of TerrainStats kept in the case (no imports from the imagery layer). */
+export interface TerrainSummary {
+  source: 'srtm' | 'drone';
+  samples: number;
+  meanM: number;
+  reliefM: number;
+  slopePct: number;
+  aspectDeg: number | null;
+  slopeClass: 'flat' | 'gentle' | 'steep';
+  /** e.g. 'srtm/S29W063.tif' or the drone file name. */
+  sources: string[];
 }
 
 export interface LotSource {
@@ -88,6 +105,8 @@ export const DEFAULT_CASE: FarmCase = {
   customPriorities: false,
   lotPolygon: null,
   lotSource: null,
+  terrain: null,
+  slopeSource: null,
 };
 
 export const PRESET_TEMPLATES: TemplateId[] = Object.values(TEMPLATES)
@@ -112,7 +131,7 @@ export function hasIrrigationAccess(c: FarmCase): boolean {
 }
 
 /** Keys of assumptions made while translating the case for the engine (shown in the UI). */
-export type AssumptionKey = 'slopeAssumed' | 'irrigationAssumedZero' | 'irrigationUnknownMm' | 'referenceSubstitute' | 'soilNotUsed';
+export type AssumptionKey = 'slopeAssumed' | 'slopeFromSrtm' | 'slopeFromDrone' | 'irrigationAssumedZero' | 'irrigationUnknownMm' | 'irrigationPending' | 'referenceSubstitute' | 'soilNotUsed';
 
 export function toFarmContext(c: FarmCase): { farm: FarmContext; assumptions: AssumptionKey[] } {
   const assumptions: AssumptionKey[] = [];
@@ -122,10 +141,14 @@ export function toFarmContext(c: FarmCase): { farm: FarmContext; assumptions: As
     assumptions.push('slopeAssumed');
   } else {
     slope = c.slope;
+    if (c.slopeSource === 'srtm') assumptions.push('slopeFromSrtm');
+    if (c.slopeSource === 'drone') assumptions.push('slopeFromDrone');
   }
   let irrigationMm = 0;
   if (hasIrrigationAccess(c)) {
-    if (c.irrigationMm === null) assumptions.push('irrigationUnknownMm');
+    const needsConfirmation = c.resources.irrigation === 'shared' || c.resources.irrigation === 'contracted';
+    if (needsConfirmation && c.availability.irrigation !== 'confirmed') assumptions.push('irrigationPending');
+    else if (c.irrigationMm === null) assumptions.push('irrigationUnknownMm');
     else irrigationMm = Math.max(0, Math.min(800, c.irrigationMm));
   } else if (c.resources.irrigation === 'unknown') {
     assumptions.push('irrigationAssumedZero');
@@ -141,6 +164,11 @@ export function matchingPreset(lat: number, lon: number): PlacePreset | undefine
 
 const STORAGE_KEY = 'field-shift-lab.case.v1';
 
+function validCoordinates(lat: unknown, lon: unknown): boolean {
+  return typeof lat === 'number' && Number.isFinite(lat) && lat >= -60 && lat <= 75 &&
+    typeof lon === 'number' && Number.isFinite(lon) && lon >= -180 && lon <= 180;
+}
+
 export function loadCase(): FarmCase {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -153,6 +181,12 @@ export function loadCase(): FarmCase {
       availability: { ...DEFAULT_CASE.availability, ...(parsed.availability ?? {}) },
       priorities: { ...DEFAULT_CASE.priorities, ...(parsed.priorities ?? {}) },
     };
+    // Old versions could persist an empty input as null. Recover the point without losing the other answers.
+    if (!validCoordinates(merged.lat, merged.lon)) {
+      merged.lat = DEFAULT_CASE.lat;
+      merged.lon = DEFAULT_CASE.lon;
+      merged.placeId = DEFAULT_CASE.placeId;
+    }
     if (!(merged.currentTemplate in TEMPLATES)) merged.currentTemplate = DEFAULT_CASE.currentTemplate;
     return merged;
   } catch {
@@ -161,6 +195,7 @@ export function loadCase(): FarmCase {
 }
 
 export function saveCase(c: FarmCase): void {
+  if (!validCoordinates(c.lat, c.lon)) return; // retain the last valid case while a coordinate is being edited
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
   } catch {

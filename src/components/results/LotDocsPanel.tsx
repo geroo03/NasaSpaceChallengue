@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { FileText, FileUp, Loader2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { FileText, FileUp, Loader2, X } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import type { LatLon } from '../../imagery/flightOrder';
 import type { CandidatePolygon, ImportNotice, LotProblem } from '../../imagery/lotImport';
@@ -30,7 +30,11 @@ export function LotDocsPanel({ onLot }: { onLot: (ring: LatLon[], source: LotSou
   const [notices, setNotices] = useState<ImportNotice[]>([]);
   const [docs, setDocs] = useState<Doc[]>([]);
 
-  useEffect(() => () => docs.forEach((d) => URL.revokeObjectURL(d.url)), [docs]);
+  const docUrls = useRef(new Set<string>());
+  useEffect(() => {
+    const urls = docUrls.current;
+    return () => urls.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
@@ -38,7 +42,9 @@ export function LotDocsPanel({ onLot }: { onLot: (ring: LatLon[], source: LotSou
     setPending(null);
     setNotices([]);
     if (/\.(pdf|png|jpe?g)$/i.test(file.name)) {
-      setDocs((d) => [...d, { name: file.name, url: URL.createObjectURL(file), kind: /\.pdf$/i.test(file.name) ? 'pdf' : 'image' }]);
+      const url = URL.createObjectURL(file);
+      docUrls.current.add(url);
+      setDocs((d) => [...d, { name: file.name, url, kind: /\.pdf$/i.test(file.name) ? 'pdf' : 'image' }]);
       return;
     }
     setBusy(true);
@@ -150,6 +156,13 @@ export function LotDocsPanel({ onLot }: { onLot: (ring: LatLon[], source: LotSou
                 <a href={d.url} target="_blank" rel="noreferrer" className="shrink-0 font-bold text-[#9A5518] underline-offset-2 hover:underline">
                   {t('docs.open')}
                 </a>
+                <button type="button" aria-label={t('docs.remove', { file: d.name })} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg hover:bg-[#EFE3C2] focus-visible:outline-2 focus-visible:outline-[#BC6C25]" onClick={() => {
+                  URL.revokeObjectURL(d.url);
+                  docUrls.current.delete(d.url);
+                  setDocs((items) => items.filter((item) => item.url !== d.url));
+                }}>
+                  <X aria-hidden className="h-4 w-4" />
+                </button>
               </li>
             ))}
           </ul>

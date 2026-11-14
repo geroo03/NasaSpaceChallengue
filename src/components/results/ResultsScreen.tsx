@@ -12,6 +12,8 @@ import { StrategyPanel, StrategyTabs } from './StrategyPanel';
 import { ClimatePanel } from './ClimatePanel';
 import { VerificationPanel } from './VerificationPanel';
 import { AssumptionList, DiscardedList, SensitivityPanel } from './ContextPanels';
+import { WorkspaceNav, type ResultView } from './WorkspaceNav';
+import { DecisionChecklist } from './DecisionChecklist';
 // Map tools (Geoman, Turf, file importers) load only when the results screen needs them.
 const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
 import { snapshotMatches } from '../../case/climateSource';
@@ -26,7 +28,7 @@ interface Props {
   onLot: (p: FarmCase['lotPolygon'], source: FarmCase['lotSource']) => void;
   onAnalyseAt: (lat: number, lon: number) => void;
   load: LoadState;
-  onEdit: () => void;
+  onEdit: (step?: number) => void;
   onRetry: () => void;
   onUseSaved: () => void;
 }
@@ -59,7 +61,7 @@ export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRe
               <Database aria-hidden className="h-4 w-4" /> {t('load.useSaved')}
             </button>
           )}
-          <button type="button" className={secondaryBtn} onClick={onEdit}>
+          <button type="button" className={secondaryBtn} onClick={() => onEdit()}>
             <Pencil aria-hidden className="h-4 w-4" /> {t('res.editData')}
           </button>
         </div>
@@ -78,7 +80,7 @@ function Results({
 }: {
   farmCase: FarmCase;
   data: LoadedSeries;
-  onEdit: () => void;
+  onEdit: Props['onEdit'];
   onLot: Props['onLot'];
   onAnalyseAt: Props['onAnalyseAt'];
 }) {
@@ -86,6 +88,12 @@ function Results({
   const [scenario, setScenario] = useState<Scenario>({ precipPct: 0, tempC: 0 });
   const [selectedId, setSelectedId] = useState('current');
   const [month, setMonth] = useState(19); // February of year 2 in the south: summer crops on the field
+  const [view, setView] = useState<ResultView>('compare');
+  const [lotVisited, setLotVisited] = useState(false);
+  const changeView = (next: ResultView) => {
+    setView(next);
+    if (next === 'lot') setLotVisited(true);
+  };
 
   const { farm, assumptions } = useMemo(() => toFarmContext(farmCase), [farmCase]);
   const computed = useMemo(() => {
@@ -104,7 +112,7 @@ function Results({
         <Notice tone="error">
           {t('load.empty')} {computed.error}
         </Notice>
-        <button type="button" className={secondaryBtn} onClick={onEdit}>
+        <button type="button" className={secondaryBtn} onClick={() => onEdit()}>
           {t('res.editData')}
         </button>
       </div>
@@ -147,7 +155,7 @@ function Results({
             · {t('res.days', { days: num(data.series.days.length) })} · <strong>{t('res.illustrative')}</strong>
           </p>
         </div>
-        <button type="button" className={secondaryBtn} onClick={onEdit}>
+        <button type="button" className={secondaryBtn} onClick={() => onEdit()}>
           <Pencil aria-hidden className="h-4 w-4" /> {t('res.editData')}
         </button>
       </div>
@@ -160,108 +168,127 @@ function Results({
           })}
         </div>
       )}
-      <AssumptionList keys={assumptions} />
-
-      {nAlt === 0 && <Notice tone="warn">{t('cmp.none')}</Notice>}
-      {nAlt > 0 && nAlt < 3 && <Notice tone="warn">{t('cmp.fewer', { n: nAlt })}</Notice>}
-
-      <section aria-labelledby="scene-h" className="space-y-4">
-        <h2 id="scene-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
-          {t('scene.title')}
-        </h2>
-        <StrategyTabs strategies={strategies} selectedId={selected.id} onSelect={setSelectedId} />
-        <div className="grid gap-6 lg:grid-cols-12 items-start">
-          <Card className="lg:col-span-5" as="div">
-            <FieldScene strategy={selected} month={month} setMonth={setMonth} />
-          </Card>
-          <div className="lg:col-span-7">
-            <StrategyPanel strategy={selected} reference={reference} altIndex={altIndex} farm={farm} />
-          </div>
-        </div>
-        <Card>
-          <SectionTitle sub={t('verify.help')}>{t('verify.title')}</SectionTitle>
-          <VerificationPanel strategy={selected} onPickMonth={setMonth} />
-        </Card>
-      </section>
-
-      <Card>
-        <SectionTitle sub={t('cal.help')}>{t('cal.title')}</SectionTitle>
-        <RotationCalendar
-          strategies={strategies}
-          selectedId={selected.id}
-          month={month}
-          onSelect={(id, mm) => {
-            setSelectedId(id);
-            if (mm !== undefined) setMonth(mm);
-          }}
-        />
-      </Card>
-
-      <Card>
-        <SectionTitle>{t('sens.title')}</SectionTitle>
-        <SensitivityPanel scenario={scenario} onChange={setScenario} />
-      </Card>
-
-      <Card>
-        <SectionTitle sub={t('clim.help')}>{t('clim.title')}</SectionTitle>
-        <ClimatePanel profile={profile} from={from} to={to} />
-      </Card>
-
-      <Card>
-        <SectionTitle>{t('lot.title')}</SectionTitle>
-        {lotCentre && lotCentreKm !== null && lotCentreKm > 1 && (
-          <div className="mb-4">
-            <Notice tone="warn">
-              <strong className="block">{t('lot.centroidTitle')}</strong>
-              {t('lot.centroidText', { lat: farmCase.lat.toFixed(4), lon: farmCase.lon.toFixed(4), km: num(lotCentreKm, 1) })}
-              <div className="mt-2">
-                <button type="button" className={secondaryBtn} onClick={() => onAnalyseAt(Number(lotCentre[0].toFixed(5)), Number(lotCentre[1].toFixed(5)))}>
-                  {t('lot.centroidGo')}
-                </button>
-              </div>
-            </Notice>
-          </div>
-        )}
-        {snapshotMatches(farmCase.lat, farmCase.lon) && !farmCase.lotPolygon && (
-          <div className="mb-4">
-            <Notice tone="warn">{t('lot.cityWarn')}</Notice>
-          </div>
-        )}
-        <Suspense
-          fallback={
-            <p role="status" className="flex items-center gap-2 text-sm">
-              <Loader2 aria-hidden className="h-4 w-4 animate-spin motion-reduce:animate-none" /> {t('lot.loadingMap')}
-            </p>
-          }
-        >
-          <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} source={farmCase.lotSource} onLot={onLot} strategy={selected} />
-        </Suspense>
-      </Card>
-
-      {outcome.discarded.length > 0 && (
-        <Collapsible title={`${t('disc.title')} (${outcome.discarded.length})`} defaultOpen={nAlt < 3}>
-          <DiscardedList items={outcome.discarded} />
-        </Collapsible>
+      <WorkspaceNav active={view} onChange={changeView} />
+      <AssumptionList keys={assumptions.filter((key) => key === 'irrigationPending' || key === 'referenceSubstitute')} />
+      {lotCentreKm !== null && lotCentreKm > 1 && view !== 'lot' && (
+        <Notice tone="warn">
+          <strong>{t('lot.centroidTitle')}</strong>{' '}
+          <button type="button" className="font-bold underline underline-offset-2" onClick={() => changeView('lot')}>
+            {t('workspace.reviewLocation')}
+          </button>
+        </Notice>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <section id="workspace-panel-compare" role="tabpanel" aria-labelledby="workspace-tab-compare" hidden={view !== 'compare'} className="space-y-6">
+        <p className="max-w-3xl text-sm text-[#3B2F20]">{t('workspace.compareHelp')}</p>
+        {nAlt === 0 && <Notice tone="warn">{t('cmp.none')}</Notice>}
+        {nAlt > 0 && nAlt < 3 && <Notice tone="warn">{t('cmp.fewer', { n: nAlt })}</Notice>}
+
+        <section aria-labelledby="scene-h" className="space-y-4">
+          <h2 id="scene-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
+            {t('scene.title')}
+          </h2>
+          <StrategyTabs strategies={strategies} selectedId={selected.id} onSelect={setSelectedId} />
+          <div className="grid gap-6 lg:grid-cols-12 items-start">
+            <Card className="lg:col-span-5" as="div">
+              <FieldScene strategy={selected} month={month} setMonth={setMonth} />
+            </Card>
+            <div className="lg:col-span-7">
+              <StrategyPanel strategy={selected} reference={reference} altIndex={altIndex} farm={farm} />
+            </div>
+          </div>
+          <Card>
+            <SectionTitle sub={t('verify.help')}>{t('verify.title')}</SectionTitle>
+            <VerificationPanel strategy={selected} onPickMonth={setMonth} />
+          </Card>
+        </section>
+
         <Card>
-          <h2 className="text-lg font-bold text-[#283618] mb-2">{t('gaps.title')}</h2>
-          <ul className="list-disc pl-5 space-y-1 text-sm">
-            {GLOBAL_GAPS.map((g) => (
-              <li key={g.key}>{m(g)}</li>
-            ))}
-          </ul>
+          <SectionTitle sub={t('cal.help')}>{t('cal.title')}</SectionTitle>
+          <RotationCalendar
+            strategies={strategies}
+            selectedId={selected.id}
+            month={month}
+            onSelect={(id, mm) => {
+              setSelectedId(id);
+              if (mm !== undefined) setMonth(mm);
+            }}
+          />
         </Card>
+
+        <DecisionChecklist farmCase={farmCase} onLot={() => changeView('lot')} onEdit={onEdit} />
+        {assumptions.length > 0 && (
+          <Collapsible title={t('res.assumptions')}>
+            <AssumptionList keys={assumptions} />
+          </Collapsible>
+        )}
+        {outcome.discarded.length > 0 && (
+          <Collapsible title={`${t('disc.title')} (${outcome.discarded.length})`} defaultOpen={nAlt < 3}>
+            <DiscardedList items={outcome.discarded} />
+          </Collapsible>
+        )}
+      </section>
+
+      <section id="workspace-panel-climate" role="tabpanel" aria-labelledby="workspace-tab-climate" hidden={view !== 'climate'} className="space-y-6">
+        <p className="max-w-3xl text-sm text-[#3B2F20]">{t('workspace.climateHelp')}</p>
         <Card>
-          <h2 className="text-lg font-bold text-[#283618] mb-2">{t('sources.title')}</h2>
-          <ul className="list-disc pl-5 space-y-1 text-sm">
-            {['source.power', 'source.gibs', 'source.fao'].map((k) => (
-              <li key={k}>{t(k)}</li>
-            ))}
-          </ul>
+          <SectionTitle>{t('sens.title')}</SectionTitle>
+          <SensitivityPanel scenario={scenario} onChange={setScenario} />
+          <button type="button" className={`${secondaryBtn} mt-4`} onClick={() => changeView('compare')}>
+            {t('workspace.compareScenario')}
+          </button>
         </Card>
-      </div>
+
+        <Card>
+          <SectionTitle sub={t('clim.help')}>{t('clim.title')}</SectionTitle>
+          <ClimatePanel profile={profile} from={from} to={to} />
+        </Card>
+        <AssumptionList keys={assumptions} />
+        <Collapsible title={t('gaps.title')}>
+          <ul className="list-disc pl-5 space-y-1 text-sm">
+            {GLOBAL_GAPS.map((g) => <li key={g.key}>{m(g)}</li>)}
+          </ul>
+        </Collapsible>
+        <Collapsible title={t('sources.title')}>
+          <ul className="list-disc pl-5 space-y-1 text-sm">
+            {['source.power', 'source.gibs', 'source.fao'].map((k) => <li key={k}>{t(k)}</li>)}
+          </ul>
+        </Collapsible>
+      </section>
+
+      <section id="workspace-panel-lot" role="tabpanel" aria-labelledby="workspace-tab-lot" hidden={view !== 'lot'} className="space-y-6">
+        <p className="max-w-3xl text-sm text-[#3B2F20]">{t('workspace.lotHelp')}</p>
+        <Card>
+          <SectionTitle>{t('lot.title')}</SectionTitle>
+          {lotCentre && lotCentreKm !== null && lotCentreKm > 1 && (
+            <div className="mb-4">
+              <Notice tone="warn">
+                <strong className="block">{t('lot.centroidTitle')}</strong>
+                {t('lot.centroidText', { lat: farmCase.lat.toFixed(4), lon: farmCase.lon.toFixed(4), km: num(lotCentreKm, 1) })}
+                <div className="mt-2">
+                  <button type="button" className={secondaryBtn} onClick={() => onAnalyseAt(Number(lotCentre[0].toFixed(5)), Number(lotCentre[1].toFixed(5)))}>
+                    {t('lot.centroidGo')}
+                  </button>
+                </div>
+              </Notice>
+            </div>
+          )}
+          {snapshotMatches(farmCase.lat, farmCase.lon) && !farmCase.lotPolygon && (
+            <div className="mb-4">
+              <Notice tone="warn">{t('lot.cityWarn')}</Notice>
+            </div>
+          )}
+          <Suspense
+            fallback={
+              <p role="status" className="flex items-center gap-2 text-sm">
+                <Loader2 aria-hidden className="h-4 w-4 animate-spin motion-reduce:animate-none" /> {t('lot.loadingMap')}
+              </p>
+            }
+          >
+            {lotVisited && <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} source={farmCase.lotSource} onLot={onLot} strategy={selected} />}
+          </Suspense>
+        </Card>
+      </section>
     </div>
   );
 }
