@@ -14,13 +14,13 @@
   --color-terracota-oscuro: #9A5518;
   --color-ocre: #DDA15E;
   --color-tierra: #3B2F20;
-  --color-fondo: #C9C2B2;
+  --color-fondo: #f0ede4;
 }
 
 @layer base {
   html,
   body {
-    background-color: #C9C2B2;
+    background-color: var(--color-fondo);
     color: #3B2F20;
     font-family: 'Raleway', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -66,6 +66,10 @@
   font-weight: 200;
   letter-spacing: 0.06em;
   text-wrap: balance;
+}
+
+.headline-display--bold {
+  font-weight: 700;
 }
 
 /* Months with no crop scheduled: hatched earth, so the state never depends on colour alone. */

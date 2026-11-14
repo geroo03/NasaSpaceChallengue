@@ -69,7 +69,7 @@ export function Wizard({
         </p>
       </nav>
 
-      <h1 ref={heading} tabIndex={-1} className="headline-display mt-6 text-3xl sm:text-4xl text-[#283618] outline-none">
+      <h1 ref={heading} tabIndex={-1} className="headline-display headline-display--bold mt-6 text-3xl sm:text-4xl text-[#283618] outline-none">
         {t(QUESTIONS[step] ?? '')}
       </h1>
       <p className="mt-2 mb-6 text-[#3B2F20]/90 leading-relaxed">{t(HELP[step] ?? '')}</p>

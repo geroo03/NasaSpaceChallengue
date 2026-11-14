@@ -54,7 +54,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#C9C2B2] text-[#3B2F20]">
+    <div className="min-h-screen flex flex-col bg-fondo text-[#3B2F20]">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-[2000] focus:m-2 focus:rounded focus:bg-white focus:px-3 focus:py-2">
         {t('nav.skip')}
       </a>
