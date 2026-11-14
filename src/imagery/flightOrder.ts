@@ -19,18 +19,23 @@ export interface FlightOrder {
   notes: string[];
 }
 
-/** Area of a small lat/lon polygon in hectares (local equirectangular projection; fine for a field). */
+/**
+ * Area of a lat/lon polygon in hectares on a sphere of mean Earth radius (same formula and radius as @turf/area),
+ * so every screen and export reports the same number without loading Turf.
+ */
 export function polygonAreaHa(poly: LatLon[]): number {
   if (poly.length < 3) return 0;
-  const lat0 = (poly.reduce((a, p) => a + p[0], 0) / poly.length) * (Math.PI / 180);
-  const pts = poly.map(([lat, lon]) => [lon * 111_320 * Math.cos(lat0), lat * 110_574] as const);
-  let twice = 0;
-  for (let i = 0; i < pts.length; i++) {
-    const [x1, y1] = pts[i]!;
-    const [x2, y2] = pts[(i + 1) % pts.length]!;
-    twice += x1 * y2 - x2 * y1;
+  const R = 6_371_008.8; // mean Earth radius, as Turf 7
+  const rad = Math.PI / 180;
+  let total = 0;
+  const n = poly.length;
+  for (let i = 0; i < n; i++) {
+    const lower = poly[i]!;
+    const middle = poly[(i + 1) % n]!;
+    const upper = poly[(i + 2) % n]!;
+    total += (upper[1] * rad - lower[1] * rad) * Math.sin(middle[0] * rad);
   }
-  return Math.abs(twice) / 2 / 10_000;
+  return Math.abs((total * R * R) / 2) / 10_000;
 }
 
 function esc(s: string): string {

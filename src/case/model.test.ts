@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { DEFAULT_CASE, distanceKm, prioritiesFromGoals, ringCentroid, toFarmContext, type FarmCase } from './model';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { DEFAULT_CASE, distanceKm, loadCase, prioritiesFromGoals, ringCentroid, saveCase, toFarmContext, withDeclaredSlope, withLot, withTerrain, type FarmCase, type TerrainSummary } from './model';
 
 const base: FarmCase = { ...DEFAULT_CASE };
 
@@ -11,7 +11,7 @@ describe('case → engine context', () => {
   });
 
   it('uses declared irrigation only when the farmer has some access to it', () => {
-    const owned = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'contracted' }, irrigationMm: 150 });
+    const owned = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'contracted' }, availability: { ...base.availability, irrigation: 'confirmed' }, irrigationMm: 150 });
     expect(owned.farm.irrigationMm).toBe(150);
     const none = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'unavailable' }, irrigationMm: 150 });
     expect(none.farm.irrigationMm).toBe(0);
@@ -22,6 +22,13 @@ describe('case → engine context', () => {
     const { farm, assumptions } = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'owned' }, irrigationMm: null });
     expect(farm.irrigationMm).toBe(0);
     expect(assumptions).toContain('irrigationUnknownMm');
+  });
+
+  it.each(['shared', 'contracted'] as const)('keeps %s irrigation out of the water supply until availability is confirmed', (access) => {
+    const pending: FarmCase = { ...base, resources: { ...base.resources, irrigation: access }, irrigationMm: 300 };
+    expect(toFarmContext(pending).farm.irrigationMm).toBe(0);
+    expect(toFarmContext(pending).assumptions).toContain('irrigationPending');
+    expect(toFarmContext({ ...pending, availability: { ...pending.availability, irrigation: 'confirmed' } }).farm.irrigationMm).toBe(300);
   });
 
   it('marks the slope as assumed when unknown', () => {
@@ -40,6 +47,27 @@ describe('case → engine context', () => {
   });
 });
 
+describe('case persistence during coordinate edits', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('recovers a legacy null coordinate and preserves the other answers', () => {
+    const getItem = vi.fn(() => JSON.stringify({ ...base, lat: null, lon: -62, placeId: null, otherCrop: 'caupí' }));
+    vi.stubGlobal('window', { localStorage: { getItem } });
+    const recovered = loadCase();
+    expect([recovered.lat, recovered.lon]).toEqual([base.lat, base.lon]);
+    expect(recovered.otherCrop).toBe('caupí');
+  });
+
+  it('retains the previous valid case when a coordinate is temporarily empty', () => {
+    const setItem = vi.fn();
+    vi.stubGlobal('window', { localStorage: { setItem } });
+    saveCase({ ...base, lat: NaN });
+    expect(setItem).not.toHaveBeenCalled();
+    saveCase(base);
+    expect(JSON.parse(setItem.mock.calls[0]![1])).toMatchObject({ lat: base.lat, lon: base.lon });
+  });
+});
+
 describe('lot centroid as analysis point', () => {
   it('finds the centre of an L-shaped lot by area, not by averaging vertices', () => {
     // L shape: big square [0,2]x[0,2] minus [1,2]x[1,2] (in degrees, lat/lon order)
@@ -53,5 +81,78 @@ describe('lot centroid as analysis point', () => {
     expect(distanceKm([-27.78, -64.26], [-27.78, -64.26])).toBe(0);
     expect(distanceKm([-28, -64], [-29, -64])).toBeGreaterThan(110);
     expect(distanceKm([-28, -64], [-29, -64])).toBeLessThan(112);
+  });
+});
+
+describe('slope provenance', () => {
+  it('reports when the slope comes from SRTM or a drone DSM instead of the farmer', () => {
+    expect(toFarmContext({ ...base, slope: 'flat', slopeSource: 'srtm' }).assumptions).toContain('slopeFromSrtm');
+    expect(toFarmContext({ ...base, slope: 'gentle', slopeSource: 'drone' }).assumptions).toContain('slopeFromDrone');
+    expect(toFarmContext({ ...base, slope: 'gentle', slopeSource: 'declared' }).assumptions).not.toContain('slopeFromSrtm');
+  });
+});
+
+describe('lot-first flow', () => {
+  const ring: [number, number][] = [
+    [-28.47, -62.85],
+    [-28.47, -62.84],
+    [-28.46, -62.84],
+    [-28.46, -62.85],
+  ];
+  const srtm: TerrainSummary = { source: 'srtm', samples: 400, meanM: 120, reliefM: 3, slopePct: 0.3, aspectDeg: 90, slopeClass: 'flat', sources: ['srtm/S29W063.tif'] };
+  const drone: TerrainSummary = { ...srtm, source: 'drone', slopePct: 1.4, slopeClass: 'gentle', sources: ['dsm.tif'] };
+
+  it('moves the climate point to the lot centre only in the wizard', () => {
+    const moved = withLot(base, ring, { kind: 'drawn' }, { movePoint: true });
+    expect(moved.lat).toBeCloseTo(-28.465, 4);
+    expect(moved.lon).toBeCloseTo(-62.845, 4);
+    expect(moved.placeId).toBeNull();
+    const kept = withLot(base, ring, { kind: 'drawn' }, { movePoint: false });
+    expect(kept.lat).toBe(base.lat);
+  });
+
+  it('uses the lot terrain for the slope unless the farmer declared it', () => {
+    const c = withTerrain(withLot(base, ring, { kind: 'drawn' }, { movePoint: true }), srtm);
+    expect(c.slope).toBe('flat');
+    expect(c.slopeSource).toBe('srtm');
+    const declared = withTerrain({ ...base, slope: 'steep', slopeSource: 'declared' }, srtm);
+    expect(declared.slope).toBe('steep');
+    expect(declared.terrain).toEqual(srtm);
+  });
+
+  it('does not apply an SRTM slope from too few samples', () => {
+    const c = withTerrain(base, { ...srtm, samples: 12 });
+    expect(c.slope).toBe('unknown');
+    expect(c.terrain?.samples).toBe(12);
+  });
+
+  it('keeps a drone measurement over a later SRTM estimate', () => {
+    const c = withTerrain(withTerrain(base, drone), srtm);
+    expect(c.terrain?.source).toBe('drone');
+    expect(c.slope).toBe('gentle');
+  });
+
+  it('resets terrain and its slope when the boundary changes', () => {
+    const c = withLot(withTerrain(base, srtm), ring, { kind: 'drawn' }, { movePoint: false });
+    expect(c.terrain).toBeNull();
+    expect(c.slope).toBe('unknown');
+    expect(withLot(c, null, { kind: 'drawn' }, { movePoint: false }).lotSource).toBeNull();
+  });
+
+  it('falls back to the measured slope when the farmer answers "I don\'t know"', () => {
+    const c = withDeclaredSlope(withTerrain(base, srtm), 'steep');
+    expect(c.slopeSource).toBe('declared');
+    const back = withDeclaredSlope(c, 'unknown');
+    expect(back.slope).toBe('flat');
+    expect(back.slopeSource).toBe('srtm');
+  });
+});
+
+describe('example lot', () => {
+  it('centres on the point that has a saved NASA POWER series', async () => {
+    const { EXAMPLE_LOT } = await import('./model');
+    const { snapshotFor } = await import('./climateSource');
+    const c = withLot(base, EXAMPLE_LOT, { kind: 'example' }, { movePoint: true });
+    expect(snapshotFor(c.lat, c.lon)?.id).toBe('anatuya-example');
   });
 });

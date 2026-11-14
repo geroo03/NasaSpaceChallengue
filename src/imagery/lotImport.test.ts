@@ -13,7 +13,7 @@ import {
   polygonsFromKmz,
   validateLot,
 } from './lotImport';
-import type { LatLon } from './flightOrder';
+import { polygonAreaHa, type LatLon } from './flightOrder';
 
 // ~1 km × 1 km (≈100 ha) near Añatuya
 const lat = -28.47;
@@ -38,6 +38,10 @@ describe('lot validation (same rules as AgroCordS)', () => {
   it('measures area geodesically', () => {
     expect(areaHa(square)).toBeGreaterThan(99);
     expect(areaHa(square)).toBeLessThan(101);
+  });
+
+  it('reports the same area with and without Turf', () => {
+    expect(polygonAreaHa(square)).toBeCloseTo(areaHa(square), 6);
   });
 
   it('accepts a normal lot and rejects self-intersecting, tiny or huge ones', () => {

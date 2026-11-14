@@ -23,6 +23,14 @@ El caso inicial es un **punto ilustrativo de Santiago del Estero**. Añatuya es 
 11. **Rotaciones descartadas** con su motivo. No se inventan alternativas.
 12. **Estados** de carga, error de red con respaldo en la serie guardada, y aviso cuando hay pocas alternativas o ninguna.
 
+### Propuesta de interfaz para evaluar
+
+Los resultados se organizan en **Comparar**, **Mi lote** y **Clima**, con navegación por teclado y sin perder los adjuntos al cambiar de vista. Las opciones muestran el nombre de la rotación, su índice orientativo y los meses sin cultivo programado. El bloque **Antes de decidir** permite ir directamente a revisar el lote, los recursos y el suelo. Las herramientas cartográficas se cargan al abrir **Mi lote**.
+
+En móvil, el calendario se desplaza dentro de su panel y conserva botones de al menos 44 px por mes, con etiquetas de mes/año y navegación mediante flechas.
+
+Se corrigieron la recuperación de coordenadas vacías, los enlaces de múltiples adjuntos y la entrada de riego desconocido. El riego compartido o contratado pendiente de confirmación se registra, pero aporta 0 mm al cálculo hasta confirmar disponibilidad. Las sugerencias de seguimiento muestran una ventana del ciclo, sin inventar un mes de máximo estrés. Ver [revisión y propuesta](docs/REVISION_FRONT_Y_PROPUESTA_2026-11-14.md).
+
 ### Lo que todavía no hace
 
 - **Compatibilidad con equipos**: el acceso a herramientas (propio, compartido, contratado, sin acceso, falta confirmar) se registra, pero no filtra ni ordena las alternativas. La app lo muestra como "Compatibilidad de equipos pendiente de evaluación".
@@ -39,7 +47,7 @@ React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet, geotiff.js + proj
 ```sh
 npm install
 npm run dev        # servidor local
-npm test           # 70 pruebas (motor, caso, verificación, HLS, coordenadas, orden de vuelo e importación de catastro/planos)
+npm test           # motor, caso, verificación, HLS, coordenadas, orden de vuelo e importación de catastro/planos
 npm run build      # typecheck + build estático en dist/
 npm run preview
 ```
@@ -69,3 +77,35 @@ La serie guardada se descargó el 14/11/2026 (POWER API v2.10.3, MERRA-2, SHA-25
 - Riesgo de helada: máximo mensual ponderado. No es la frecuencia de campañas con helada.
 - Los índices (0–100) son orientativos: no son probabilidades ni rentabilidad.
 - "Meses sin cultivo programado" sale del calendario. No equivale a suelo desnudo observado.
+
+## Flujo de la app (3 pantallas)
+
+1. **Tu lote** (`#/lote`): se dibuja o se carga el plano, o se elige un punto. Aparecen la superficie, el centro (punto de NASA POWER) y el relieve de NASA SRTM. El botón «Probar con el lote de ejemplo» carga 46 ha cerca de Añatuya. Para ese punto hay una serie NASA POWER 2011–2025 guardada sin modificar en `public/data/`.
+2. **Tu campaña** (`#/campana`): el cultivo actual, el riego (el único recurso que entra al cálculo) y las prioridades. La maquinaria queda plegada.
+3. **Tus opciones** (`#/opciones`):
+   - el manejo actual contra la alternativa mejor puntuada, con por qué y qué tener en cuenta;
+   - años de prueba (seco, caluroso);
+   - el campo mes a mes;
+   - qué verificar, junto al pedido de dron con esas fechas;
+   - la **ficha imprimible o en PDF**.
+
+   Lo técnico va plegado en «¿De dónde sale esto?».
+
+Si NASA POWER no responde y el punto tiene una serie guardada, la app la usa y lo avisa.
+
+## Lote primero, relieve y pedido de dron
+
+- **Paso 1 = el lote.** Se dibuja sobre Esri World Imagery (Geoman) o se carga el plano: KML/KMZ, SHP zip, GeoJSON o DXF en POSGAR. El centro del lote pasa a ser el punto de NASA POWER. "Solo un punto" queda como alternativa.
+- **Datos del terreno.** Con el lote cargado, la app calcula:
+  - superficie y centro;
+  - altura media y desnivel (percentil 5 a 95);
+  - pendiente general, con un plano ajustado por mínimos cuadrados, y hacia dónde escurre el agua.
+
+  El relieve sale de **NASA SRTM** (~30 m, AWS Terrain Tiles, sin clave). Si el productor no declaró la pendiente, se usa esta, marcada como dato NASA. SRTM tiene un error de varios metros: no sirve para curvas de nivel.
+- **DSM del dron.** Un GeoTIFF de una banda en metros (WGS 84, UTM o POSGAR 2007) reemplaza la estimación de SRTM y queda como "Medido con dron". Se procesa en el navegador.
+- **Pedir relevamiento con dron.** Usa los servicios del informe técnico de Vuelo Verde:
+  - altimetría con DSM/RTK y curvas cada 5–7 cm;
+  - ortomosaico RGB;
+  - multiespectral, a confirmar con el prestador.
+
+  Genera el texto del pedido, con el centro en WGS 84 y en POSGAR faja 4, y el KML del límite. El botón de WhatsApp aparece solo si se configura `VITE_VUELO_VERDE_WHATSAPP` en Vercel. Ningún contacto queda escrito en el código.

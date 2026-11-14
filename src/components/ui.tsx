@@ -3,11 +3,12 @@ import { ChevronDown } from 'lucide-react';
 import { useLang } from '../i18n/LangContext';
 import type { CropId } from '../engine/domain/crops';
 
-export type Provenance = 'declared' | 'source' | 'modeled' | 'assumed' | 'unknown' | 'notUsed';
+export type Provenance = 'declared' | 'source' | 'measured' | 'modeled' | 'assumed' | 'unknown' | 'notUsed';
 
 const PROV_STYLE: Record<Provenance, string> = {
   declared: 'bg-[#E3EBDD] text-[#283618] border-[#A3B18A]',
   source: 'bg-[#283618] text-[#FEFAE0] border-[#283618]',
+  measured: 'bg-[#606C38] text-[#FEFAE0] border-[#606C38]',
   modeled: 'bg-[#EFE3C2] text-[#3B2F20] border-[#C9B27C]',
   assumed: 'bg-[#FBE9D0] text-[#7A3F0C] border-[#DDA15E]',
   unknown: 'bg-white text-[#7A3F0C] border-[#BC6C25] border-dashed',

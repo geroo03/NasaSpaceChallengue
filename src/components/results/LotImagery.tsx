@@ -133,7 +133,13 @@ export function LotImagery({
     });
     m.on('pm:globaleditmodetoggled', (e: { enabled: boolean }) => setEditing(e.enabled));
     map.current = m;
+    // The workspace keeps this map mounted when another view is open.
+    const resize = new ResizeObserver(() => {
+      if (host.current?.clientWidth) m.invalidateSize();
+    });
+    resize.observe(host.current);
     return () => {
+      resize.disconnect();
       m.remove();
       map.current = null;
     };
@@ -308,8 +314,12 @@ export function LotImagery({
   const checks = useMemo(
     () =>
       planFieldChecks(strategy).map((c) => {
-        const cell = strategy.timeline[c.month];
-        const when = `${cell ? months[cell.calendarMonth - 1] : ''} · ${t('scene.year', { n: c.month < 12 ? 1 : 2 })}`;
+        const monthLabel = (index: number) => {
+          const cell = strategy.timeline[index];
+          return `${cell ? months[cell.calendarMonth - 1] : ''} · ${t('scene.year', { n: index < 12 ? 1 : 2 })}`;
+        };
+        const when = c.untilMonth !== undefined && c.untilMonth !== c.month
+          ? `${monthLabel(c.month)} → ${monthLabel(c.untilMonth)}` : monthLabel(c.month);
         return { when, what: t(`verify.${c.kind}`, { crop: c.crop ? crop(c.crop) : '', deficit: c.deficitPct ?? 0 }) };
       }),
     [strategy, months, t, crop],
@@ -340,7 +350,7 @@ export function LotImagery({
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] items-start">
         <div>
-          <div className={big ? 'fixed inset-0 z-[1500] bg-[#C9C2B2] p-2 sm:p-4 flex flex-col' : 'relative'}>
+          <div className={big ? 'fixed inset-0 z-[1500] bg-fondo p-2 sm:p-4 flex flex-col' : 'relative'}>
             {/* className must stay constant: Leaflet adds its own classes to this element and React would wipe them. */}
             <div className={big ? 'flex-1 min-h-0' : 'h-[380px] sm:h-[460px]'}>
               <div ref={host} role="application" aria-label={t('lot.mapLabel')} className="h-full w-full rounded-xl border border-[#DECFA7] z-0" />

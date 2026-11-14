@@ -34,6 +34,13 @@ describe('field checks derived from the calendar', () => {
     expect(slot?.months).toContain(stress.month);
   });
 
+  it('reports a cycle window even when every month has the same aggregate pressure', () => {
+    const worst = [...reference.slots].filter((a) => a.crop.role !== 'cover').sort((a, b) => b.deficitRatio - a.deficitRatio)[0]!;
+    const sample = { ...reference, slots: [{ ...worst, deficitRatio: 0.5, months: [8, 9, 10] }], timeline: reference.timeline.map((c) => ({ ...c, pressure: 0.4 })) };
+    const check = planFieldChecks(sample).find((c) => c.kind === 'peakStress');
+    expect(check).toMatchObject({ month: 8, untilMonth: 10, deficitPct: 50 });
+  });
+
   it('adds a cover-termination check only when the strategy has cover crops', () => {
     for (const s of results) {
       const hasCover = s.slots.some((a) => a.crop.role === 'cover');

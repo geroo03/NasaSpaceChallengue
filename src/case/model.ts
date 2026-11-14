@@ -55,10 +55,27 @@ export interface FarmCase {
   lotPolygon: [number, number][] | null;
   /** Where the lot boundary came from (shown as provenance). */
   lotSource: LotSource | null;
+  /** Terrain derived from the lot (SRTM estimate or drone DSM). */
+  terrain: TerrainSummary | null;
+  /** Who set the slope the engine uses. */
+  slopeSource: 'declared' | 'srtm' | 'drone' | null;
+}
+
+/** Plain copy of TerrainStats kept in the case (no imports from the imagery layer). */
+export interface TerrainSummary {
+  source: 'srtm' | 'drone';
+  samples: number;
+  meanM: number;
+  reliefM: number;
+  slopePct: number;
+  aspectDeg: number | null;
+  slopeClass: 'flat' | 'gentle' | 'steep';
+  /** e.g. 'srtm/S29W063.tif' or the drone file name. */
+  sources: string[];
 }
 
 export interface LotSource {
-  kind: 'drawn' | 'file' | 'drone';
+  kind: 'drawn' | 'file' | 'drone' | 'example';
   fileName?: string;
   format?: string;
   /** Parcel name inside the file (cadastre nomenclature, layer…). */
@@ -66,6 +83,17 @@ export interface LotSource {
   /** Vertices were moved by hand after importing. */
   edited?: boolean;
 }
+
+/**
+ * Demo lot: a cleared, sown field ~10 km NE of Añatuya, traced by us on Esri World Imagery for the demo.
+ * Not a validated farm: its owner, soil and management are unknown. Its centre has a saved NASA POWER series.
+ */
+export const EXAMPLE_LOT: [number, number][] = [
+  [-28.3803, -62.7439],
+  [-28.3803, -62.7292],
+  [-28.3832, -62.7292],
+  [-28.3832, -62.7439],
+];
 
 const ALL_UNKNOWN = Object.fromEntries(RESOURCES.map((r) => [r, 'unknown'])) as Record<ResourceId, Access>;
 const ALL_PENDING = Object.fromEntries(RESOURCES.map((r) => [r, 'pending'])) as Record<ResourceId, Availability>;
@@ -88,6 +116,8 @@ export const DEFAULT_CASE: FarmCase = {
   customPriorities: false,
   lotPolygon: null,
   lotSource: null,
+  terrain: null,
+  slopeSource: null,
 };
 
 export const PRESET_TEMPLATES: TemplateId[] = Object.values(TEMPLATES)
@@ -112,7 +142,7 @@ export function hasIrrigationAccess(c: FarmCase): boolean {
 }
 
 /** Keys of assumptions made while translating the case for the engine (shown in the UI). */
-export type AssumptionKey = 'slopeAssumed' | 'irrigationAssumedZero' | 'irrigationUnknownMm' | 'referenceSubstitute' | 'soilNotUsed';
+export type AssumptionKey = 'slopeAssumed' | 'slopeFromSrtm' | 'slopeFromDrone' | 'irrigationAssumedZero' | 'irrigationUnknownMm' | 'irrigationPending' | 'referenceSubstitute' | 'soilNotUsed';
 
 export function toFarmContext(c: FarmCase): { farm: FarmContext; assumptions: AssumptionKey[] } {
   const assumptions: AssumptionKey[] = [];
@@ -122,10 +152,14 @@ export function toFarmContext(c: FarmCase): { farm: FarmContext; assumptions: As
     assumptions.push('slopeAssumed');
   } else {
     slope = c.slope;
+    if (c.slopeSource === 'srtm') assumptions.push('slopeFromSrtm');
+    if (c.slopeSource === 'drone') assumptions.push('slopeFromDrone');
   }
   let irrigationMm = 0;
   if (hasIrrigationAccess(c)) {
-    if (c.irrigationMm === null) assumptions.push('irrigationUnknownMm');
+    const needsConfirmation = c.resources.irrigation === 'shared' || c.resources.irrigation === 'contracted';
+    if (needsConfirmation && c.availability.irrigation !== 'confirmed') assumptions.push('irrigationPending');
+    else if (c.irrigationMm === null) assumptions.push('irrigationUnknownMm');
     else irrigationMm = Math.max(0, Math.min(800, c.irrigationMm));
   } else if (c.resources.irrigation === 'unknown') {
     assumptions.push('irrigationAssumedZero');
@@ -141,6 +175,11 @@ export function matchingPreset(lat: number, lon: number): PlacePreset | undefine
 
 const STORAGE_KEY = 'field-shift-lab.case.v1';
 
+function validCoordinates(lat: unknown, lon: unknown): boolean {
+  return typeof lat === 'number' && Number.isFinite(lat) && lat >= -60 && lat <= 75 &&
+    typeof lon === 'number' && Number.isFinite(lon) && lon >= -180 && lon <= 180;
+}
+
 export function loadCase(): FarmCase {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -153,6 +192,12 @@ export function loadCase(): FarmCase {
       availability: { ...DEFAULT_CASE.availability, ...(parsed.availability ?? {}) },
       priorities: { ...DEFAULT_CASE.priorities, ...(parsed.priorities ?? {}) },
     };
+    // Old versions could persist an empty input as null. Recover the point without losing the other answers.
+    if (!validCoordinates(merged.lat, merged.lon)) {
+      merged.lat = DEFAULT_CASE.lat;
+      merged.lon = DEFAULT_CASE.lon;
+      merged.placeId = DEFAULT_CASE.placeId;
+    }
     if (!(merged.currentTemplate in TEMPLATES)) merged.currentTemplate = DEFAULT_CASE.currentTemplate;
     return merged;
   } catch {
@@ -161,6 +206,7 @@ export function loadCase(): FarmCase {
 }
 
 export function saveCase(c: FarmCase): void {
+  if (!validCoordinates(c.lat, c.lon)) return; // retain the last valid case while a coordinate is being edited
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
   } catch {
@@ -193,4 +239,53 @@ export function distanceKm(a: [number, number], b: [number, number]): number {
   const dLon = (b[1] - a[1]) * r;
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLon / 2) ** 2;
   return 2 * 6371 * Math.asin(Math.sqrt(h));
+}
+
+/** SRTM estimates below this many samples (~4.5 ha at 30 m) are shown but not applied to the slope. */
+export const MIN_TERRAIN_SAMPLES = 50;
+
+/**
+ * Sets (or clears) the lot. Terrain belongs to a boundary, so it is reset and re-derived; a slope that came
+ * from terrain goes back to unknown until the new estimate arrives. With `movePoint`, the climate point
+ * moves to the lot centre (the wizard's lot-first flow); the results view keeps the analysed point and warns instead.
+ */
+export function withLot(c: FarmCase, ring: [number, number][] | null, source: LotSource | null, opts: { movePoint: boolean }): FarmCase {
+  const next: FarmCase = { ...c, lotPolygon: ring, lotSource: ring ? source : null, terrain: null };
+  if (c.slopeSource === 'srtm' || c.slopeSource === 'drone') {
+    next.slope = 'unknown';
+    next.slopeSource = null;
+  }
+  if (ring && opts.movePoint) {
+    const centre = ringCentroid(ring);
+    if (centre) {
+      next.lat = Number(centre[0].toFixed(5));
+      next.lon = Number(centre[1].toFixed(5));
+      next.placeId = null;
+    }
+  }
+  return next;
+}
+
+/**
+ * Stores lot terrain and, unless the farmer declared the slope, uses its slope class for the engine.
+ * A drone measurement is never replaced by an SRTM estimate.
+ */
+export function withTerrain(c: FarmCase, terrain: TerrainSummary): FarmCase {
+  if (terrain.source === 'srtm' && c.terrain?.source === 'drone') return c;
+  const next: FarmCase = { ...c, terrain };
+  const enough = terrain.source === 'drone' || terrain.samples >= MIN_TERRAIN_SAMPLES;
+  const declared = c.slopeSource === 'declared' || (c.slopeSource === null && c.slope !== 'unknown');
+  if (!declared && enough) {
+    next.slope = terrain.slopeClass;
+    next.slopeSource = terrain.source;
+  }
+  return next;
+}
+
+/** The farmer answers the slope question; "I don't know" falls back to the lot terrain when there is one. */
+export function withDeclaredSlope(c: FarmCase, slope: Slope): FarmCase {
+  if (slope !== 'unknown') return { ...c, slope, slopeSource: 'declared' };
+  const t = c.terrain;
+  if (t && (t.source === 'drone' || t.samples >= MIN_TERRAIN_SAMPLES)) return { ...c, slope: t.slopeClass, slopeSource: t.source };
+  return { ...c, slope: 'unknown', slopeSource: null };
 }

@@ -85,3 +85,18 @@ export function decidePosgarAxes(x: number, y: number, chosenStrip: number): { s
   if (fy !== null && looksLikeNorthing(x)) return { swap: true, strip: fy };
   return { swap: false, strip: null };
 }
+
+/** POSGAR 2007 strip (1–7) whose central meridian is closest to a longitude; null outside Argentina's strips. */
+export function posgarStripForLon(lon: number): number | null {
+  const f = Math.round((lon + 72) / 3) + 1;
+  return f >= 1 && f <= 7 ? f : null;
+}
+
+/** Lat/lon → POSGAR 2007 Gauss–Krüger coordinates in the lot's own strip (what Argentine surveyors use). */
+export function toPosgar(lat: number, lon: number): { faja: number; epsg: number; x: number; y: number } | null {
+  const faja = posgarStripForLon(lon);
+  if (faja === null) return null;
+  const epsg = 5342 + faja;
+  const [x, y] = proj4('EPSG:4326', proj4DefFor(epsg)!, [lon, lat]) as [number, number];
+  return { faja, epsg, x, y };
+}

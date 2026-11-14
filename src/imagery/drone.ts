@@ -23,7 +23,7 @@ export interface Orthomosaic {
 
 export class DroneImageError extends Error {
   constructor(
-    readonly code: 'notTiff' | 'noGeo' | 'crs' | 'bands' | 'tooBig' | 'read',
+    readonly code: 'notTiff' | 'noGeo' | 'crs' | 'bands' | 'dsmBands' | 'tooBig' | 'read',
     readonly detail = '',
   ) {
     super(`${code}${detail ? `: ${detail}` : ''}`);
