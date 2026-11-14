@@ -51,6 +51,8 @@ export interface FarmCase {
   goals: Goal[];
   priorities: Priorities;
   customPriorities: boolean;
+  /** Lot boundary drawn by the user, [lat, lon] vertices. Used for imagery and flight orders, not by the engine. */
+  lotPolygon: [number, number][] | null;
 }
 
 const ALL_UNKNOWN = Object.fromEntries(RESOURCES.map((r) => [r, 'unknown'])) as Record<ResourceId, Access>;
@@ -72,6 +74,7 @@ export const DEFAULT_CASE: FarmCase = {
   goals: ['water', 'cover'],
   priorities: prioritiesFromGoals(['water', 'cover']),
   customPriorities: false,
+  lotPolygon: null,
 };
 
 export const PRESET_TEMPLATES: TemplateId[] = Object.values(TEMPLATES)

@@ -67,6 +67,7 @@ export default function App() {
         {screen === 'explore' && view.kind === 'results' && (
           <ResultsScreen
             farmCase={farmCase}
+            onPolygon={(lotPolygon) => patch({ lotPolygon })}
             load={load}
             onEdit={() => setView({ kind: 'wizard', step: 4 })}
             onRetry={() => void run(false)}

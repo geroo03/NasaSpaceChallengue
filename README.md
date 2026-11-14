@@ -11,9 +11,11 @@ El caso inicial es un **punto ilustrativo de Santiago del Estero**. Añatuya es 
 3. **Campo isométrico** recorrible mes a mes, conectado al calendario. Está etiquetado como representación ilustrativa y tiene una vista plana accesible.
 4. **Sensibilidad** de lluvia y temperatura. Es un escenario exploratorio, no un pronóstico.
 5. **Clima NASA POWER**: lluvia, ET₀ (Hargreaves), lluvia/ET₀, días ≥ 35 °C y heladas. Cada valor lleva fuente, período, unidad y procedencia.
-6. **Contexto satelital NASA GIBS** (MODIS NDVI, SMAP L4, color real) alrededor del punto. Es solo visual y no entra al cálculo.
-7. **Rotaciones descartadas** con su motivo. No se inventan alternativas.
-8. **Estados** de carga, error de red con respaldo en la serie guardada, y aviso cuando hay pocas alternativas o ninguna.
+6. **Imagen del lote**: mapa con NASA HLS a 30 m (Sentinel-2 y Landsat armonizados). Las escenas salen del catálogo CMR con su porcentaje de nubes y se elige sola la más reciente y limpia. MODIS NDVI y SMAP L4 quedan como capas regionales. Las imágenes no entran al cálculo.
+7. **Drones**: carga de ortomosaicos GeoTIFF exportados por DJI Terra u otras plataformas, en WGS84, UTM o POSGAR 2007. Se procesan en el navegador sin subir el archivo y se superponen al mapa.
+8. **Orden de vuelo**: el lote se dibuja en el mapa y se exporta en KML (importable en DJI Pilot 2) y GeoJSON, con qué revisar en cada mes según la opción elegida. Field Shift no define altura ni solapamiento: eso lo decide el piloto, por ejemplo de Vuelo Verde.
+9. **Rotaciones descartadas** con su motivo. No se inventan alternativas.
+10. **Estados** de carga, error de red con respaldo en la serie guardada, y aviso cuando hay pocas alternativas o ninguna.
 
 ### Lo que todavía no hace
 
@@ -24,14 +26,14 @@ El caso inicial es un **punto ilustrativo de Santiago del Estero**. Añatuya es 
 
 ## Stack
 
-React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet y Vitest. No usa backend ni LLM.
+React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet, geotiff.js + proj4 (cargados solo al usar imágenes de dron) y Vitest. No usa backend, API keys ni LLM.
 
 ## Ejecutar
 
 ```sh
 npm install
 npm run dev        # servidor local
-npm test           # 33 pruebas (motor + traducción del caso)
+npm test           # 53 pruebas (motor, caso, verificación, HLS, coordenadas y orden de vuelo)
 npm run build      # typecheck + build estático en dist/
 npm run preview
 ```
@@ -45,7 +47,8 @@ src/engine/            Motor del prototipo Field Shift (puro, sin React)
   domain/crops.ts        Catálogo de 12 cultivos (parámetros genéricos)
   domain/rotations.ts    Calendario, evaluación, ranking y descartadas
   test/                  Pruebas del motor
-src/case/              Respuestas del productor → contexto del motor (con supuestos)
+src/case/              Respuestas del productor → contexto del motor (con supuestos) y plan de verificación
+src/imagery/           Escenas HLS (CMR/GIBS), lectura de GeoTIFF de dron y orden de vuelo KML/GeoJSON
 src/i18n/              Textos ES/EN (motor + interfaz)
 src/components/        Recorrido, resultados y "Cómo funciona"
 public/data/           Serie NASA POWER 2011–2025 guardada (punto -27.7834, -64.2642)

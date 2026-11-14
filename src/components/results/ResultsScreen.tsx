@@ -11,7 +11,9 @@ import { RotationCalendar } from './RotationCalendar';
 import { StrategyPanel, StrategyTabs } from './StrategyPanel';
 import { ClimatePanel } from './ClimatePanel';
 import { VerificationPanel } from './VerificationPanel';
-import { AssumptionList, DiscardedList, SatellitePanel, SensitivityPanel } from './ContextPanels';
+import { AssumptionList, DiscardedList, SensitivityPanel } from './ContextPanels';
+import { LotImagery } from './LotImagery';
+import { snapshotMatches } from '../../case/climateSource';
 
 export type LoadState =
   | { status: 'loading'; saved: boolean }
@@ -20,13 +22,14 @@ export type LoadState =
 
 interface Props {
   farmCase: FarmCase;
+  onPolygon: (p: FarmCase['lotPolygon']) => void;
   load: LoadState;
   onEdit: () => void;
   onRetry: () => void;
   onUseSaved: () => void;
 }
 
-export function ResultsScreen({ farmCase, load, onEdit, onRetry, onUseSaved }: Props) {
+export function ResultsScreen({ farmCase, onPolygon, load, onEdit, onRetry, onUseSaved }: Props) {
   const { t } = useLang();
 
   if (load.status === 'loading') {
@@ -61,10 +64,10 @@ export function ResultsScreen({ farmCase, load, onEdit, onRetry, onUseSaved }: P
       </div>
     );
   }
-  return <Results farmCase={farmCase} data={load.data} onEdit={onEdit} />;
+  return <Results farmCase={farmCase} data={load.data} onEdit={onEdit} onPolygon={onPolygon} />;
 }
 
-function Results({ farmCase, data, onEdit }: { farmCase: FarmCase; data: LoadedSeries; onEdit: () => void }) {
+function Results({ farmCase, data, onEdit, onPolygon }: { farmCase: FarmCase; data: LoadedSeries; onEdit: () => void; onPolygon: Props['onPolygon'] }) {
   const { t, m, num } = useLang();
   const [scenario, setScenario] = useState<Scenario>({ precipPct: 0, tempC: 0 });
   const [selectedId, setSelectedId] = useState('current');
@@ -184,8 +187,13 @@ function Results({ farmCase, data, onEdit }: { farmCase: FarmCase; data: LoadedS
       </Card>
 
       <Card>
-        <SectionTitle>{t('sat.title')}</SectionTitle>
-        <SatellitePanel lat={farmCase.lat} lon={farmCase.lon} />
+        <SectionTitle>{t('lot.title')}</SectionTitle>
+        {snapshotMatches(farmCase.lat, farmCase.lon) && !farmCase.lotPolygon && (
+          <div className="mb-4">
+            <Notice tone="warn">{t('lot.cityWarn')}</Notice>
+          </div>
+        )}
+        <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} onPolygon={onPolygon} strategy={selected} />
       </Card>
 
       {outcome.discarded.length > 0 && (

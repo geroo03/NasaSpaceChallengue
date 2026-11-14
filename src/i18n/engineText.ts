@@ -146,7 +146,7 @@ const es: Dict = {
   'strategy.schedule': 'Fechas elegidas por el motor',
   'schedule.item': '{crop}: siembra {sow} → cosecha/secado {end} ({months} meses)',
   'source.power': 'NASA POWER (MERRA-2): temperatura, lluvia corregida y humedad de suelo diarias.',
-  'source.gibs': 'NASA GIBS: imágenes MODIS NDVI y SMAP L4 como contexto visual; no entran al cálculo.',
+  'source.gibs': 'NASA HLS (Sentinel-2 y Landsat armonizados, 30 m) vía GIBS y catálogo CMR, más MODIS NDVI y SMAP L4 como contexto regional. Son imágenes: no entran al cálculo.',
   'source.fao': 'FAO-56: ecuación de Hargreaves para ET₀ y coeficientes de cultivo de referencia.',
 };
 
@@ -291,7 +291,7 @@ const en: Dict = {
   'strategy.schedule': 'Dates chosen by the engine',
   'schedule.item': '{crop}: sow {sow} → harvest/terminate {end} ({months} months)',
   'source.power': 'NASA POWER (MERRA-2): daily temperature, corrected rainfall and soil wetness.',
-  'source.gibs': 'NASA GIBS: MODIS NDVI and SMAP L4 imagery as visual context; not used in calculations.',
+  'source.gibs': 'NASA HLS (harmonised Sentinel-2 and Landsat, 30 m) via GIBS and the CMR catalogue, plus MODIS NDVI and SMAP L4 as regional context. Imagery only: not used in calculations.',
   'source.fao': 'FAO-56: Hargreaves equation for ET₀ and reference crop coefficients.',
 };
 

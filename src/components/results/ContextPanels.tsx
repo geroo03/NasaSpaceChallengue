@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import type { Scenario } from '../../engine/analysis/climate';
@@ -53,86 +52,6 @@ export function SensitivityPanel({ scenario, onChange }: { scenario: Scenario; o
       <button type="button" className={secondaryBtn} disabled={isBase} onClick={() => onChange({ precipPct: 0, tempC: 0 })}>
         <RotateCcw aria-hidden className="h-4 w-4" /> {t('sens.reset')}
       </button>
-    </div>
-  );
-}
-
-type Layer = 'ndvi' | 'smap' | 'true';
-const GIBS_LAYER: Record<Layer, string> = {
-  ndvi: 'MODIS_Terra_NDVI_8Day',
-  smap: 'SMAP_L4_Analyzed_Root_Zone_Soil_Moisture',
-  true: 'MODIS_Terra_CorrectedReflectance_TrueColor',
-};
-
-export function gibsSnapshotUrl(layer: string, lat: number, lon: number, date: string, half = 0.5): string {
-  const params = new URLSearchParams({
-    SERVICE: 'WMS',
-    REQUEST: 'GetMap',
-    VERSION: '1.3.0',
-    LAYERS: layer,
-    STYLES: '',
-    CRS: 'EPSG:4326',
-    // WMS 1.3.0 + EPSG:4326 uses lat,lon axis order
-    BBOX: [lat - half, lon - half, lat + half, lon + half].map((v) => v.toFixed(4)).join(','),
-    WIDTH: '512',
-    HEIGHT: '512',
-    FORMAT: 'image/png',
-    TIME: date,
-  });
-  return `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?${params.toString()}`;
-}
-
-export function SatellitePanel({ lat, lon }: { lat: number; lon: number }) {
-  const { t } = useLang();
-  const [layer, setLayer] = useState<Layer>('ndvi');
-  const [failed, setFailed] = useState<Record<string, boolean>>({});
-  const date = new Date(Date.now() - 20 * 86_400_000).toISOString().slice(0, 10);
-  const url = gibsSnapshotUrl(GIBS_LAYER[layer], lat, lon, date);
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <ProvTag kind="source" />
-        <ProvTag kind="notUsed" />
-      </div>
-      <p className="text-sm text-[#3B2F20]/90">{t('sat.help')}</p>
-      <div role="tablist" aria-label={t('sat.title')} className="flex flex-wrap gap-1.5">
-        {(['ndvi', 'smap', 'true'] as Layer[]).map((l) => (
-          <button
-            key={l}
-            type="button"
-            role="tab"
-            aria-selected={layer === l}
-            onClick={() => setLayer(l)}
-            className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-bold border focus-visible:outline-2 focus-visible:outline-[#BC6C25] ${
-              layer === l ? 'bg-[#283618] text-[#FEFAE0] border-[#283618]' : 'bg-white border-[#DECFA7] text-[#3B2F20]'
-            }`}
-          >
-            {t(`sat.${l}`)}
-          </button>
-        ))}
-      </div>
-      <div className="grid gap-4 md:grid-cols-[minmax(0,360px)_1fr] items-start">
-        <div className="relative aspect-square w-full max-w-[360px] overflow-hidden rounded-xl border border-[#DECFA7] bg-[#EFE3C2]">
-          {failed[url] ? (
-            <p className="p-4 text-sm">{t('sat.error')}</p>
-          ) : (
-            <img
-              key={url}
-              src={url}
-              alt={`${t(`sat.${layer}`)} · ${lat.toFixed(2)}, ${lon.toFixed(2)} · ${date}`}
-              className="h-full w-full object-cover"
-              onError={() => setFailed((f) => ({ ...f, [url]: true }))}
-              loading="lazy"
-            />
-          )}
-          <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#BC6C25] bg-white/40" />
-        </div>
-        <div className="space-y-2 text-sm text-[#3B2F20]">
-          <p>{t(`sat.${layer}Note`)}</p>
-          <p className="text-xs text-[#3B2F20]/80">{t('sat.date', { date })}</p>
-          <p className="text-xs text-[#3B2F20]/80">{t('sat.marker')}</p>
-        </div>
-      </div>
     </div>
   );
 }
