@@ -38,11 +38,14 @@ La revisión del 14 de noviembre registró 24 pruebas y build aprobados. Se repr
 
 POWER alimenta los cálculos. GIBS es visual. Las integraciones numéricas SMAP/ECOSTRESS/HLS, AppEEARS, SMS, downscaling y LLM son futuras. El mapa trabaja con puntos. El catálogo no tiene caupí ni intercultivos. La caché de la app vive en memoria; no habilita por sí sola una demo completa sin conexión.
 
-## Primera entrega: frontend
+## Primera entrega: frontend de Field Shift Lab
 
-El detalle está en `docs/PROMPT_PARA_CLAUDE.md`. Conectar el diseño al motor actual y mantener sus contratos. Si no hay una exportación de Stitch, utilizar el prompt visual guardado y los estilos existentes como referencia sin depender de conseguir un archivo externo.
+El detalle está en `docs/PROMPT_PARA_CLAUDE.md` y `docs/EXPERIENCIA_FIELD_SHIFT_LAB.md`. Conectar el diseño al motor actual y mantener sus contratos. Si no hay una exportación de Stitch, utilizar el prompt visual guardado y los estilos existentes como referencia sin depender de conseguir un archivo externo.
 
-- Flujo: configurar caso → comparar → detalle de alternativa.
+- Flujo guiado: ubicación → cultivo actual → acceso a herramientas/equipos → prioridad → comparación y detalle. Una pregunta por paso, con volver y resumen editable.
+- Representación esquemática 2D/isométrica con calendario de 24 meses y alternativa plana accesible.
+- Registrar acceso propio, compartido, contratado, no disponible o desconocido, y disponibilidad por confirmar. No inferir capacidad completa de contar con un tractor.
+- La factibilidad operativa real requiere reglas revisadas por operación; mientras no existan, identificarla como pendiente sin simular un filtrado. La siguiente etapa la integra separada de los puntajes climáticos.
 - Español argentino, con traducción EN de los nuevos textos.
 - Mantener funcionales coordenadas, presets, riego, pendiente, prioridades, sensibilidad y gráficos.
 - Mostrar razones, evidencia, contrapartidas, riesgos y vacíos.

@@ -27,6 +27,7 @@ Añatuya sigue siendo el territorio propuesto para el piloto. El punto predeterm
 5. [[Entrega 2026]] — campos y formato de presentación.
 6. [[Consigna oficial y encaje]] — lectura directa del enunciado y ajuste de prioridades.
 7. [[Preparación para Claude]] — stack, README y prompt para continuar el frontend.
+8. [[Field Shift Lab y recursos]] — recorrido simple, render y acceso a herramientas/equipos.
 
 ## Mapa
 

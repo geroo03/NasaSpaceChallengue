@@ -7,7 +7,7 @@ estado: listo-para-usar
 Prompt preparado para diseñar el frontend sobre el prototipo existente. El diseño es una propuesta; no implica que los campos y cambios nuevos ya estén implementados.
 
 ```text
-Diseñá el frontend responsive de “Field Shift”, una herramienta que ayuda a productores y técnicos agrícolas a explorar rotaciones de cultivos durante los próximos dos años.
+Diseñá el frontend responsive de “Field Shift Lab”, una herramienta que ayuda a productores y técnicos agrícolas a explorar rotaciones de cultivos durante los próximos dos años.
 
 El caso inicial es Santiago del Estero, Argentina, con un futuro piloto en Añatuya. La herramienta combina datos históricos de NASA POWER, información del suelo, características de cultivos y prioridades del productor.
 
@@ -26,7 +26,7 @@ Estética agrícola contemporánea, clara y profesional.
 Fondo marfil, verde bosque como color principal, tonos tierra y ámbar para advertencias.
 Tipografía muy legible, buena jerarquía y espacios amplios.
 Evitar estética espacial, neón, exceso de tarjetas y decoración.
-El elemento visual principal debe ser el calendario de rotaciones.
+El elemento visual principal debe ser un campo esquemático 2D/isométrico conectado al calendario de rotaciones. Mantener una vista plana y botones accesibles; evitar efectos pesados. Etiquetar la imagen como representación ilustrativa/modelada y no como observación o predicción exacta de crecimiento.
 Los gráficos siempre deben tener etiquetas, unidades y explicación.
 
 DISEÑAR ESTAS VISTAS COMO UN FLUJO CONECTADO:
@@ -38,26 +38,22 @@ Encabezado con Field Shift, navegación simple y selector de idioma.
 Título:
 “Explorá alternativas para las próximas dos campañas”.
 
-En escritorio: formulario a la izquierda y mapa a la derecha.
-En celular: formulario primero y mapa plegable.
+Usar un recorrido guiado con una pregunta por paso, progreso visible, volver sin perder datos y un resumen editable. En escritorio el campo puede acompañar al paso; en celular priorizar la pregunta y su acción principal.
 
-Formulario:
-- Seleccionar ubicación mediante un punto en el mapa o coordenadas.
-- Identificar el caso como ilustrativo o correspondiente a un productor.
-- Elegir rotación actual: soja–maíz, soja continua u otra.
-- Registrar fechas del manejo actual.
-- Sistema productivo: secano o riego.
-- Agua de riego disponible, cuando corresponda.
-- Textura del suelo y profundidad útil, con opción “No lo sé”.
-- Pendiente.
-- Restricciones de maquinaria, semillas y mercado.
-- Prioridad principal: disponibilidad de agua o cobertura del suelo.
-- Prioridades adicionales en un panel desplegable.
+Pasos:
+- ¿Dónde está tu campo? Localidad o punto; coordenadas en detalle opcional.
+- ¿Qué sembrás hoy? Imagen con nombre, otro cultivo o campo sin cultivo. Calendario actual editable.
+- ¿Con qué podés trabajar? Tareas manuales y recursos para siembra, trabajo del suelo, riego, cosecha o manejo de coberturas, con imágenes y nombres que se revisarán localmente.
+- ¿Qué querés priorizar? Agua, cobertura u otro objetivo, con texto claro.
+- Revisar respuestas y comparar.
 
-Botón principal:
-“Comparar rotaciones”.
+Para recursos, permitir: Lo tengo / Puedo compartirlo o pedirlo prestado / Puedo contratar el trabajo / No tengo acceso / Falta confirmar. Preguntar disponibilidad en la fecha de trabajo solo cuando aporte. Tener tractor no implica tener todos los implementos. La propiedad no determina por sí sola qué opciones son realizables.
 
-Mostrar qué datos ingresó el usuario, cuáles vienen de una fuente y cuáles faltan.
+Suelo, riego y detalles adicionales: información desplegable con explicación y “No lo sé” donde corresponda. Mostrar qué datos se declararon, estimaron o faltan. Evitar exigir vocabulario técnico para avanzar.
+
+Diseñar estados de compatibilidad operativa por alternativa: compatible con recursos declarados, necesita conseguir equipo, limitación operativa o falta confirmar. Si la lógica todavía no existe, el prototipo muestra “Compatibilidad de equipos pendiente de evaluación”. Estos estados deben derivarse de reglas reales al implementarse, nunca de números de ejemplo.
+
+Botón principal: “Ver opciones para mi campo”.
 
 2. COMPARAR ROTACIONES
 
@@ -79,7 +75,7 @@ Usar “Alternativa para explorar” para las candidatas.
 Si hay menos alternativas disponibles, explicar el motivo.
 
 En escritorio, permitir comparación simultánea.
-En celular, usar tarjetas verticales y un selector para comparar dos opciones.
+En celular, mostrar una alternativa a la vez con acceso sencillo a la referencia y las demás opciones. Dar primero qué cambia, por qué aparece, qué necesita y qué falta verificar.
 
 Los puntajes, si aparecen, deben llamarse “Índice orientativo” y explicar que dependen de reglas y supuestos.
 
@@ -93,7 +89,7 @@ Organizar el contenido en:
 - Qué verificar en el lote.
 
 Mostrar fuente, período, unidad y escala junto a cada indicador.
-Añadir una sección plegable “Supuestos del cálculo”.
+Añadir una sección plegable “Supuestos del cálculo”. Las limitaciones decisivas de agua o recursos permanecen visibles fuera del desplegable.
 
 Incluir un panel de sensibilidad con controles:
 - Cambio de lluvia.
@@ -121,6 +117,7 @@ Mostrar fecha y procedencia cuando se utilicen datos guardados.
 
 ACCESIBILIDAD E IMPLEMENTACIÓN
 
+Frases cortas, palabras familiares, una acción principal por pantalla y textos junto a iconos. Diseñar para distintos niveles de lectura y experiencia digital, validando con productores reales y respetando su conocimiento agrícola.
 Contraste suficiente, controles táctiles cómodos y navegación por teclado.
 No depender únicamente del color para distinguir cultivos o riesgos.
 Diseño compatible con Vite + TypeScript, Leaflet y Chart.js.
@@ -128,3 +125,5 @@ Priorizar componentes reutilizables, una navegación breve y una experiencia fun
 ```
 
 Ver [[MVP y demo]] y [[Cambios prioritarios]] al convertir el diseño en código.
+
+La especificación vigente del recorrido y los recursos está en [Experiencia Field Shift Lab](../../docs/EXPERIENCIA_FIELD_SHIFT_LAB.md). El frontend y sus reglas operativas siguen pendientes de implementación.

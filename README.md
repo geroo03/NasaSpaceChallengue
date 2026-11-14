@@ -1,4 +1,4 @@
-# Field Shift
+# Field Shift / Field Shift Lab
 
 Herramienta exploratoria para comparar rotaciones de cultivos durante **24 meses**, según datos históricos de NASA POWER y las prioridades del productor. Se desarrolla para [Field Shift: Adapting Farms with NASA Data, NASA Space Apps 2026](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/).
 
@@ -23,6 +23,10 @@ Continuamos con la tecnología del prototipo existente.
 
 La aplicación actual funciona sin framework de componentes ni backend. La prioridad es extender esta base. React, Next.js, Python, una base de datos o nuevas librerías requerirían una necesidad concreta y una decisión documentada; no forman parte del stack acordado para esta etapa. Los rangos de versiones están en [package.json](prototipo/field-shift/package.json), y `package-lock.json` fija la instalación reproducible.
 
+## Evolución acordada: Field Shift Lab
+
+La próxima experiencia combina un recorrido de preguntas simples, representación esquemática del campo y comparación de rotaciones. Registra acceso a herramientas/equipos propios, compartidos o contratados y distingue disponibilidad pendiente. La propuesta y sus etapas están en [Experiencia Field Shift Lab](docs/EXPERIENCIA_FIELD_SHIFT_LAB.md). El render y la capa operativa todavía no están implementados.
+
 ## Idioma y vocabulario
 
 - Documentación del equipo: español.
@@ -35,7 +39,7 @@ La aplicación actual funciona sin framework de componentes ni backend. La prior
 ## Empezar con Claude
 
 1. Leer [CLAUDE.md](CLAUDE.md): instrucciones de trabajo, límites y validación.
-2. Copiar [el prompt de inicio](docs/PROMPT_PARA_CLAUDE.md): primera tarea y entregables.
+2. Leer [Experiencia Field Shift Lab](docs/EXPERIENCIA_FIELD_SHIFT_LAB.md) y copiar [el prompt de inicio](docs/PROMPT_PARA_CLAUDE.md).
 3. Consultar [la auditoría](docs/AUDITORIA_ESTRATEGICA_NASA.md) y [la matriz de datos](docs/MATRIZ_DATOS_Y_APIS_NASA.md).
 4. Usar [el prompt para Stitch](Field%20Shift%20-%20Obsidian/04%20Presentacion/Prompt%20para%20Stitch.md) como referencia visual.
 
@@ -142,6 +146,7 @@ SMAP numérico, ECOSTRESS, HLS, AppEEARS, downscaling, SMS, un backend y un LLM 
 | --- | --- |
 | [CLAUDE.md](CLAUDE.md) | Trabajar sobre el proyecto |
 | [Prompt para Claude](docs/PROMPT_PARA_CLAUDE.md) | Iniciar la adaptación del frontend |
+| [Experiencia Field Shift Lab](docs/EXPERIENCIA_FIELD_SHIFT_LAB.md) | Flujo simple, render y acceso a maquinaria |
 | [Auditoría](docs/AUDITORIA_ESTRATEGICA_NASA.md) | Estado y prioridades comprobables |
 | [Matriz de datos](docs/MATRIZ_DATOS_Y_APIS_NASA.md) | Integraciones presentes y propuestas |
 | [Estrategias](docs/ESTRATEGIAS_ROTACION_CULTIVOS.md) | Candidatos y condiciones para evaluarlos |
