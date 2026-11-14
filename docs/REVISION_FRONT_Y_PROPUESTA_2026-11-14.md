@@ -1,5 +1,7 @@
 # Revisión del front y propuesta para evaluar — 14/11/2026
 
+> **Actualización (14/11/2026, más tarde):** se mantienen las correcciones funcionales de esta revisión: riego pendiente, coordenadas, PDFs, ventana de seguimiento y calendario accesible. Las «tres vistas por tarea» y la lista «Antes de decidir» fueron reemplazadas por el flujo de tres pantallas: **Tu lote → Tu campaña → Tus opciones**. Ese flujo incluye un lote de ejemplo con datos guardados y una ficha para compartir. Ver el README.
+
 Base de revisión: commit `899ee05`, posterior a los cambios de tipografía y fondo. La propuesta conserva Raleway, el fondo `#f0ede4` y los cálculos agronómicos del motor. Se ajustó la traducción de declaraciones del productor al motor para que el riego pendiente no se contabilice como confirmado.
 
 ## Qué mejoró en la actualización recibida

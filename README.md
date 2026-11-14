@@ -78,6 +78,21 @@ La serie guardada se descargó el 14/11/2026 (POWER API v2.10.3, MERRA-2, SHA-25
 - Los índices (0–100) son orientativos: no son probabilidades ni rentabilidad.
 - "Meses sin cultivo programado" sale del calendario. No equivale a suelo desnudo observado.
 
+## Flujo de la app (3 pantallas)
+
+1. **Tu lote** (`#/lote`): se dibuja o se carga el plano, o se elige un punto. Aparecen la superficie, el centro (punto de NASA POWER) y el relieve de NASA SRTM. El botón «Probar con el lote de ejemplo» carga 46 ha cerca de Añatuya. Para ese punto hay una serie NASA POWER 2011–2025 guardada sin modificar en `public/data/`.
+2. **Tu campaña** (`#/campana`): el cultivo actual, el riego (el único recurso que entra al cálculo) y las prioridades. La maquinaria queda plegada.
+3. **Tus opciones** (`#/opciones`):
+   - el manejo actual contra la alternativa mejor puntuada, con por qué y qué tener en cuenta;
+   - años de prueba (seco, caluroso);
+   - el campo mes a mes;
+   - qué verificar, junto al pedido de dron con esas fechas;
+   - la **ficha imprimible o en PDF**.
+
+   Lo técnico va plegado en «¿De dónde sale esto?».
+
+Si NASA POWER no responde y el punto tiene una serie guardada, la app la usa y lo avisa.
+
 ## Lote primero, relieve y pedido de dron
 
 - **Paso 1 = el lote.** Se dibuja sobre Esri World Imagery (Geoman) o se carga el plano: KML/KMZ, SHP zip, GeoJSON o DXF en POSGAR. El centro del lote pasa a ser el punto de NASA POWER. "Solo un punto" queda como alternativa.
