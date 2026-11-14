@@ -10,6 +10,7 @@ import { FieldScene } from './FieldScene';
 import { RotationCalendar } from './RotationCalendar';
 import { StrategyPanel, StrategyTabs } from './StrategyPanel';
 import { ClimatePanel } from './ClimatePanel';
+import { VerificationPanel } from './VerificationPanel';
 import { AssumptionList, DiscardedList, SatellitePanel, SensitivityPanel } from './ContextPanels';
 
 export type LoadState =
@@ -153,6 +154,10 @@ function Results({ farmCase, data, onEdit }: { farmCase: FarmCase; data: LoadedS
             <StrategyPanel strategy={selected} reference={reference} altIndex={altIndex} farm={farm} />
           </div>
         </div>
+        <Card>
+          <SectionTitle sub={t('verify.help')}>{t('verify.title')}</SectionTitle>
+          <VerificationPanel strategy={selected} onPickMonth={setMonth} />
+        </Card>
       </section>
 
       <Card>

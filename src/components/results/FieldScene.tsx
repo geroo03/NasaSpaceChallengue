@@ -101,7 +101,7 @@ export function FieldScene({ strategy, month, setMonth }: { strategy: StrategyRe
           {isCover && <span className="ml-2 text-xs font-bold text-[#606C38]">({t('cal.legendCover')})</span>}
         </p>
         <p className="mt-1 text-sm text-[#3B2F20]/90">
-          {slot ? t('scene.stage', { k: slot.months.indexOf(month) + 1, n: slot.months.length }) : t('scene.emptyNote')}
+          {slot ? t('scene.stage', { k: slot.months.indexOf(month) + 1, n: slot.months.length }) : `${t('scene.emptyNote')} ${t('scene.emptyNoteResidue')}`}
         </p>
         <p className="mt-1 text-xs text-[#3B2F20]/80">{t('scene.pressure', { v: pressure })}</p>
         {slot && slot.crop.role !== 'cover' && (

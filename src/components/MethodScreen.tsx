@@ -33,6 +33,14 @@ export function MethodScreen() {
       </Card>
 
       <Card>
+        <h2 className="text-xl font-bold text-[#283618] mb-3">{t('method.partner')}</h2>
+        <p className="text-sm leading-relaxed">{t('method.partnerText')}</p>
+        <div className="mt-3">
+          <ProvTag kind="declared" />
+        </div>
+      </Card>
+
+      <Card>
         <h2 className="text-xl font-bold text-[#283618] mb-3">{t('method.assumptions')}</h2>
         <ul className="list-disc pl-5 space-y-2 text-sm leading-relaxed">
           {['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8'].map((k) => (
