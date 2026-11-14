@@ -1,0 +1,17 @@
+{
+  "fuente": "https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/",
+  "fecha_consulta": "2026-11-14",
+  "metodo": "HTTPS con curl y verificación TLS; extracción de Details y Resources del contenido RSC de la propia página",
+  "contenido_completo_leido": [
+    "Background",
+    "Objectives",
+    "Potential Considerations",
+    "Resources"
+  ],
+  "ultima_publicacion_UTC": "2026-11-13T03:53:29.737029Z",
+  "sha256_html": "806df4d22997d1e501a7fae1cdcc46068d37bfc7a22eec228253271e7f031094",
+  "sha256_details": "9428c8e863518f422a2b52ce3493de92e3adbd37da91234d6e4b2698c692b9f0",
+  "sha256_resources": "9ecd278f0f5de179300d9d03ff1622c65d25a2ab795988e448559256c4f1f521",
+  "guias_entrega_y_jurado_verificadas": false,
+  "codigo_prototipo_modificado": false
+}

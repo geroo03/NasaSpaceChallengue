@@ -1,0 +1,29 @@
+{
+  "fecha_revision": "2026-11-14",
+  "archivo": "field-shift.zip",
+  "sha256": "4cf1590a92c6740e6d80f667e5e0c8890b0df0f2f2227088f750712ce6d7a2b2",
+  "extraccion": "prototipo/field-shift",
+  "codigo_fuente_modificado": false,
+  "fuente_actualizacion": "05 Material recibido/Claude - actualizacion 2026-11-14.md",
+  "archivos_zip_verificados": 17,
+  "pruebas": {
+    "comando": "npm test",
+    "aprobadas": 24,
+    "archivos": 3,
+    "exit_code": 0,
+    "limitacion": "pruebas de software; no validacion de campo"
+  },
+  "compilacion": {
+    "comando": "npm run build",
+    "exit_code": 0
+  },
+  "ejecucion_power": {
+    "periodo": "2011-2025",
+    "dias": 5479,
+    "descartados_parser": 0,
+    "caso": "punto predeterminado del prototipo, no lote confirmado de Añatuya",
+    "resultado": "resultado-motor.json"
+  },
+  "navegador_ensayado": false,
+  "validado_en_campo": false
+}
