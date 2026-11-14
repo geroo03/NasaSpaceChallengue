@@ -16,6 +16,8 @@ import { WorkspaceNav, type ResultView } from './WorkspaceNav';
 import { DecisionChecklist } from './DecisionChecklist';
 // Map tools (Geoman, Turf, file importers) load only when the results screen needs them.
 const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
+const LotExtras = lazy(() => import('../lot/LotStep').then((m) => ({ default: m.LotExtras })));
+import type { LotApi } from '../../case/lotApi';
 import { snapshotMatches } from '../../case/climateSource';
 
 export type LoadState =
@@ -31,9 +33,10 @@ interface Props {
   onEdit: (step?: number) => void;
   onRetry: () => void;
   onUseSaved: () => void;
+  lot: LotApi;
 }
 
-export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRetry, onUseSaved }: Props) {
+export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRetry, onUseSaved, lot }: Props) {
   const { t } = useLang();
 
   if (load.status === 'loading') {
@@ -68,7 +71,7 @@ export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRe
       </div>
     );
   }
-  return <Results farmCase={farmCase} data={load.data} onEdit={onEdit} onLot={onLot} onAnalyseAt={onAnalyseAt} />;
+  return <Results farmCase={farmCase} data={load.data} onEdit={onEdit} onLot={onLot} onAnalyseAt={onAnalyseAt} lot={lot} />;
 }
 
 function Results({
@@ -77,7 +80,9 @@ function Results({
   onEdit,
   onLot,
   onAnalyseAt,
+  lot,
 }: {
+  lot: LotApi;
   farmCase: FarmCase;
   data: LoadedSeries;
   onEdit: Props['onEdit'];
@@ -288,6 +293,7 @@ function Results({
             {lotVisited && <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} source={farmCase.lotSource} onLot={onLot} strategy={selected} />}
           </Suspense>
         </Card>
+        <Suspense fallback={null}>{lotVisited && <LotExtras farmCase={farmCase} lot={lot} />}</Suspense>
       </section>
     </div>
   );

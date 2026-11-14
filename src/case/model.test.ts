@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_CASE, distanceKm, loadCase, prioritiesFromGoals, ringCentroid, saveCase, toFarmContext, type FarmCase } from './model';
+import { DEFAULT_CASE, distanceKm, loadCase, prioritiesFromGoals, ringCentroid, saveCase, toFarmContext, withDeclaredSlope, withLot, withTerrain, type FarmCase, type TerrainSummary } from './model';
 
 const base: FarmCase = { ...DEFAULT_CASE };
 
@@ -89,5 +89,61 @@ describe('slope provenance', () => {
     expect(toFarmContext({ ...base, slope: 'flat', slopeSource: 'srtm' }).assumptions).toContain('slopeFromSrtm');
     expect(toFarmContext({ ...base, slope: 'gentle', slopeSource: 'drone' }).assumptions).toContain('slopeFromDrone');
     expect(toFarmContext({ ...base, slope: 'gentle', slopeSource: 'declared' }).assumptions).not.toContain('slopeFromSrtm');
+  });
+});
+
+describe('lot-first flow', () => {
+  const ring: [number, number][] = [
+    [-28.47, -62.85],
+    [-28.47, -62.84],
+    [-28.46, -62.84],
+    [-28.46, -62.85],
+  ];
+  const srtm: TerrainSummary = { source: 'srtm', samples: 400, meanM: 120, reliefM: 3, slopePct: 0.3, aspectDeg: 90, slopeClass: 'flat', sources: ['srtm/S29W063.tif'] };
+  const drone: TerrainSummary = { ...srtm, source: 'drone', slopePct: 1.4, slopeClass: 'gentle', sources: ['dsm.tif'] };
+
+  it('moves the climate point to the lot centre only in the wizard', () => {
+    const moved = withLot(base, ring, { kind: 'drawn' }, { movePoint: true });
+    expect(moved.lat).toBeCloseTo(-28.465, 4);
+    expect(moved.lon).toBeCloseTo(-62.845, 4);
+    expect(moved.placeId).toBeNull();
+    const kept = withLot(base, ring, { kind: 'drawn' }, { movePoint: false });
+    expect(kept.lat).toBe(base.lat);
+  });
+
+  it('uses the lot terrain for the slope unless the farmer declared it', () => {
+    const c = withTerrain(withLot(base, ring, { kind: 'drawn' }, { movePoint: true }), srtm);
+    expect(c.slope).toBe('flat');
+    expect(c.slopeSource).toBe('srtm');
+    const declared = withTerrain({ ...base, slope: 'steep', slopeSource: 'declared' }, srtm);
+    expect(declared.slope).toBe('steep');
+    expect(declared.terrain).toEqual(srtm);
+  });
+
+  it('does not apply an SRTM slope from too few samples', () => {
+    const c = withTerrain(base, { ...srtm, samples: 12 });
+    expect(c.slope).toBe('unknown');
+    expect(c.terrain?.samples).toBe(12);
+  });
+
+  it('keeps a drone measurement over a later SRTM estimate', () => {
+    const c = withTerrain(withTerrain(base, drone), srtm);
+    expect(c.terrain?.source).toBe('drone');
+    expect(c.slope).toBe('gentle');
+  });
+
+  it('resets terrain and its slope when the boundary changes', () => {
+    const c = withLot(withTerrain(base, srtm), ring, { kind: 'drawn' }, { movePoint: false });
+    expect(c.terrain).toBeNull();
+    expect(c.slope).toBe('unknown');
+    expect(withLot(c, null, { kind: 'drawn' }, { movePoint: false }).lotSource).toBeNull();
+  });
+
+  it('falls back to the measured slope when the farmer answers "I don\'t know"', () => {
+    const c = withDeclaredSlope(withTerrain(base, srtm), 'steep');
+    expect(c.slopeSource).toBe('declared');
+    const back = withDeclaredSlope(c, 'unknown');
+    expect(back.slope).toBe('flat');
+    expect(back.slopeSource).toBe('srtm');
   });
 });

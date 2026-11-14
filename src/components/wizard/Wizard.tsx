@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, Database, Satellite } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import type { FarmCase } from '../../case/model';
+import type { LotApi } from '../../case/lotApi';
 import { snapshotMatches } from '../../case/climateSource';
 import { primaryBtn, secondaryBtn } from '../ui';
 import { StepLocation, coordsValid } from './StepLocation';
@@ -20,12 +21,14 @@ export function Wizard({
   step,
   setStep,
   onRun,
+  lot,
 }: {
   value: FarmCase;
   onChange: (patch: Partial<FarmCase>) => void;
   step: number;
   setStep: (n: number) => void;
   onRun: (useSaved: boolean) => void;
+  lot: LotApi;
 }) {
   const { t } = useLang();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -43,7 +46,7 @@ export function Wizard({
   const canAdvance = step !== 0 || coordsValid(value);
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className={step === 0 ? 'max-w-5xl mx-auto' : 'max-w-3xl mx-auto'}>
       <p className="text-sm font-bold uppercase tracking-[0.08em] text-[#283618]">{t('wizard.title')}</p>
 
       <nav aria-label={t('wizard.progress', { n: step + 1, total: STEPS.length })} className="mt-4">
@@ -76,7 +79,7 @@ export function Wizard({
       </h1>
       <p className="mt-2 mb-6 text-[#3B2F20]/90 leading-relaxed">{t(HELP[step] ?? '')}</p>
 
-      {step === 0 && <StepLocation value={value} onChange={onChange} />}
+      {step === 0 && <StepLocation value={value} onChange={onChange} lot={lot} />}
       {step === 1 && <StepCrop value={value} onChange={onChange} />}
       {step === 2 && <StepResources value={value} onChange={onChange} />}
       {step === 3 && <StepPriorities value={value} onChange={onChange} />}

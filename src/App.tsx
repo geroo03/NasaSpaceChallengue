@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HeaderBar, type Screen } from './components/HeaderBar';
 import { Wizard } from './components/wizard/Wizard';
 import { ResultsScreen, type LoadState } from './components/results/ResultsScreen';
 import { MethodScreen } from './components/MethodScreen';
-import { loadCase, saveCase, type FarmCase } from './case/model';
+import { loadCase, saveCase, withDeclaredSlope, withLot, withTerrain, type FarmCase } from './case/model';
+import type { LotApi } from './case/lotApi';
+import { sampleSrtm } from './imagery/terrain';
 import { loadLive, loadSaved, snapshotMatches } from './case/climateSource';
 import { useLang } from './i18n/LangContext';
 
@@ -21,6 +23,53 @@ export default function App() {
   useEffect(() => saveCase(farmCase), [farmCase]);
 
   const patch = useCallback((p: Partial<FarmCase>) => setFarmCase((c) => ({ ...c, ...p })), []);
+
+  // Terrain of the lot from NASA SRTM, read once per boundary (a drone DSM, once loaded, is kept).
+  const [terrainStatus, setTerrainStatus] = useState<LotApi['terrainStatus']>('idle');
+  const [terrainTry, setTerrainTry] = useState(0);
+  const ring = farmCase.lotPolygon;
+  const needsTerrain = ring !== null && farmCase.terrain === null;
+  useEffect(() => {
+    if (!ring || !needsTerrain) {
+      setTerrainStatus('idle');
+      return;
+    }
+    let alive = true;
+    setTerrainStatus('loading');
+    sampleSrtm(ring)
+      .then(({ stats, sources }) => {
+        if (!alive) return;
+        if (!stats) {
+          setTerrainStatus('error');
+          return;
+        }
+        const { source, samples, meanM, reliefM, slopePct, aspectDeg, slopeClass } = stats;
+        const summary = { source, samples, meanM, reliefM, slopePct, aspectDeg, slopeClass, sources };
+        setFarmCase((c) => (c.lotPolygon === ring ? withTerrain(c, summary) : c));
+        setTerrainStatus('idle');
+      })
+      .catch(() => alive && setTerrainStatus('error'));
+    return () => {
+      alive = false;
+    };
+  }, [ring, needsTerrain, terrainTry]);
+
+  const lot = useMemo<LotApi>(
+    () => ({
+      terrainStatus,
+      retryTerrain: () => setTerrainTry((n) => n + 1),
+      setLot: (r, src, movePoint) => setFarmCase((c) => withLot(c, r, src, { movePoint })),
+      setTerrain: (tr) => setFarmCase((c) => withTerrain(c, tr)),
+      dropDroneTerrain: () =>
+        setFarmCase((c) => ({
+          ...c,
+          terrain: null,
+          ...(c.slopeSource === 'drone' ? { slope: 'unknown' as const, slopeSource: null } : {}),
+        })),
+      setSlope: (s) => setFarmCase((c) => withDeclaredSlope(c, s)),
+    }),
+    [terrainStatus],
+  );
 
   const run = useCallback(
     async (useSaved: boolean, at?: { lat: number; lon: number }) => {
@@ -64,12 +113,13 @@ export default function App() {
       <main id="main" className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-10">
         {screen === 'method' && <MethodScreen />}
         {screen === 'explore' && view.kind === 'wizard' && (
-          <Wizard value={farmCase} onChange={patch} step={view.step} setStep={(step) => setView({ kind: 'wizard', step })} onRun={(s) => void run(s)} />
+          <Wizard value={farmCase} onChange={patch} step={view.step} setStep={(step) => setView({ kind: 'wizard', step })} onRun={(s) => void run(s)} lot={lot} />
         )}
         {screen === 'explore' && view.kind === 'results' && (
           <ResultsScreen
             farmCase={farmCase}
-            onLot={(lotPolygon, lotSource) => patch({ lotPolygon, lotSource })}
+            onLot={(lotPolygon, lotSource) => lot.setLot(lotPolygon, lotSource, false)}
+            lot={lot}
             onAnalyseAt={(lat, lon) => {
               patch({ lat, lon, placeId: null });
               void run(false, { lat, lon });

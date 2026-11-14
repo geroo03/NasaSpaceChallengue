@@ -77,3 +77,20 @@ La serie guardada se descargó el 14/11/2026 (POWER API v2.10.3, MERRA-2, SHA-25
 - Riesgo de helada: máximo mensual ponderado. No es la frecuencia de campañas con helada.
 - Los índices (0–100) son orientativos: no son probabilidades ni rentabilidad.
 - "Meses sin cultivo programado" sale del calendario. No equivale a suelo desnudo observado.
+
+## Lote primero, relieve y pedido de dron
+
+- **Paso 1 = el lote.** Se dibuja sobre Esri World Imagery (Geoman) o se carga el plano: KML/KMZ, SHP zip, GeoJSON o DXF en POSGAR. El centro del lote pasa a ser el punto de NASA POWER. "Solo un punto" queda como alternativa.
+- **Datos del terreno.** Con el lote cargado, la app calcula:
+  - superficie y centro;
+  - altura media y desnivel (percentil 5 a 95);
+  - pendiente general, con un plano ajustado por mínimos cuadrados, y hacia dónde escurre el agua.
+
+  El relieve sale de **NASA SRTM** (~30 m, AWS Terrain Tiles, sin clave). Si el productor no declaró la pendiente, se usa esta, marcada como dato NASA. SRTM tiene un error de varios metros: no sirve para curvas de nivel.
+- **DSM del dron.** Un GeoTIFF de una banda en metros (WGS 84, UTM o POSGAR 2007) reemplaza la estimación de SRTM y queda como "Medido con dron". Se procesa en el navegador.
+- **Pedir relevamiento con dron.** Usa los servicios del informe técnico de Vuelo Verde:
+  - altimetría con DSM/RTK y curvas cada 5–7 cm;
+  - ortomosaico RGB;
+  - multiespectral, a confirmar con el prestador.
+
+  Genera el texto del pedido, con el centro en WGS 84 y en POSGAR faja 4, y el KML del límite. El botón de WhatsApp aparece solo si se configura `VITE_VUELO_VERDE_WHATSAPP` en Vercel. Ningún contacto queda escrito en el código.

@@ -229,3 +229,52 @@ export function distanceKm(a: [number, number], b: [number, number]): number {
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(dLon / 2) ** 2;
   return 2 * 6371 * Math.asin(Math.sqrt(h));
 }
+
+/** SRTM estimates below this many samples (~4.5 ha at 30 m) are shown but not applied to the slope. */
+export const MIN_TERRAIN_SAMPLES = 50;
+
+/**
+ * Sets (or clears) the lot. Terrain belongs to a boundary, so it is reset and re-derived; a slope that came
+ * from terrain goes back to unknown until the new estimate arrives. With `movePoint`, the climate point
+ * moves to the lot centre (the wizard's lot-first flow); the results view keeps the analysed point and warns instead.
+ */
+export function withLot(c: FarmCase, ring: [number, number][] | null, source: LotSource | null, opts: { movePoint: boolean }): FarmCase {
+  const next: FarmCase = { ...c, lotPolygon: ring, lotSource: ring ? source : null, terrain: null };
+  if (c.slopeSource === 'srtm' || c.slopeSource === 'drone') {
+    next.slope = 'unknown';
+    next.slopeSource = null;
+  }
+  if (ring && opts.movePoint) {
+    const centre = ringCentroid(ring);
+    if (centre) {
+      next.lat = Number(centre[0].toFixed(5));
+      next.lon = Number(centre[1].toFixed(5));
+      next.placeId = null;
+    }
+  }
+  return next;
+}
+
+/**
+ * Stores lot terrain and, unless the farmer declared the slope, uses its slope class for the engine.
+ * A drone measurement is never replaced by an SRTM estimate.
+ */
+export function withTerrain(c: FarmCase, terrain: TerrainSummary): FarmCase {
+  if (terrain.source === 'srtm' && c.terrain?.source === 'drone') return c;
+  const next: FarmCase = { ...c, terrain };
+  const enough = terrain.source === 'drone' || terrain.samples >= MIN_TERRAIN_SAMPLES;
+  const declared = c.slopeSource === 'declared' || (c.slopeSource === null && c.slope !== 'unknown');
+  if (!declared && enough) {
+    next.slope = terrain.slopeClass;
+    next.slopeSource = terrain.source;
+  }
+  return next;
+}
+
+/** The farmer answers the slope question; "I don't know" falls back to the lot terrain when there is one. */
+export function withDeclaredSlope(c: FarmCase, slope: Slope): FarmCase {
+  if (slope !== 'unknown') return { ...c, slope, slopeSource: 'declared' };
+  const t = c.terrain;
+  if (t && (t.source === 'drone' || t.samples >= MIN_TERRAIN_SAMPLES)) return { ...c, slope: t.slopeClass, slopeSource: t.source };
+  return { ...c, slope: 'unknown', slopeSource: null };
+}

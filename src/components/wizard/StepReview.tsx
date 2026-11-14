@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useLang } from '../../i18n/LangContext';
 import { RESOURCES, toFarmContext, type FarmCase } from '../../case/model';
+import { polygonAreaHa as areaHa } from '../../imagery/flightOrder';
 import { SAVED_SNAPSHOT, snapshotMatches } from '../../case/climateSource';
 import { Notice, ProvTag, linkBtn, type Provenance } from '../ui';
 
@@ -23,18 +24,25 @@ function Row({ label, onEdit, children, prov }: { label: string; onEdit: () => v
 }
 
 export function StepReview({ value, goTo }: { value: FarmCase; goTo: (step: number) => void }) {
-  const { t } = useLang();
+  const { t, num } = useLang();
   const { assumptions } = toFarmContext(value);
   const declared = RESOURCES.filter((r) => value.resources[r] !== 'unknown').length;
-  const place = value.placeId ? t(`loc.place.${value.placeId}`) : t('loc.place.custom');
+  const place = value.lotPolygon
+    ? t('review.lotPlace', { ha: num(areaHa(value.lotPolygon), 1) })
+    : value.placeId
+      ? t(`loc.place.${value.placeId}`)
+      : t('loc.place.custom');
+  const slopeProv: Provenance =
+    value.slope === 'unknown' ? 'unknown' : value.slopeSource === 'srtm' ? 'source' : value.slopeSource === 'drone' ? 'measured' : 'declared';
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-[#DECFA7] bg-white px-4">
         <Row label={t('review.location')} onEdit={() => goTo(0)} prov="declared">
           {place} · {value.lat.toFixed(4)}, {value.lon.toFixed(4)} · {t('review.years', { n: value.years })}
         </Row>
-        <Row label={t('review.terrain')} onEdit={() => goTo(0)} prov={value.slope === 'unknown' ? 'unknown' : 'declared'}>
-          {t('loc.slope')} {t(`slope.${value.slope}`)} · {t('loc.soil')} {t(`soil.${value.soilTexture}`)}
+        <Row label={t('review.terrain')} onEdit={() => goTo(0)} prov={slopeProv}>
+          {t('loc.slope')} {t(`slope.${value.slope}`)}
+          {value.terrain && ` (${num(value.terrain.slopePct, 1)} %${value.slopeSource && value.slopeSource !== 'declared' ? ` · ${t(`terrain.src.${value.slopeSource}`)}` : ''})`} · {t('loc.soil')} {t(`soil.${value.soilTexture}`)}
         </Row>
         <Row label={t('review.current')} onEdit={() => goTo(1)} prov={value.currentChoice === 'preset' ? 'declared' : 'assumed'}>
           {value.currentChoice === 'other' && value.otherCrop && <strong>{value.otherCrop} → </strong>}
