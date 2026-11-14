@@ -68,7 +68,7 @@ export function LotImagery({
   onLot: (p: LatLon[] | null, source: LotSource | null) => void;
   strategy: StrategyResult;
 }) {
-  const { t, months, crop, lang } = useLang();
+  const { t, months, crop, lang, num } = useLang();
   const host = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const hlsLayer = useRef<L.TileLayer | null>(null);
@@ -341,7 +341,7 @@ export function LotImagery({
             <p className="mt-2 text-sm flex flex-wrap items-center gap-2">
               <ProvTag kind="declared" />
               <span>
-                {t('lot.area', { ha: areaHa(polygon).toFixed(1) })}{' '}
+                {t('lot.area', { ha: num(areaHa(polygon), 1) })}{' '}
                 {source && t(`lot.source.${source.kind}`, { file: source.fileName ?? '' })}
               </span>
             </p>
