@@ -30,5 +30,8 @@
     "typescript": "^7.0.2",
     "vitest": "^3.2.7"
   },
-  "description": "Field Shift Lab – explorador de rotaciones a 24 meses con datos NASA POWER (NASA Space Apps 2026)"
+  "description": "Field Shift Lab – explorador de rotaciones a 24 meses con datos NASA POWER (NASA Space Apps 2026)",
+  "engines": {
+    "node": ">=20"
+  }
 }
