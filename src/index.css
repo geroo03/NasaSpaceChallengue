@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Raleway', system-ui, -apple-system, sans-serif;
+
+  --color-crema: #FEFAE0;
+  --color-bosque: #283618;
+  --color-oliva: #606C38;
+  --color-salvia: #A3B18A;
+  --color-niebla: #E3EBDD;
+  --color-arena: #EFE3C2;
+  --color-arena-borde: #DECFA7;
+  --color-terracota: #BC6C25;
+  --color-terracota-oscuro: #9A5518;
+  --color-ocre: #DDA15E;
+  --color-tierra: #3B2F20;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: #FEFAE0;
+    color: #3B2F20;
+    font-family: 'Raleway', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button:not(:disabled),
+  select:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.cover-crop-hatch {
+  background-color: #E3EBDD;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #E3EBDD 0px,
+    #E3EBDD 7px,
+    rgba(163, 177, 138, 0.55) 7px,
+    rgba(163, 177, 138, 0.55) 8.5px
+  );
+}
+
+.shadow-earth-card {
+  box-shadow:
+    0 4px 16px -2px rgba(59, 47, 32, 0.06),
+    0 2px 6px -1px rgba(59, 47, 32, 0.04);
+}
+
+.shadow-earth-modal {
+  box-shadow:
+    0 12px 32px -4px rgba(59, 47, 32, 0.14),
+    0 4px 12px -2px rgba(59, 47, 32, 0.08);
+}
+
+.headline-display {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 200;
+  letter-spacing: 0.06em;
+  text-wrap: balance;
+}

@@ -1,0 +1,8 @@
+{
+  "name": "TerraViva Agro-Inteligencia",
+  "description": "Plataforma de agronomía de precisión, rotación de cultivos, monitoreo satelital GIBS/NASA POWER y cuaderno de campo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
