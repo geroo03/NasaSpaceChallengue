@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Field Shift – decision support for crop rotations using NASA Earth observations" />
+    <title>Field Shift · NASA Space Apps 2026</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1 data-i18n="app.title">Field Shift</h1>
+        <p data-i18n="app.tagline"></p>
+      </div>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <form id="farm-form" class="panel" novalidate>
+        <fieldset>
+          <legend data-i18n="form.location"></legend>
+          <p class="hint" data-i18n="form.locationHint"></p>
+          <div id="map" aria-label="Map"></div>
+          <div class="row">
+            <label><span data-i18n="form.lat"></span><input id="lat" type="number" step="0.0001" min="-60" max="75" required /></label>
+            <label><span data-i18n="form.lon"></span><input id="lon" type="number" step="0.0001" min="-180" max="180" required /></label>
+            <label><span data-i18n="form.years"></span><input id="years" type="number" min="5" max="30" value="15" required /></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="form.current"></legend>
+          <select id="current-template" aria-label="Current rotation"></select>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="form.farm"></legend>
+          <label><span data-i18n="form.irrigation"></span><input id="irrigation" type="number" min="0" max="800" step="10" value="0" /></label>
+          <label><span data-i18n="form.slope"></span>
+            <select id="slope">
+              <option value="flat" data-i18n="slope.flat"></option>
+              <option value="gentle" data-i18n="slope.gentle" selected></option>
+              <option value="steep" data-i18n="slope.steep"></option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="form.priorities"></legend>
+          <div id="priorities" class="sliders"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="form.scenario"></legend>
+          <div class="sliders">
+            <label><span data-i18n="form.precipPct"></span> <output id="precip-out">0</output>
+              <input id="precip-pct" type="range" min="-40" max="40" step="5" value="0" /></label>
+            <label><span data-i18n="form.tempC"></span> <output id="temp-out">0</output>
+              <input id="temp-c" type="range" min="-1" max="4" step="0.5" value="0" /></label>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="primary" data-i18n="form.analyze"></button>
+        <p id="status" role="status" aria-live="polite"></p>
+      </form>
+
+      <section id="results" class="results" hidden>
+        <p class="disclaimer" data-i18n="disclaimer"></p>
+
+        <section class="panel">
+          <h2 data-i18n="climate.title"></h2>
+          <div id="climate-cards" class="cards"></div>
+          <h3 data-i18n="climate.chart"></h3>
+          <div class="chart-box"><canvas id="climate-chart"></canvas></div>
+          <h3 id="anomaly-title"></h3>
+          <div id="anomaly" class="anomaly"></div>
+        </section>
+
+        <section class="panel">
+          <h2 data-i18n="strategies.title"></h2>
+          <p class="hint" data-i18n="timeline.legend"></p>
+          <div id="strategies" class="strategies"></div>
+          <h3 data-i18n="strategies.radar"></h3>
+          <div class="chart-box radar"><canvas id="radar-chart"></canvas></div>
+        </section>
+
+        <section class="panel small">
+          <h3 data-i18n="gaps.title"></h3>
+          <ul id="global-gaps"></ul>
+          <h3 data-i18n="sources.title"></h3>
+          <ul id="sources"></ul>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

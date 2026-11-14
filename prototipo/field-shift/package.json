@@ -1,0 +1,25 @@
+{
+  "name": "field-shift",
+  "version": "0.1.0",
+  "description": "Decision-support tool for crop rotation strategies using NASA Earth observations (NASA Space Apps 2026 – Field Shift)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/leaflet": "^1.9.22",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "chart.js": "^4.6.1",
+    "leaflet": "^1.9.4"
+  },
+  "private": true,
+  "type": "module"
+}

@@ -1,0 +1,23 @@
+# Dependencias y salidas de compilación
+node_modules/
+dist/
+coverage/
+.vite/
+
+# Archivos del sistema y temporales
+.DS_Store
+._*
+*.log
+*.tmp
+*.swp
+
+# Credenciales y configuración privada
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Estado local de Obsidian; conservar app.json portable
+**/.obsidian/workspace*.json
+**/.obsidian/cache/
