@@ -59,7 +59,7 @@ export function boundsSizeM(b: LatLonBounds): { widthM: number; heightM: number 
 /**
  * The POSGAR false easting encodes the strip in its millions digit (4 5xx xxx m → faja 4), and a real
  * easting sits within ~250 km of its strip's central meridian. Returns that strip, or null.
- * (Ported from the AgroCordS-based Field Shift lot module.)
+ * (Ported from the AgroCordS-based AgroField lot module.)
  */
 export function posgarStripFromEasting(easting: number): number | null {
   const faja = Math.floor(easting / 1_000_000);

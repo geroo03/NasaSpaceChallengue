@@ -16,12 +16,8 @@ export function HeaderBar({ screen, onNavigate }: { screen: Screen; onNavigate: 
           onClick={() => onNavigate('explore')}
           className="text-left text-[#FEFAE0] rounded focus-visible:outline-2 focus-visible:outline-[#DDA15E]"
         >
-          <span className="block text-xl tracking-[0.06em] leading-none">
-            <span className="font-extralight uppercase">FIELD</span>
-            <span className="font-bold uppercase">SHIFT</span>
-            <span className="ml-1.5 text-sm font-bold text-[#DDA15E] align-top">{t('brand.lab')}</span>
-          </span>
-          <span className="hidden sm:block text-xs text-[#FEFAE0]/75 mt-1">{t('brand.tagline')}</span>
+          <img src="/brand/agrofield-logo-negativo-animado.svg" alt="AgroField" width={567} height={240} className="block h-12 sm:h-14 w-auto -my-1" />
+          <span className="sr-only">{t('brand.tagline')}</span>
         </button>
 
         <div className="flex items-center gap-4 sm:gap-7">

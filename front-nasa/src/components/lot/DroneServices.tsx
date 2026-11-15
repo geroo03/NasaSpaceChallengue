@@ -13,7 +13,8 @@ import type { StrategyResult } from '../../engine/domain/rotations';
 import { Notice, primaryBtn, secondaryBtn } from '../ui';
 
 type Tab = DroneJob | 'vra';
-const PROVIDER_WHATSAPP = (import.meta.env.VITE_VUELO_VERDE_WHATSAPP as string | undefined) ?? '';
+import { VUELO_VERDE, mailtoLink } from '../../case/provider';
+const PROVIDER_WHATSAPP = VUELO_VERDE.whatsapp;
 const JOBS: { id: Tab; Icon: typeof MapIcon }[] = [
   { id: 'map', Icon: MapIcon },
   { id: 'vra', Icon: Layers },
@@ -195,6 +196,15 @@ function Services({ farmCase, strategy, own }: { farmCase: FarmCase; strategy: S
               {mine && own ? t('own.who.mine', { model: own.model }) : own ? t('own.who.cant', { model: own.model, job: t(`ops.job.${job}`).toLowerCase() }) : t('own.who.vv')}
             </strong>
             {mine ? t('own.who.mineHelp') : t('own.who.vvHelp')}
+            {!mine && (
+              <span className="mt-1 block text-xs text-[#3B2F20]">
+                {VUELO_VERDE.name} · WhatsApp {VUELO_VERDE.phoneLabel} ·{' '}
+                <a className="font-bold text-[#9A5518] underline underline-offset-2" href={mailtoLink(t('own.mailSubject', { job: t(`ops.job.${job}`) }), orderText())}>
+                  {VUELO_VERDE.email}
+                </a>{' '}
+                · {VUELO_VERDE.address}
+              </span>
+            )}
           </p>
           {!own && (
             <button type="button" className="text-sm font-bold text-[#9A5518] underline underline-offset-2" onClick={() => setEditing(true)}>

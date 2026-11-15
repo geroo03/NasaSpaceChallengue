@@ -9,7 +9,8 @@ import { areaHa } from '../../imagery/lotImport';
 import { Notice, primaryBtn, secondaryBtn } from '../ui';
 
 // Optional, set in Vercel when Vuelo Verde confirms the contact channel. Never hard-coded.
-const PROVIDER_WHATSAPP = (import.meta.env.VITE_VUELO_VERDE_WHATSAPP as string | undefined) ?? '';
+import { VUELO_VERDE } from '../../case/provider';
+const PROVIDER_WHATSAPP = VUELO_VERDE.whatsapp;
 
 function download(name: string, mime: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: mime }));

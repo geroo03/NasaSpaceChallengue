@@ -1,5 +1,5 @@
 /*
- * Field Shift service worker: lets the app open and keep working in the field with poor or no signal.
+ * AgroField service worker: lets the app open and keep working in the field with poor or no signal.
  *  - App shell and the saved NASA POWER / SoilGrids files are stored on install.
  *  - Built assets (hashed names) are cached on first use.
  *  - NASA POWER, SoilGrids, SRTM terrain tiles, CMR and fonts: network first; when the network fails,

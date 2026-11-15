@@ -6,7 +6,7 @@ import { ProvTag } from '../ui';
 
 const ICON: Record<CheckKind, typeof Sprout> = { preSowing: Sprout, peakStress: Droplets, residue: Layers, coverEnd: CalendarCheck };
 
-/** What to verify in the field, and when, for the selected strategy. Field Shift plans; a visit or a drone flight confirms. */
+/** What to verify in the field, and when, for the selected strategy. AgroField plans; a visit or a drone flight confirms. */
 export function VerificationPanel({ strategy, onPickMonth }: { strategy: StrategyResult; onPickMonth: (m: number) => void }) {
   const { t, months, crop } = useLang();
   const checks = planFieldChecks(strategy);

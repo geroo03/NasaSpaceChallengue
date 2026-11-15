@@ -1,7 +1,7 @@
 /**
  * Flight order for a drone pilot: the lot polygon the farmer drew + what to check and when.
  * Exported as KML (importable as a mapping area in DJI Pilot 2 and most GIS tools) and GeoJSON.
- * Field Shift does not plan the flight itself (altitude, overlap): the pilot does.
+ * AgroField does not plan the flight itself (altitude, overlap): the pilot does.
  */
 
 export type LatLon = [number, number]; // [lat, lon]
@@ -58,7 +58,7 @@ export function buildFlightKml(o: FlightOrder): string {
     `Área aproximada: ${polygonAreaHa(o.polygon).toFixed(1)} ha`,
     ...o.checks.map((c) => `• ${c.when}: ${c.what}`),
     ...o.notes,
-    `Generado por Field Shift Lab el ${o.createdOn}.`,
+    `Generado por AgroField el ${o.createdOn}.`,
   ].join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -94,7 +94,7 @@ export function buildFlightGeoJson(o: FlightOrder): string {
             checks: o.checks,
             notes: o.notes,
             createdOn: o.createdOn,
-            generator: 'Field Shift Lab',
+            generator: 'AgroField',
           },
           geometry: { type: 'Polygon', coordinates: [ring(o.polygon).map(([lat, lon]) => [lon, lat])] },
         },

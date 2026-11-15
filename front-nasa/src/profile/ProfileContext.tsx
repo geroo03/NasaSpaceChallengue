@@ -12,10 +12,26 @@ interface Ctx {
 }
 
 const ProfileCtx = createContext<Ctx | null>(null);
+const GUEST_KEY = 'field-shift-lab.guest';
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, set] = useState<Profile | null>(() => loadProfile());
-  const [guest, setGuest] = useState(false);
+  const [guest, setGuestState] = useState(() => {
+    try {
+      return window.localStorage.getItem(GUEST_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const setGuest = (g: boolean) => {
+    try {
+      if (g) window.localStorage.setItem(GUEST_KEY, '1');
+      else window.localStorage.removeItem(GUEST_KEY);
+    } catch {
+      // private mode: remembered for this visit only
+    }
+    setGuestState(g);
+  };
   const [editing, setEditing] = useState(false);
   const setProfile = (p: Profile | null) => {
     saveProfile(p);

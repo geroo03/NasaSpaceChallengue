@@ -55,11 +55,7 @@ export function LoginScreen() {
         onKeyDown={(e) => e.key === 'Escape' && close()}
       >
         <div>
-          <p className="text-xl tracking-[0.06em] leading-none text-[#283618]">
-            <span className="font-extralight uppercase">FIELD</span>
-            <span className="font-bold uppercase">SHIFT</span>
-            <span className="ml-1.5 text-sm font-bold text-[#BC6C25] align-top">{t('brand.lab')}</span>
-          </p>
+          <img src="/brand/agrofield-logo.svg" alt="AgroField" width={567} height={240} className="h-14 w-auto -ml-2" />
           <h2 id="login-h" className="mt-3 text-2xl font-bold text-[#283618]">{profile ? t('login.editTitle') : t('login.title')}</h2>
           <p className="mt-1 text-sm text-[#3B2F20]">{t('login.help')}</p>
         </div>

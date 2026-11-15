@@ -28,3 +28,6 @@ coverage/
 
 # Informe técnico de Vuelo Verde: documento de un cliente suyo, no se publica sin su permiso
 material/vuelo-verde/Informe_Tecnico_Unificado.pdf
+
+# Source archive that includes front-nasa/.env.local (secrets): never commit
+marca/_front-src.tgz

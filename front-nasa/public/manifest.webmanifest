@@ -1,8 +1,8 @@
 {
-  "name": "Field Shift · Rotaciones con datos NASA",
-  "short_name": "Field Shift",
+  "name": "AgroField · Crop rotations with NASA data",
+  "short_name": "AgroField",
   "description": "Decidir antes de sembrar: rotaciones a dos años con datos de la NASA y el lote de cada productor.",
-  "lang": "es-AR",
+  "lang": "en",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

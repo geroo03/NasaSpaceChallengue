@@ -84,7 +84,7 @@ export function MethodScreen() {
             </li>
             <li>
               <a className="underline" href="https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/" target="_blank" rel="noreferrer">
-                NASA Space Apps 2026 · Field Shift
+                NASA Space Apps 2026 · AgroField
               </a>
             </li>
           </ul>

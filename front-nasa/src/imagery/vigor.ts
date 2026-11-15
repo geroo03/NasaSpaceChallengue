@@ -145,7 +145,7 @@ export function prescriptionGeoJson(cells: PrescriptionCell[], meta: { name: str
       properties: { zona: c.zone + 1, dosis: c.rate, unidad: meta.unit },
       geometry: { type: 'Polygon', coordinates: [c.ring.map(([x, y]) => [Number(x.toFixed(7)), Number(y.toFixed(7))])] },
     })),
-    generator: 'Field Shift',
+    generator: 'AgroField',
     createdOn: meta.createdOn,
   });
 }

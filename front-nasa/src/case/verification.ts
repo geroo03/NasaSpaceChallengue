@@ -4,7 +4,7 @@ import type { CropId } from '../engine/domain/crops';
 /**
  * Field checks suggested by the modelled calendar of one strategy.
  *
- * Field Shift does not process drone imagery: it only says WHAT to look at and WHEN, so a field visit or a
+ * AgroField does not process drone imagery: it only says WHAT to look at and WHEN, so a field visit or a
  * drone flight (e.g. by Vuelo Verde pilots) can confirm or correct the model. Every item is derived from
  * engine outputs already shown in the UI; nothing here adds a new formula or threshold to the ranking.
  */

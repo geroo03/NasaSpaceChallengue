@@ -7,7 +7,7 @@ import { planFieldChecks } from './verification';
  *  - mapping (survey before sowing): a lawn-mower flight over the boundary and what it yields;
  *  - broadcast seeding of the rotation's cover crops;
  *  - spraying (cover-crop termination, fallow weed control) — product and dose come from the
- *    agronomist's prescription, never from Field Shift.
+ *    agronomist's prescription, never from AgroField.
  * Every number is a planning estimate for the pilot to confirm; defaults are marked as examples.
  */
 

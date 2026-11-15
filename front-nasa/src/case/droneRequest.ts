@@ -3,7 +3,7 @@ import type { TerrainSummary } from './model';
 /**
  * Survey request for a drone service provider, modelled on Vuelo Verde's technical report
  * (altimetry with DSM + RTK and contour lines for surface irrigation; RGB orthomosaic; delivery in
- * POSGAR 2007 faja 4 or WGS 84). Field Shift only writes the request: price, dates and flight plan are
+ * POSGAR 2007 faja 4 or WGS 84). AgroField only writes the request: price, dates and flight plan are
  * agreed with the provider.
  */
 
@@ -22,7 +22,7 @@ export interface SurveyRequest {
   posgar: { faja: number; epsg: number; x: number; y: number } | null;
   terrain: TerrainSummary | null;
   lotLabel: string | null;
-  /** Suggested check windows from the chosen rotation (Field Shift plans; the flight confirms). */
+  /** Suggested check windows from the chosen rotation (AgroField plans; the flight confirms). */
   checks?: { when: string; what: string }[];
 }
 

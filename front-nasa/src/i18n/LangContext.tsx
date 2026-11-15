@@ -33,11 +33,15 @@ function initialLang(): Lang {
   } catch {
     // ignore
   }
-  return 'es';
+  return 'en'; // English first; the ES/EN switch remembers the visitor's choice
 }
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(initialLang);
+  const [lang, setLangState] = useState<Lang>(() => {
+    const l = initialLang();
+    document.documentElement.lang = l;
+    return l;
+  });
   const api = useMemo<LangApi>(() => {
     const locale = lang === 'es' ? 'es-AR' : 'en-US';
     return {
