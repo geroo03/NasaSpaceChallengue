@@ -18,6 +18,7 @@ import { ClimatePanel } from './ClimatePanel';
 import { VerificationPanel } from './VerificationPanel';
 import { AssumptionList, DiscardedList, SensitivityPanel } from './ContextPanels';
 import { FieldSheet } from './FieldSheet';
+import { IrrigationNeeds } from './IrrigationNeeds';
 // Map tools (Geoman, Turf, file importers) load only when someone opens them.
 const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
 const DroneRequestPanel = lazy(() => import('../lot/DroneRequestPanel').then((m) => ({ default: m.DroneRequestPanel })));
@@ -439,6 +440,10 @@ function Results({
             {waterOpt && <SowingWaterList balance={waterOpt} label={optLabel} strategy={shown} />}
           </Card>
         </div>
+        <Card className="min-w-0" as="div">
+          <SectionTitle sub={t('irr.sub')}>{t('irr.title')}</SectionTitle>
+          <IrrigationNeeds farmCase={farmCase} reference={reference} option={shown !== reference ? shown : null} optLabel={optLabel} effectiveMm={farm.irrigationMm} />
+        </Card>
         <Card className="min-w-0" as="div">
           <SectionTitle sub={t('water.help')}>{t('water.title')}</SectionTitle>
           <SoilWaterChart reference={waterRef} option={waterOpt} refStrategy={reference} optStrategy={shown !== reference ? shown : null} refLabel={t('hero.today')} optLabel={optLabel} />

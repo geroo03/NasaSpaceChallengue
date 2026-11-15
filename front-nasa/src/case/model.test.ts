@@ -11,8 +11,8 @@ describe('case → engine context', () => {
   });
 
   it('uses declared irrigation only when the farmer has some access to it', () => {
-    const owned = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'contracted' }, availability: { ...base.availability, irrigation: 'confirmed' }, irrigationMm: 150 });
-    expect(owned.farm.irrigationMm).toBe(150);
+    const owned = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'contracted' }, availability: { ...base.availability, irrigation: 'confirmed' }, irrigationMm: 150, irrigationSystem: 'drip' });
+    expect(owned.farm.irrigationMm).toBeCloseTo(135, 6); // 150 mm applied by drip × 0.9
     const none = toFarmContext({ ...base, resources: { ...base.resources, irrigation: 'unavailable' }, irrigationMm: 150 });
     expect(none.farm.irrigationMm).toBe(0);
     expect(none.assumptions).not.toContain('irrigationAssumedZero');
@@ -28,7 +28,17 @@ describe('case → engine context', () => {
     const pending: FarmCase = { ...base, resources: { ...base.resources, irrigation: access }, irrigationMm: 300 };
     expect(toFarmContext(pending).farm.irrigationMm).toBe(0);
     expect(toFarmContext(pending).assumptions).toContain('irrigationPending');
-    expect(toFarmContext({ ...pending, availability: { ...pending.availability, irrigation: 'confirmed' } }).farm.irrigationMm).toBe(300);
+    expect(toFarmContext({ ...pending, availability: { ...pending.availability, irrigation: 'confirmed' } }).farm.irrigationMm).toBeCloseTo(180, 6); // unknown system → acequia, 0.6
+  });
+
+  it('counts only the water that reaches the crop, by irrigation system', () => {
+    const c: FarmCase = { ...base, resources: { ...base.resources, irrigation: 'owned' }, irrigationMm: 200 };
+    expect(toFarmContext({ ...c, irrigationSystem: 'drip' }).farm.irrigationMm).toBeCloseTo(180, 6);
+    expect(toFarmContext({ ...c, irrigationSystem: 'sprinkler' }).farm.irrigationMm).toBeCloseTo(150, 6);
+    expect(toFarmContext({ ...c, irrigationSystem: 'surface' }).farm.irrigationMm).toBeCloseTo(120, 6);
+    const unknown = toFarmContext({ ...c, irrigationSystem: 'unknown' });
+    expect(unknown.farm.irrigationMm).toBeCloseTo(120, 6);
+    expect(unknown.assumptions).toContain('irrigationSystemAssumed');
   });
 
   it('marks the slope as assumed when unknown', () => {

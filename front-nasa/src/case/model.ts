@@ -1,6 +1,7 @@
 import type { FarmContext, Priorities, TemplateId } from '../engine/domain/rotations';
 import { TEMPLATES } from '../engine/domain/rotations';
 import type { SoilSummary } from './soil';
+import { effectiveIrrigation, type IrrigationSystem } from './irrigation';
 
 /**
  * What the farmer told us, kept separate from what the engine consumes.
@@ -49,6 +50,8 @@ export interface FarmCase {
   availability: Record<ResourceId, Availability>;
   /** Supplemental irrigation per crop season (mm); null = farmer does not know. */
   irrigationMm: number | null;
+  /** How the water is applied; sets how much reaches the crop. */
+  irrigationSystem: IrrigationSystem;
   goals: Goal[];
   priorities: Priorities;
   customPriorities: boolean;
@@ -116,6 +119,7 @@ export const DEFAULT_CASE: FarmCase = {
   resources: ALL_UNKNOWN,
   availability: ALL_PENDING,
   irrigationMm: null,
+  irrigationSystem: 'unknown',
   goals: ['water', 'cover'],
   priorities: prioritiesFromGoals(['water', 'cover']),
   customPriorities: false,
@@ -149,7 +153,7 @@ export function hasIrrigationAccess(c: FarmCase): boolean {
 }
 
 /** Keys of assumptions made while translating the case for the engine (shown in the UI). */
-export type AssumptionKey = 'soilReserveAssumed' | 'soilFromSoilgrids' | 'soilFromTest' | 'soilTextureDiffers' | 'slopeAssumed' | 'slopeFromSrtm' | 'slopeFromDrone' | 'irrigationAssumedZero' | 'irrigationUnknownMm' | 'irrigationPending' | 'referenceSubstitute' | 'soilNotUsed';
+export type AssumptionKey = 'irrigationSystemAssumed' | 'soilReserveAssumed' | 'soilFromSoilgrids' | 'soilFromTest' | 'soilTextureDiffers' | 'slopeAssumed' | 'slopeFromSrtm' | 'slopeFromDrone' | 'irrigationAssumedZero' | 'irrigationUnknownMm' | 'irrigationPending' | 'referenceSubstitute' | 'soilNotUsed';
 
 export function toFarmContext(c: FarmCase): { farm: FarmContext; assumptions: AssumptionKey[] } {
   const assumptions: AssumptionKey[] = [];
@@ -167,7 +171,11 @@ export function toFarmContext(c: FarmCase): { farm: FarmContext; assumptions: As
     const needsConfirmation = c.resources.irrigation === 'shared' || c.resources.irrigation === 'contracted';
     if (needsConfirmation && c.availability.irrigation !== 'confirmed') assumptions.push('irrigationPending');
     else if (c.irrigationMm === null) assumptions.push('irrigationUnknownMm');
-    else irrigationMm = Math.max(0, Math.min(800, c.irrigationMm));
+    else {
+      // Declared mm are applied at the field; only part reaches the crop, depending on the system.
+      irrigationMm = effectiveIrrigation(Math.max(0, Math.min(800, c.irrigationMm)), c.irrigationSystem ?? 'unknown');
+      if ((c.irrigationSystem ?? 'unknown') === 'unknown') assumptions.push('irrigationSystemAssumed');
+    }
   } else if (c.resources.irrigation === 'unknown') {
     assumptions.push('irrigationAssumedZero');
   }

@@ -3,6 +3,7 @@ import { useLang } from '../../i18n/LangContext';
 import { ACCESS_LEVELS, RESOURCES, hasIrrigationAccess, type Access, type Availability, type FarmCase, type ResourceId } from '../../case/model';
 import { Notice } from '../ui';
 import { Pill } from './LotScreen';
+import { IRRIGATION_SYSTEMS } from '../../case/irrigation';
 
 const ICONS: Record<ResourceId, LucideIcon> = {
   manual: Hand,
@@ -101,6 +102,17 @@ function ResourceCards({ value, onChange, only }: Props & { only: readonly Resou
                     </Pill>
                   </div>
                   <p className="mt-2 text-xs text-[#283618] font-bold">{t('res.irrigationUsed')}</p>
+                  <fieldset className="mt-4">
+                    <legend className="text-sm font-bold text-[#3B2F20]">{t('irr.system')}</legend>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {IRRIGATION_SYSTEMS.map((sys) => (
+                        <Pill key={sys} selected={(value.irrigationSystem ?? 'unknown') === sys} onClick={() => onChange({ irrigationSystem: sys })}>
+                          {t(`irr.${sys}`)}
+                        </Pill>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs text-[#3B2F20]/85">{t('irr.systemHelp')}</p>
+                  </fieldset>
                 </div>
               )}
             </li>

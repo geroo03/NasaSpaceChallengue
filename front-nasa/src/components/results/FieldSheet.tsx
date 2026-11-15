@@ -229,6 +229,7 @@ export function FieldSheet({
           <p>
             {t('res.irrigation')}: {t(`access.${farmCase.resources.irrigation}`)}
             {farmCase.irrigationMm !== null && ` · ${farmCase.irrigationMm} mm`}
+            {farmCase.irrigationMm !== null && ` · ${t(`irr.${farmCase.irrigationSystem ?? 'unknown'}`)}`}
           </p>
           <p>
             {t('review.priorities')}: {farmCase.goals.length ? farmCase.goals.map((g) => t(`goal.${g}`)).join(' · ') : t('review.noGoals')}
