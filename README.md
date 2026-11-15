@@ -1,5 +1,20 @@
 # Field Shift / Field Shift Lab
 
+> ## 👉 ¿Buscás la app? No está en este repositorio
+>
+> - **Usarla:** https://field-shift-lab.vercel.app
+> - **Código:** https://github.com/geroo03/nasa
+> - **Correrla en tu compu:**
+>
+>   ```sh
+>   git clone https://github.com/geroo03/nasa field-shift-app
+>   cd field-shift-app
+>   npm ci
+>   npm run dev
+>   ```
+>
+> Este repositorio guarda el **proyecto**: vault, documentos, entrega y material. La carpeta `prototipo/` es el **primer maquetado**, superado por la app, y se conserva solo como referencia.
+
 > **Estado al 15/11/2026.** La app actual es **`front-nasa/`**: React + TypeScript + Vite. Tiene su propio repositorio, [geroo03/nasa](https://github.com/geroo03/nasa), y está publicada en https://field-shift-lab.vercel.app. Este repositorio guarda el proyecto: vault, documentos, entrega, material recibido y el prototipo anterior. Las secciones de más abajo describen el **prototipo anterior** (`prototipo/`) y quedan como referencia.
 
 ## Estructura
@@ -64,7 +79,9 @@ La próxima experiencia combina un recorrido de preguntas simples, representaci�
 
 El diseño de Stitch es una propuesta de frontend. Debe conectarse a los datos y contratos existentes; sus campos nuevos no implican que el motor ya los utilice.
 
-## Ejecutar
+## Ejecutar el prototipo anterior (no es la app actual)
+
+> Esto levanta el **primer maquetado**. Para la app actual, seguí los pasos del recuadro de arriba.
 
 Desde la raíz del repositorio:
 
