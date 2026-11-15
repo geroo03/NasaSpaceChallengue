@@ -16,6 +16,7 @@ Añatuya sigue siendo el territorio propuesto para el piloto. El punto predeterm
 - Consulta real de POWER 2011–2025 guardada: 5.479 días, sin días descartados por el parser. Motor reproducido con escenario base y −20 % de lluvia / +2 °C.
 - POWER alimenta el motor. GIBS aporta capas visuales. SMAP numérico, ECOSTRESS, HLS y LLM siguen pendientes de integración.
 - Falta validar el manejo del lote, parámetros agronómicos, interpretación de indicadores y uso en navegador/celular.
+- Entrevista con Vuelo Verde (14/11): valida «decidir antes de sembrar» y autoriza incluir a Vuelo Verde como alianza territorial (versión editada recibida a la noche). No aporta un lote: ver [[Entrevista Vuelo Verde]].
 - Consigna completa recuperada: [[Consigna oficial y encaje]]. Completar el caso y el suelo local pasa a P0, antes de ampliar integraciones.
 
 ## Empezá por acá
@@ -34,9 +35,9 @@ Añatuya sigue siendo el territorio propuesto para el piloto. El punto predeterm
 | Tema | Notas |
 | --- | --- |
 | Producto | [[MVP y demo]] · [[Decisiones]] · [[Caso Añatuya]] · [[Preparación para Claude]] |
-| Evidencia | [[Inventario de datos]] · [[Protocolo reproducible]] · [[Matriz de evidencia]] |
+| Evidencia | [[Inventario de datos]] · [[Protocolo reproducible]] · [[Matriz de evidencia]] · [[Entrevista Vuelo Verde]] |
 | Ciencia | [[Consigna oficial y encaje]] · [[Correcciones técnicas]] · [[Fuentes verificadas]] |
-| Presentación | [[Pitch y guion]] · [[Evaluación y prioridades]] · [[Entrega 2026]] · [[Prompt para Stitch]] |
+| Presentación | [[Criterios e innovación]] · [[Pitch y guion]] · [[Evaluación y prioridades]] · [[Entrega 2026]] · [[Prompt para Stitch]] |
 | Material recibido | [[GPT - original]] · [[Claude - original]] · [[Claude - actualizacion 2026-11-14]] |
 | Plantillas | [[Ficha de fuente]] · [[Entrevista de campo]] |
 

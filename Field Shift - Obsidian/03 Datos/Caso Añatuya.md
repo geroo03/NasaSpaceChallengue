@@ -37,3 +37,7 @@ La ejecución base generó tres alternativas: sorgo/soja, algodón/maíz y algod
 Antes de convertirlos en recomendaciones: confirmar disponibilidad, fechas, costos, agua y manejo. Si las restricciones locales dejan menos de tres alternativas, mostrar esa limitación y las descartadas.
 
 Usar [[Entrevista de campo]] y [[Protocolo reproducible]] al pasar del ejemplo regional al caso del productor.
+
+## Actualización 14/11/2026
+
+La [[Entrevista Vuelo Verde]] no identifica un productor ni un lote, así que el caso sigue siendo ilustrativo. Queda pendiente preguntarle a Vuelo Verde si conoce productores de Añatuya o de Santiago del Estero dispuestos a aportar un lote para el piloto.

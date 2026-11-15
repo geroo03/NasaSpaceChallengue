@@ -40,3 +40,13 @@ El antiguo guion de 2–3 minutos es un ensayo interno. La actualización mencio
 **¿Funciona globalmente?** Puede consultar puntos, pero catálogo y reglas requieren revisión regional. Una consulta geográfica no equivale a validación global.
 
 Ver [[Entrega 2026]] antes de copiar textos al formulario.
+
+## Validación con el sector (14/11/2026)
+
+Juan Pablo Suárez Ríos, dueño de Vuelo Verde (más de 100 pilotos de drones agrícolas), autorizó la cita y el nombre de la empresa. Ver [[Entrevista Vuelo Verde]].
+
+- «No existe un problema básico dirigido hacia la agricultura, sino poder tomar decisiones antes de sembrar.» Va en la diapositiva 1 (pregunta).
+- «Tomar decisiones en el campo basado a la información es la clave para ahorrar dinero.» Ir con cuidado: no implica que Field Shift ya ahorre dinero medido.
+- «Lo que tenemos como déficit en el país es la mano de obra calificada.» / «No solo creo, estoy seguro.» Van en la diapositiva 7, como aliado operativo.
+
+Mensaje: el satélite y el clima dan el historial; Field Shift planifica la rotación y dice qué y cuándo verificar; el dron de Vuelo Verde confirma en el lote. Presentarlo como **alianza territorial autorizada** («Cuenten con eso al 100 %»), con más de 100 pilotos y equipo que procesa en DJI Terra y QGIS. La forma de vinculación está por definir. No presentarlo como sociedad formal ni como validación de resultados. Las «citas destacadas» y las «conclusiones para el jurado» de la versión editada no se usan tal cual: ver [[Entrevista Vuelo Verde]].

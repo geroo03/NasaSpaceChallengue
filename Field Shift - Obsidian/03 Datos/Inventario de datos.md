@@ -47,3 +47,14 @@ La caché de la app guarda una serie en memoria; se pierde al recargar. Guardar 
 ## Catálogo de recursos del desafío
 
 [[Consigna oficial y encaje]] reúne la nueva lectura de la página y enlaza el inventario de destinos oficiales. La lista de recursos no modifica por sí sola el estado implementado: cada nueva integración requiere su extracción y documentación.
+
+
+## Agregado el 15/11/2026
+
+| Fuente | Uso en la app | Tipo |
+| --- | --- | --- |
+| NASA SRTM (~30 m, AWS Terrain Tiles) | Altura, desnivel y pendiente general del lote; la pendiente entra al motor | Dato NASA |
+| ISRIC SoilGrids 2.0 (250 m) | Agua útil 0–100 cm (CC − PMP), textura y carbono orgánico en el punto de análisis; reemplaza los 120 mm genéricos | Mapa modelado (no NASA) |
+| NASA POWER para el lote de ejemplo (2011–2025) | Serie guardada sin modificar, `public/data/power-anatuya-2011-2025.json` | Dato NASA |
+| SoilGrids para el lote de ejemplo | Respuesta guardada sin modificar, `public/data/soilgrids-anatuya-example.json` | Mapa modelado |
+| NOAA CPC ONI (2009–ASO 2026) | Fase El Niño / La Niña de cada campaña y estado observado actual; `src/data/oni.ts` | Dato observado (NOAA, no NASA) |

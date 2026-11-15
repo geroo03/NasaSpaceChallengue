@@ -61,7 +61,7 @@ La adaptación del frontend puede corregir etiquetas y explicaciones; las fórmu
 1. Identificar fuente, período, unidad, escala, calidad y método. Diferenciar observado, modelado, supuesto y desconocido.
 2. Mantener desconocidos como tales. Si un supuesto es necesario, señalar su valor y efecto.
 3. Hargreaves es el método presente de ET₀. No llamarlo Penman–Monteith implementado. Distinguir ET₀, ET real, demanda del cultivo y agua aplicada.
-4. La oferta hídrica actual es heurística: 120 mm de reserva, 75 % de lluvia efectiva, humedad faltante 0,4 y reinicio por cultivo. No describirla como balance secuencial calibrado.
+4. La oferta hídrica actual es heurística: el agua útil del suelo (análisis del productor, si no SoilGrids 0–100 cm en el punto, si no 120 mm supuestos) × humedad POWER al sembrar, 75 % de lluvia efectiva, humedad faltante 0,4 y reinicio por cultivo. No describirla como balance secuencial calibrado ni presentar SoilGrids (mapa modelado a 250 m) como análisis del lote.
 5. El riesgo de helada actual usa un máximo mensual ponderado, no una frecuencia empírica de ciclos anuales completos. Corregir descripción o cálculo según la tarea.
 6. El motor optimiza también el calendario actual. Una futura comparación con manejo observado debe preservar las fechas declaradas como baseline separado.
 7. Mantener puntajes como índices orientativos; no expresarlos como probabilidades de éxito o rentabilidad.
