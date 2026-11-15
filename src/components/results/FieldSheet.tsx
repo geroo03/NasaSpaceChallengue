@@ -44,6 +44,7 @@ export function FieldSheet({
   from,
   to,
   scenario,
+  subset,
   reference,
   option,
   why,
@@ -58,6 +59,7 @@ export function FieldSheet({
   from: number;
   to: number;
   scenario: Scenario | null;
+  subset: string | null;
   reference: StrategyResult;
   option: StrategyResult;
   why: string[];
@@ -143,6 +145,7 @@ export function FieldSheet({
         <Block title={t('sheet.climate')}>
           <p>
             {data.origin === 'saved' ? t('res.dataSaved', { from, to, date: data.retrievedOn }) : t('res.dataLive', { from, to, date: data.retrievedOn })}
+            {subset && ` · ${subset}`}
             {scenario && ` · ${t('sheet.scenario', { p: `${scenario.precipPct > 0 ? '+' : ''}${scenario.precipPct}`, t: `${scenario.tempC > 0 ? '+' : ''}${num(scenario.tempC, 1)}` })}`}
           </p>
         </Block>

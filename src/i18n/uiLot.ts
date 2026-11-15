@@ -4,7 +4,6 @@ export const lotEs: Record<string, string> = {
   'loc.q': '¿Dónde está tu lote?',
   'loc.help': 'Marcá el límite sobre la imagen o cargá el plano. Con el lote calculamos la superficie, el centro para el clima de NASA y el relieve. Si no lo tenés a mano, elegí solo un punto.',
   'prov.measured': 'Medido con dron',
-  'footer.sources': 'Datos numéricos: NASA POWER · Relieve: NASA SRTM (AWS Terrain Tiles) · Imágenes: NASA HLS (Sentinel-2/Landsat), GIBS y CMR · Mapas base: © OpenStreetMap, Esri World Imagery',
   'review.lotPlace': 'Centro de tu lote ({ha} ha)',
   'slope.unknownTerrain': 'No lo sé · usar el relieve ({cls})',
   'loc.mode.label': 'Cómo ubicar el campo',
@@ -250,9 +249,17 @@ export const lotEs: Record<string, string> = {
   "sheet.enso": "El Niño / La Niña: {now}. Campañas {phase} en este punto: {rain} mm entre octubre y marzo (neutras: {neutral} mm).",
   "sheet.heat": "Calor en la floración",
   "sheet.water": "Agua al sembrar",
+  "method.a9": "Balance de agua mes a mes (complementario): diario, dos capas, sobre el registro real 2011–2025. El barbecho sin malezas pierde solo la capa superficial (0,6 × ET₀); los cultivos usan Kc × ET₀ de todo el perfil. No calibrado con mediciones de campo.",
+  "method.a10": "Calor en floración: mes aproximado de floración por cultivo y umbral de 32 a 38 °C según el cultivo. Cuenta días y rachas de 3 días en NASA POWER; no es un modelo fenológico.",
+  "method.a11": "El Niño / La Niña: fase de cada campaña con el ONI de NOAA (±0,5 °C durante 5 trimestres, mayoría de septiembre a febrero). Con 14 campañas hay pocas por fase: es una referencia, no una probabilidad ni un pronóstico.",
+  "footer.sources": "Datos: NASA POWER (clima), NASA SRTM (relieve), NASA HLS (Sentinel-2/Landsat), GIBS y CMR · Suelo: ISRIC SoilGrids · El Niño: NOAA CPC (ONI) · Mapas base: © OpenStreetMap, Esri World Imagery",
 };
 
 export const lotEn: Record<string, string> = {
+  "method.a9": "Month-by-month water balance (complementary): daily, two layers, over the real 2011–2025 record. A weed-free fallow only loses the surface layer (0.6 × ET₀); crops use Kc × ET₀ from the whole profile. Not calibrated against field measurements.",
+  "method.a10": "Heat at flowering: approximate flowering month per crop and a 32–38 °C threshold by crop. Counts days and 3-day spells in NASA POWER; not a phenology model.",
+  "method.a11": "El Niño / La Niña: each campaign’s phase from NOAA’s ONI (±0.5 °C for 5 seasons, most of September–February). With 14 campaigns there are few per phase: a reference, not a probability or a forecast.",
+  "footer.sources": "Data: NASA POWER (climate), NASA SRTM (relief), NASA HLS (Sentinel-2/Landsat), GIBS and CMR · Soil: ISRIC SoilGrids · ENSO: NOAA CPC (ONI) · Base maps: © OpenStreetMap, Esri World Imagery",
   "enso.tag": "NOAA data (observed)",
   "enso.now.nino": "NOAA observes El Niño conditions ({strength} intensity)",
   "enso.now.nina": "NOAA observes La Niña conditions ({strength} intensity)",
@@ -401,7 +408,6 @@ export const lotEn: Record<string, string> = {
   'loc.q': 'Where is your field?',
   'loc.help': 'Trace the boundary on the imagery or load the survey plan. With the field we compute its area, its centre for NASA climate data and its relief. If you do not have it at hand, just pick a point.',
   'prov.measured': 'Drone-measured',
-  'footer.sources': 'Numeric data: NASA POWER · Relief: NASA SRTM (AWS Terrain Tiles) · Imagery: NASA HLS (Sentinel-2/Landsat), GIBS and CMR · Base maps: © OpenStreetMap, Esri World Imagery',
   'review.lotPlace': 'Centre of your field ({ha} ha)',
   'slope.unknownTerrain': "I don't know · use the relief ({cls})",
   'loc.mode.label': 'How to locate the farm',

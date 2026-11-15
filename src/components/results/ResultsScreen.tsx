@@ -182,6 +182,15 @@ function Results({
   const waterSeries = useMemo(() => applyScenario(data.series, scenario), [data.series, scenario]);
   const et0 = useMemo(() => (d: DailyRecord) => hargreavesEt0(d.tmax, d.tmin, data.series.lat, d.doy), [data.series.lat]);
   const paw = farm.soilPawMm ?? DEFAULT_PAW_MM;
+  // Climate panel and year labels always describe the whole record, even when the comparison uses ENSO campaigns.
+  const recordProfile = useMemo(() => {
+    try {
+      return buildClimateProfile(waterSeries);
+    } catch {
+      return null;
+    }
+  }, [waterSeries]);
+  const south = data.series.lat < 0;
 
   if (!computed.profile || !computed.outcome) {
     return (
@@ -204,7 +213,7 @@ function Results({
   const shown = selected;
   const lotCentre = farmCase.lotPolygon ? ringCentroid(farmCase.lotPolygon) : null;
   const lotCentreKm = lotCentre ? distanceKm(lotCentre, [farmCase.lat, farmCase.lon]) : null;
-  const years = profile.yearsAnalysed;
+  const years = (recordProfile ?? profile).yearsAnalysed;
   const from = years[0] ?? data.startYear;
   const to = years[years.length - 1] ?? data.endYear;
   const scenarioOn = scenario.precipPct !== 0 || scenario.tempC !== 0;
@@ -238,6 +247,7 @@ function Results({
         from={from}
         to={to}
         scenario={scenarioOn ? scenario : null}
+        subset={year.phase && !custom ? t('year.ensoNote', { list: phaseCampaigns.map((c) => `${c}/${String(c + 1).slice(2)}`).join(', ') }) : null}
         reference={reference}
         option={shown}
         why={why}
@@ -304,6 +314,7 @@ function Results({
         <Notice tone="warn">{t('lot.cityWarn')}</Notice>
       )}
 
+      {south && (
       <EnsoBanner
         latest={enso}
         summaries={phases}
@@ -312,12 +323,13 @@ function Results({
           setYearId(phase);
         }}
       />
+      )}
 
       {/* 2. Which year */}
       <fieldset>
         <legend className="text-sm font-bold text-[#283618]">{t('year.q')}</legend>
         <div className="mt-2 flex flex-wrap gap-2">
-          {YEARS.map((y) => {
+          {YEARS.filter((y) => south || !y.phase).map((y) => {
             const active = !custom && yearId === y.id;
             return (
               <button
@@ -429,9 +441,11 @@ function Results({
           <SectionTitle sub={t('water.help')}>{t('water.title')}</SectionTitle>
           <SoilWaterChart reference={waterRef} option={waterOpt} refStrategy={reference} optStrategy={shown !== reference ? shown : null} refLabel={t('hero.today')} optLabel={optLabel} />
         </Card>
-        <Collapsible title={t('enso.tableTitle')}>
-          <EnsoTable summaries={phases} />
-        </Collapsible>
+        {south && (
+          <Collapsible title={t('enso.tableTitle')}>
+            <EnsoTable summaries={phases} />
+          </Collapsible>
+        )}
       </section>
 
       {/* 4. The field, month by month */}
@@ -495,7 +509,7 @@ function Results({
         </Collapsible>
         <Collapsible title={t('clim.title')}>
           <p className="mb-3 text-sm text-[#3B2F20]/90">{t('clim.help')}</p>
-          <ClimatePanel profile={profile} from={from} to={to} />
+          <ClimatePanel profile={recordProfile ?? profile} from={from} to={to} />
         </Collapsible>
         <Collapsible title={t('behind.fine')}>
           <SensitivityPanel scenario={scenario} onChange={(sc) => setCustom(sc.precipPct === 0 && sc.tempC === 0 ? null : sc)} />

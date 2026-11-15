@@ -43,7 +43,7 @@ export function MethodScreen() {
       <Card>
         <h2 className="text-xl font-bold text-[#283618] mb-3">{t('method.assumptions')}</h2>
         <ul className="list-disc pl-5 space-y-2 text-sm leading-relaxed">
-          {['a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8'].map((k) => (
+          {['a1', 'a2', 'a9', 'a10', 'a11', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8'].map((k) => (
             <li key={k}>{t(`method.${k}`)}</li>
           ))}
         </ul>
