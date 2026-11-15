@@ -25,11 +25,13 @@ El caso inicial es un **punto ilustrativo de Santiago del Estero**. Añatuya es 
 
 ### Propuesta de interfaz para evaluar
 
-Los resultados se organizan en **Comparar**, **Mi lote** y **Clima**, con navegación por teclado y sin perder los adjuntos al cambiar de vista. Las opciones muestran el nombre de la rotación, su índice orientativo y los meses sin cultivo programado. El bloque **Antes de decidir** permite ir directamente a revisar el lote, los recursos y el suelo. Las herramientas cartográficas se cargan al abrir **Mi lote**.
+Los resultados se organizan en tres pantallas (ver «Flujo de la app» más abajo). Se mantienen las correcciones de la revisión del 14/11:
+- coordenadas vacías que se recuperan;
+- varios adjuntos sin perder los enlaces;
+- riego compartido o contratado pendiente: aporta 0 mm hasta confirmar;
+- ventanas de seguimiento sin inventar un mes de máximo estrés.
 
-En móvil, el calendario se desplaza dentro de su panel y conserva botones de al menos 44 px por mes, con etiquetas de mes/año y navegación mediante flechas.
-
-Se corrigieron la recuperación de coordenadas vacías, los enlaces de múltiples adjuntos y la entrada de riego desconocido. El riego compartido o contratado pendiente de confirmación se registra, pero aporta 0 mm al cálculo hasta confirmar disponibilidad. Las sugerencias de seguimiento muestran una ventana del ciclo, sin inventar un mes de máximo estrés. Ver [revisión y propuesta](docs/REVISION_FRONT_Y_PROPUESTA_2026-11-14.md).
+Ver la [revisión y propuesta](https://github.com/geroo03/NasaSpaceChallengue/blob/main/docs/revisiones/REVISION_FRONT_Y_PROPUESTA_2026-11-14.md) en el repo del proyecto.
 
 ### Lo que todavía no hace
 
@@ -106,7 +108,7 @@ Si NASA POWER no responde y el punto tiene una serie guardada, la app la usa y l
 - **Calor en floración:** mes aproximado de floración por cultivo y días con máxima sobre su umbral en NASA POWER.
 - **Agua del suelo día por día:** balance de dos capas sobre el registro 2011–2025, con agua al sembrar por campaña y gráfico mes a mes. Es complementario: el índice todavía usa la reserva por cultivo.
 
-Textos para el formulario de entrega: [docs/ENTREGA_FORMULARIO.md](docs/ENTREGA_FORMULARIO.md).
+Textos para el formulario de entrega: [docs/entrega/ENTREGA_FORMULARIO.md](https://github.com/geroo03/NasaSpaceChallengue/blob/main/docs/entrega/ENTREGA_FORMULARIO.md), en el repo del proyecto.
 
 ## Lote primero, relieve y pedido de dron
 
@@ -124,3 +126,12 @@ Textos para el formulario de entrega: [docs/ENTREGA_FORMULARIO.md](docs/ENTREGA_
   - multiespectral, a confirmar con el prestador.
 
   Genera el texto del pedido, con el centro en WGS 84 y en POSGAR faja 4, y el KML del límite. El botón de WhatsApp aparece solo si se configura `VITE_VUELO_VERDE_WHATSAPP` en Vercel. Ningún contacto queda escrito en el código.
+
+## Documentación del proyecto
+
+Este repositorio tiene **solo la app**: código, pruebas y datos guardados en `public/data/`. El resto del proyecto está en [geroo03/NasaSpaceChallengue](https://github.com/geroo03/NasaSpaceChallengue):
+
+- el vault de Obsidian (`Field Shift - Obsidian/`), con decisiones, datos, entrevista con Vuelo Verde y presentación;
+- `docs/`: auditoría, matriz de datos NASA y estrategias;
+- `docs/entrega/`: formulario de Space Apps, guion del video y subtítulos;
+- `docs/revisiones/`: revisiones del código y del front.
