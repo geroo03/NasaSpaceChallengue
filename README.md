@@ -1,4 +1,4 @@
-# Field Shift / Field Shift Lab
+# AgroField / AgroField
 
 > ## 👉 La app está en [`front-nasa/`](front-nasa/)
 >
@@ -14,14 +14,14 @@
 >
 > La carpeta `prototipo/` es el **primer maquetado**, superado por la app, y se conserva solo como referencia.
 
-Field Shift ayuda a decidir **antes de sembrar** qué rotación probar en las próximas dos campañas en el secano de Santiago del Estero. Usa datos de la NASA y el lote real del productor. Es el proyecto del equipo para NASA Space Apps 2026, desafío [*Field Shift: Adapting Farms with NASA Data*](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/). Vuelo Verde, una red de más de 100 pilotos de drones agrícolas, es la alianza territorial.
+AgroField ayuda a decidir **antes de sembrar** qué rotación probar en las próximas dos campañas en el secano de Santiago del Estero. Usa datos de la NASA y el lote real del productor. Es el proyecto del equipo para NASA Space Apps 2026, desafío [*AgroField: Adapting Farms with NASA Data*](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/). Vuelo Verde, una red de más de 100 pilotos de drones agrícolas, es la alianza territorial.
 
 ## Estructura
 
 | Carpeta | Qué hay |
 | --- | --- |
 | `front-nasa/` | **App actual** (React + TypeScript + Vite), publicada en Vercel desde esta carpeta. Su [README](front-nasa/README.md) explica funciones, datos, supuestos y estructura. |
-| `Field Shift - Obsidian/` | **Vault del equipo:** dirección, investigación, datos, presentación, material recibido y recursos. Abrir la carpeta como vault en Obsidian; empezar por `00 Inicio.md`. |
+| `AgroField - Obsidian/` | **Vault del equipo:** dirección, investigación, datos, presentación, material recibido y recursos. Abrir la carpeta como vault en Obsidian; empezar por `00 Inicio.md`. |
 | `docs/` | Documentos del proyecto: auditoría, matriz de datos NASA, estrategias, experiencia y prompt para Claude. |
 | `docs/entrega/` | **Entrega a Space Apps:** textos del formulario, guion del video de 30 s y subtítulos `.srt`. |
 | `docs/revisiones/` | Revisiones del código y del front (14/11/2026). |
@@ -46,7 +46,7 @@ Field Shift ayuda a decidir **antes de sembrar** qué rotación probar en las pr
 | [Auditoría](docs/AUDITORIA_ESTRATEGICA_NASA.md) | Estado y prioridades comprobables |
 | [Matriz de datos](docs/MATRIZ_DATOS_Y_APIS_NASA.md) | Integraciones presentes y propuestas |
 | [Estrategias](docs/ESTRATEGIAS_ROTACION_CULTIVOS.md) | Candidatos de rotación y condiciones para evaluarlos |
-| [Experiencia Field Shift Lab](docs/EXPERIENCIA_FIELD_SHIFT_LAB.md) | Propuesta de experiencia que guió la app |
+| [Experiencia AgroField](docs/EXPERIENCIA_FIELD_SHIFT_LAB.md) | Propuesta de experiencia que guió la app |
 | [Guía de presentación](docs/GUIA_PRESENTACION_Y_VIDEO.md) | Pitch y video |
 | [Revisiones](docs/revisiones/) | Revisión integral y del front, 14/11/2026 |
 | [Prompt para Claude](docs/PROMPT_PARA_CLAUDE.md) | Encargo original de adaptación del frontend (historial) |
