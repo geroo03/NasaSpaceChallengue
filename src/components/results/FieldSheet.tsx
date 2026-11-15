@@ -50,6 +50,7 @@ export function FieldSheet({
   watch,
   checks,
   assumptions,
+  alerts,
   onClose,
 }: {
   farmCase: FarmCase;
@@ -63,6 +64,7 @@ export function FieldSheet({
   watch: string[];
   checks: { when: string; what: string }[];
   assumptions: AssumptionKey[];
+  alerts: { enso: string; heat: string[]; water: string[] };
   onClose: () => void;
 }) {
   const { t, num, crop, lang } = useLang();
@@ -189,6 +191,22 @@ export function FieldSheet({
             </Block>
           </div>
         )}
+
+        <Block title={t('risk.title')}>
+          <p>{alerts.enso}</p>
+          <p className="mt-1 font-bold">{t('sheet.heat')}</p>
+          <ul className="list-disc pl-4 space-y-0.5">
+            {alerts.heat.map((x, i) => (
+              <li key={i}>{x}</li>
+            ))}
+          </ul>
+          <p className="mt-1 font-bold">{t('sheet.water')}</p>
+          <ul className="list-disc pl-4 space-y-0.5">
+            {alerts.water.map((x, i) => (
+              <li key={i}>{x}</li>
+            ))}
+          </ul>
+        </Block>
 
         <Block title={t('verify.titleShort')}>
           <ul className="space-y-1">

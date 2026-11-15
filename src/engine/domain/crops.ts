@@ -63,6 +63,12 @@ export interface Crop {
   /** Generic market potential, 1–5. Placeholder: replace with USDA AMS / local price data. */
   marketPotential: 0 | 1 | 2 | 3 | 4 | 5;
   forageValue: 0 | 1 | 2 | 3 | 4 | 5;
+  /**
+   * Flowering, the stage most damaged by heat: month after sowing (0 = sowing month) in a warm climate,
+   * and the Tmax from which a hot spell hurts pollination. Approximate agronomic values for alerts only
+   * (not used in scores); they shift with sowing date, hybrid/cultivar and temperature.
+   */
+  flowering?: { offsetMonths: number; heatC: number };
 }
 
 export const CROPS: Record<CropId, Crop> = {
@@ -71,48 +77,56 @@ export const CROPS: Record<CropId, Crop> = {
     sowWindowSouth: [10, 11, 12], cycleMonths: 5, minCycleMonths: 5, maxCycleMonths: 6, gdd: { required: 1350, baseC: 10 }, kc: 0.8,
     droughtTolerance: 2, heatTolerance: 3, frostTolerant: false, nFixing: true, rootDepth: 2,
     residue: 2, groundCover: 2, marketPotential: 5, forageValue: 1,
+    flowering: { offsetMonths: 2, heatC: 35 },
   },
   soy2: {
     id: 'soy2', name: { es: 'Soja de 2ª', en: 'Double-crop soybean' }, family: 'fabaceae', role: 'cash',
     sowWindowSouth: [12, 1], cycleMonths: 4, minCycleMonths: 4, maxCycleMonths: 5, gdd: { required: 1150, baseC: 10 }, kc: 0.75,
     droughtTolerance: 2, heatTolerance: 3, frostTolerant: false, nFixing: true, rootDepth: 2,
     residue: 1, groundCover: 2, marketPotential: 5, forageValue: 1,
+    flowering: { offsetMonths: 2, heatC: 35 },
   },
   maize: {
     id: 'maize', name: { es: 'Maíz', en: 'Maize / corn' }, family: 'poaceae', role: 'cash',
     sowWindowSouth: [9, 10, 11, 12, 1], cycleMonths: 6, minCycleMonths: 6, maxCycleMonths: 7, gdd: { required: 1500, baseC: 10 }, kc: 0.85,
     droughtTolerance: 2, heatTolerance: 2, frostTolerant: false, nFixing: false, rootDepth: 2,
     residue: 5, groundCover: 3, marketPotential: 4, forageValue: 3,
+    flowering: { offsetMonths: 2, heatC: 35 },
   },
   sorghum: {
     id: 'sorghum', name: { es: 'Sorgo', en: 'Sorghum' }, family: 'poaceae', role: 'cash',
     sowWindowSouth: [10, 11, 12, 1], cycleMonths: 5, minCycleMonths: 5, maxCycleMonths: 6, gdd: { required: 1400, baseC: 10 }, kc: 0.75,
     droughtTolerance: 4, heatTolerance: 5, frostTolerant: false, nFixing: false, rootDepth: 3,
     residue: 5, groundCover: 3, marketPotential: 3, forageValue: 4,
+    flowering: { offsetMonths: 2, heatC: 38 },
   },
   sunflower: {
     id: 'sunflower', name: { es: 'Girasol', en: 'Sunflower' }, family: 'asteraceae', role: 'cash',
     sowWindowSouth: [8, 9, 10, 11], cycleMonths: 4, minCycleMonths: 4, maxCycleMonths: 5, gdd: { required: 1500, baseC: 7 }, kc: 0.75,
     droughtTolerance: 4, heatTolerance: 3, frostTolerant: false, nFixing: false, rootDepth: 3,
     residue: 2, groundCover: 2, marketPotential: 3, forageValue: 1,
+    flowering: { offsetMonths: 2, heatC: 35 },
   },
   cotton: {
     id: 'cotton', name: { es: 'Algodón', en: 'Cotton' }, family: 'malvaceae', role: 'cash',
     sowWindowSouth: [10, 11, 12], cycleMonths: 6, minCycleMonths: 6, maxCycleMonths: 7, gdd: { required: 1800, baseC: 15 }, kc: 0.8,
     droughtTolerance: 4, heatTolerance: 5, frostTolerant: false, nFixing: false, rootDepth: 3,
     residue: 2, groundCover: 2, marketPotential: 3, forageValue: 0,
+    flowering: { offsetMonths: 2, heatC: 38 },
   },
   wheat: {
     id: 'wheat', name: { es: 'Trigo', en: 'Wheat' }, family: 'poaceae', role: 'cash',
     sowWindowSouth: [4, 5, 6, 7], cycleMonths: 6, minCycleMonths: 6, maxCycleMonths: 10, gdd: { required: 2000, baseC: 0 }, kc: 0.75,
     droughtTolerance: 3, heatTolerance: 2, frostTolerant: true, nFixing: false, rootDepth: 2,
     residue: 4, groundCover: 4, marketPotential: 4, forageValue: 2,
+    flowering: { offsetMonths: 4, heatC: 32 },
   },
   chickpea: {
     id: 'chickpea', name: { es: 'Garbanzo', en: 'Chickpea' }, family: 'fabaceae', role: 'cash',
     sowWindowSouth: [4, 5, 6, 7], cycleMonths: 6, minCycleMonths: 6, maxCycleMonths: 8, gdd: { required: 1600, baseC: 0 }, kc: 0.65,
     droughtTolerance: 4, heatTolerance: 2, frostTolerant: true, nFixing: true, rootDepth: 3,
     residue: 1, groundCover: 2, marketPotential: 3, forageValue: 1,
+    flowering: { offsetMonths: 4, heatC: 32 },
   },
   vetch: {
     id: 'vetch', name: { es: 'Vicia (cultivo de servicio)', en: 'Hairy vetch (cover)' }, family: 'fabaceae', role: 'cover',

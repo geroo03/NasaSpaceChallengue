@@ -1,8 +1,11 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { ArrowRight, FileText, Loader2, Pencil, RefreshCw } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
-import { applyScenario, buildClimateProfile, type Scenario } from '../../engine/analysis/climate';
-import { compareStrategiesDetailed, GLOBAL_GAPS, type StrategyResult } from '../../engine/domain/rotations';
+import { applyScenario, buildClimateProfile, hargreavesEt0, type Scenario } from '../../engine/analysis/climate';
+import { compareStrategiesDetailed, DEFAULT_PAW_MM, GLOBAL_GAPS, type StrategyResult } from '../../engine/domain/rotations';
+import { campaignStats, dailyWaterBalance, floweringHeat, latestEnso, seriesForCampaigns, summarizeByPhase } from '../../case/climateRisk';
+import type { DailyRecord } from '../../engine/data/power';
+import { EnsoBanner, EnsoTable, FloweringHeatList, SoilWaterChart, SowingWaterList } from './ClimateRisk';
 import { distanceKm, ringCentroid, toFarmContext, type FarmCase } from '../../case/model';
 import { SAVED_SNAPSHOT, type LoadedSeries } from '../../case/climateSource';
 import type { LotApi } from '../../case/lotApi';
@@ -36,11 +39,12 @@ interface Props {
 }
 
 /** Year presets instead of free sliders: perturbations of the historical series, never forecasts. */
-const YEARS: { id: string; scenario: Scenario }[] = [
+const YEARS: { id: string; scenario: Scenario; phase?: 'nino' | 'nina' }[] = [
   { id: 'history', scenario: { precipPct: 0, tempC: 0 } },
+  { id: 'nino', scenario: { precipPct: 0, tempC: 0 }, phase: 'nino' },
+  { id: 'nina', scenario: { precipPct: 0, tempC: 0 }, phase: 'nina' },
   { id: 'dry', scenario: { precipPct: -30, tempC: 0 } },
   { id: 'hot', scenario: { precipPct: 0, tempC: 2 } },
-  { id: 'dryHot', scenario: { precipPct: -30, tempC: 2 } },
 ];
 
 export function ResultsScreen({ farmCase, onLot, onAnalyseAt, load, onEdit, onRetry, lot }: Props) {
@@ -147,22 +151,37 @@ function Results({
   const { t, m, num, months, crop } = useLang();
   const [yearId, setYearId] = useState('history');
   const [custom, setCustom] = useState<Scenario | null>(null);
-  const scenario = custom ?? YEARS.find((y) => y.id === yearId)!.scenario;
+  const scenario = custom ?? (YEARS.find((y) => y.id === yearId) ?? YEARS[0]!).scenario;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [month, setMonth] = useState(19); // February of year 2 in the south: summer crops on the field
   const [toolsOpen, setToolsOpen] = useState(false);
   const [sheet, setSheet] = useState(false);
 
   const { farm, assumptions } = useMemo(() => toFarmContext(farmCase), [farmCase]);
+  // ENSO: phase of each past campaign (NOAA ONI) and what happened here in each phase.
+  const campaigns = useMemo(() => campaignStats(data.series), [data.series]);
+  const phases = useMemo(() => summarizeByPhase(campaigns), [campaigns]);
+  const enso = useMemo(() => latestEnso(), []);
+  const year = YEARS.find((y) => y.id === yearId) ?? YEARS[0]!;
+  const phaseCampaigns = year.phase ? (phases.find((p) => p.phase === year.phase)?.campaigns ?? []) : [];
+  const usedSeries = useMemo(() => {
+    const base = year.phase && phaseCampaigns.length >= 2 ? seriesForCampaigns(data.series, phaseCampaigns) : data.series;
+    return applyScenario(base, scenario);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.series, year.phase, phaseCampaigns.join(','), scenario]);
   const computed = useMemo(() => {
     try {
-      const profile = buildClimateProfile(applyScenario(data.series, scenario));
+      const profile = buildClimateProfile(usedSeries);
       const outcome = compareStrategiesDetailed(profile, farm, { currentTemplate: farmCase.currentTemplate });
       return { profile, outcome, error: null as string | null };
     } catch (err) {
       return { profile: null, outcome: null, error: err instanceof Error ? err.message : String(err) };
     }
-  }, [data, scenario, farm, farmCase.currentTemplate]);
+  }, [usedSeries, farm, farmCase.currentTemplate]);
+  // The daily water balance needs consecutive days: full record (with the test scenario, if any).
+  const waterSeries = useMemo(() => applyScenario(data.series, scenario), [data.series, scenario]);
+  const et0 = useMemo(() => (d: DailyRecord) => hargreavesEt0(d.tmax, d.tmin, data.series.lat, d.doy), [data.series.lat]);
+  const paw = farm.soilPawMm ?? DEFAULT_PAW_MM;
 
   if (!computed.profile || !computed.outcome) {
     return (
@@ -189,6 +208,11 @@ function Results({
   const from = years[0] ?? data.startYear;
   const to = years[years.length - 1] ?? data.endYear;
   const scenarioOn = scenario.precipPct !== 0 || scenario.tempC !== 0;
+  const heatRef = floweringHeat(reference, usedSeries);
+  const heatOpt = shown !== reference ? floweringHeat(shown, usedSeries) : [];
+  const waterRef = dailyWaterBalance(reference, waterSeries, paw, et0);
+  const waterOpt = shown !== reference ? dailyWaterBalance(shown, waterSeries, paw, et0) : null;
+  const optLabel = alts.indexOf(shown) === 0 ? t('hero.bestShort') : t('hero.alt', { n: alts.indexOf(shown) + 1 });
   const place =
     lotCentreKm !== null && lotCentreKm <= 1
       ? t(farmCase.lotSource?.kind === 'example' ? 'example.name' : 'lot.centreLabel')
@@ -220,6 +244,20 @@ function Results({
         watch={watch}
         checks={checks}
         assumptions={assumptions}
+        alerts={{
+          enso: t('sheet.enso', {
+            now: `${t(`enso.now.${enso.phase}`, { strength: t(`enso.strength.${enso.strength}`) })} (ONI ${enso.anom > 0 ? '+' : ''}${num(enso.anom, 2)}, ${enso.season} ${enso.year})`,
+            phase: t(`enso.phase.${enso.phase === 'neutral' ? 'nino' : enso.phase}`),
+            rain: num(phases.find((p) => p.phase === (enso.phase === 'neutral' ? 'nino' : enso.phase))?.rainOctMarMm ?? NaN),
+            neutral: num(phases.find((p) => p.phase === 'neutral')?.rainOctMarMm ?? NaN),
+          }),
+          heat: [...heatRef.map((h) => ({ h, who: t('hero.today') })), ...heatOpt.map((h) => ({ h, who: optLabel }))].map(
+            ({ h, who }) => `${who} · ${crop(h.crop)} (${months[h.calendarMonth - 1]}): ${t(`heat.level.${h.level}`)} · ${t('heat.detail', { days: num(h.hotDays, 1), c: h.heatC, spells: h.yearsWithSpell, years: h.years })}`,
+          ),
+          water: [...waterRef.sowing.map((w) => ({ w, who: t('hero.today') })), ...(waterOpt?.sowing ?? []).map((w) => ({ w, who: optLabel }))].map(
+            ({ w, who }) => `${who} · ${crop(w.crop)}: ${t('water.atSowing', { mm: num(w.medianMm), paw: num(paw), low: Math.round(w.lowShare * w.values.length), n: w.values.length })}`,
+          ),
+        }}
         onClose={() => setSheet(false)}
       />
     );
@@ -236,8 +274,8 @@ function Results({
           </p>
           <p className="mt-1 text-xs text-[#3B2F20]/85">
             {data.origin === 'saved'
-              ? t('res.dataSaved', { from, to, date: data.retrievedOn })
-              : t('res.dataLive', { from, to, date: data.retrievedOn })}{' '}
+              ? t('res.dataSaved', { from: data.startYear, to: data.endYear, date: data.retrievedOn })
+              : t('res.dataLive', { from: data.startYear, to: data.endYear, date: data.retrievedOn })}{' '}
             · {t('res.days', { days: num(data.series.days.length) })}
           </p>
         </div>
@@ -266,6 +304,15 @@ function Results({
         <Notice tone="warn">{t('lot.cityWarn')}</Notice>
       )}
 
+      <EnsoBanner
+        latest={enso}
+        summaries={phases}
+        onCompare={(phase) => {
+          setCustom(null);
+          setYearId(phase);
+        }}
+      />
+
       {/* 2. Which year */}
       <fieldset>
         <legend className="text-sm font-bold text-[#283618]">{t('year.q')}</legend>
@@ -277,20 +324,27 @@ function Results({
                 key={y.id}
                 type="button"
                 aria-pressed={active}
+                disabled={y.phase !== undefined && (phases.find((p) => p.phase === y.phase)?.campaigns.length ?? 0) < 2}
                 onClick={() => {
                   setCustom(null);
                   setYearId(y.id);
                 }}
-                className={`rounded-full border-2 px-4 min-h-[44px] text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25] ${
+                className={`rounded-full border-2 px-4 min-h-[44px] text-sm font-bold disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25] ${
                   active ? 'border-[#283618] bg-[#283618] text-[#FEFAE0]' : 'border-[#DECFA7] bg-white text-[#3B2F20] hover:border-[#A3B18A]'
                 }`}
               >
-                {t(`year.${y.id}`)}
+                {t(`year.${y.id}`, { n: phases.find((p) => p.phase === y.phase)?.campaigns.length ?? 0 })}
               </button>
             );
           })}
         </div>
-        <p className="mt-1.5 text-xs text-[#3B2F20]/85">{scenarioOn ? t('year.note') : t('year.historyNote', { from, to })}</p>
+        <p className="mt-1.5 text-xs text-[#3B2F20]/85">
+          {year.phase && !custom
+            ? t('year.ensoNote', { list: phaseCampaigns.map((c) => `${c}/${String(c + 1).slice(2)}`).join(', ') })
+            : scenarioOn
+              ? t('year.note')
+              : t('year.historyNote', { from, to })}
+        </p>
       </fieldset>
 
       {/* 3. The comparison */}
@@ -348,6 +402,36 @@ function Results({
           </div>
         )}
         <p className="text-xs text-[#3B2F20]/85">{t('cmp.indexNote')}</p>
+      </section>
+
+      {/* 3b. Heat and water alerts from the real record */}
+      <section aria-labelledby="risk-h" className="space-y-4">
+        <div>
+          <h2 id="risk-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
+            {t('risk.title')}
+          </h2>
+          <p className="mt-1 max-w-3xl text-sm text-[#3B2F20]">{t('risk.help')}</p>
+        </div>
+        <div className="grid gap-5 md:grid-cols-2 items-start">
+          <Card className="min-w-0 space-y-4" as="div">
+            <SectionTitle sub={t('heat.help')}>{t('heat.title')}</SectionTitle>
+            <FloweringHeatList items={heatRef} title={t('hero.today')} />
+            {shown !== reference && <FloweringHeatList items={heatOpt} title={optLabel} />}
+            <p className="text-xs text-[#3B2F20]/85">{t('heat.note')}</p>
+          </Card>
+          <Card className="min-w-0 space-y-4" as="div">
+            <SectionTitle sub={t('water.sowHelp')}>{t('water.sowTitle')}</SectionTitle>
+            <SowingWaterList balance={waterRef} label={t('hero.today')} strategy={reference} />
+            {waterOpt && <SowingWaterList balance={waterOpt} label={optLabel} strategy={shown} />}
+          </Card>
+        </div>
+        <Card className="min-w-0" as="div">
+          <SectionTitle sub={t('water.help')}>{t('water.title')}</SectionTitle>
+          <SoilWaterChart reference={waterRef} option={waterOpt} refStrategy={reference} optStrategy={shown !== reference ? shown : null} refLabel={t('hero.today')} optLabel={optLabel} />
+        </Card>
+        <Collapsible title={t('enso.tableTitle')}>
+          <EnsoTable summaries={phases} />
+        </Collapsible>
       </section>
 
       {/* 4. The field, month by month */}
@@ -430,7 +514,7 @@ function Results({
         </Collapsible>
         <Collapsible title={t('sources.title')}>
           <ul className="list-disc pl-5 space-y-1 text-sm">
-            {['source.power', 'source.srtm', 'source.soilgrids', 'source.gibs', 'source.fao'].map((k) => (
+            {['source.power', 'source.srtm', 'source.soilgrids', 'source.oni', 'source.gibs', 'source.fao'].map((k) => (
               <li key={k}>{t(k)}</li>
             ))}
           </ul>

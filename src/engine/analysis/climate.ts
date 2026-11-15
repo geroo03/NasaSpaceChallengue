@@ -179,7 +179,7 @@ export function buildClimateProfile(series: ClimateSeries): ClimateProfile {
       rootWetness: wetOk ? linearTrend(completeYears, annualWet) : null,
     },
     recentRootWetnessAnomaly: recentAnomaly(usable, completeYears),
-    frostFreeSeasonDays: frostFreeSeason(usable, series.lat < 0 ? 'south' : 'north'),
+    frostFreeSeasonDays: frostFreeSeason(usable, series.lat < 0 ? 'south' : 'north', series.yearIsCampaign === true),
   };
 }
 
@@ -216,7 +216,7 @@ function recentAnomaly(days: DailyRecord[], years: number[]): { month: number; y
  * Median length (days) of the frost-free period. The "growing year" starts in mid-winter
  * (July 1 in the south, January 1 in the north) so that one season is not split in two.
  */
-function frostFreeSeason(days: DailyRecord[], hemisphere: 'north' | 'south'): number | null {
+function frostFreeSeason(days: DailyRecord[], hemisphere: 'north' | 'south', yearIsCampaign = false): number | null {
   if (!days.some((d) => d.tmin <= FROST_C)) return null;
   const MID = 182; // middle of the growing year ≈ peak of summer
   const seasons = new Map<number, { frostIdx: number[]; nDays: number }>();
@@ -226,7 +226,7 @@ function frostFreeSeason(days: DailyRecord[], hemisphere: 'north' | 'south'): nu
     if (hemisphere === 'south') {
       // growing year runs Jul 1 → Jun 30
       idx = d.doy >= 183 ? d.doy - 183 : d.doy + 182;
-      seasonYear = d.doy >= 183 ? d.year : d.year - 1;
+      seasonYear = yearIsCampaign ? d.year : d.doy >= 183 ? d.year : d.year - 1;
     } else {
       idx = d.doy - 1;
       seasonYear = d.year;

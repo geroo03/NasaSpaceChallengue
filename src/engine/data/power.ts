@@ -40,6 +40,8 @@ export interface ClimateSeries {
   days: DailyRecord[];
   /** Days dropped because a required variable was missing (fill value). */
   droppedDays: number;
+  /** Set when `year` holds the campaign (Jul–Jun) instead of the calendar year (ENSO subsets). */
+  yearIsCampaign?: boolean;
 }
 
 const BASE_URL = 'https://power.larc.nasa.gov/api/temporal/daily/point';
