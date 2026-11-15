@@ -1,138 +1,82 @@
-# Field Shift Lab
+# Field Shift
 
-Explorador de rotaciones de cultivos a 24 meses con clima histórico de **NASA POWER**, prioridades del productor y recursos declarados. NASA Space Apps 2026 · desafío *Field Shift: Adapting Farms with NASA Data*.
+**Decidir antes de sembrar, con datos de la NASA y el lote de cada productor.** App web que compara rotaciones de cultivos a 24 meses para el secano de Santiago del Estero (Argentina). Proyecto para NASA Space Apps 2026, desafío *Field Shift: Adapting Farms with NASA Data*.
 
-El caso inicial es un **punto ilustrativo de Santiago del Estero**. Añatuya es un piloto propuesto: el lote, el manejo y el suelo están por confirmar.
+- **App:** https://field-shift-lab.vercel.app. Se instala en el teléfono o la tablet y funciona sin señal con lo ya consultado.
+- **Proyecto** (vault, documentos, entrega y material): https://github.com/geroo03/NasaSpaceChallengue
 
-## Qué hace
+## Cómo se usa: 3 pantallas
 
-1. **Recorrido guiado** (una pregunta por paso, con volver y resumen editable): ubicación → cultivo actual → herramientas y equipos → prioridades → resumen.
-2. **Comparación**: el manejo de referencia y hasta tres alternativas en un calendario común de 24 meses. Cada opción responde qué cambia, por qué aparece, qué necesita y qué falta verificar.
-3. **Campo isométrico** recorrible mes a mes, conectado al calendario. Está etiquetado como representación ilustrativa y tiene una vista plana accesible.
-4. **Sensibilidad** de lluvia y temperatura. Es un escenario exploratorio, no un pronóstico.
-5. **Clima NASA POWER**: lluvia, ET₀ (Hargreaves), lluvia/ET₀, días ≥ 35 °C y heladas. Cada valor lleva fuente, período, unidad y procedencia.
-6. **Imagen del lote**: mapa con NASA HLS a 30 m (Sentinel-2 y Landsat armonizados). Las escenas salen del catálogo CMR con su porcentaje de nubes y se elige sola la más reciente y limpia. MODIS NDVI y SMAP L4 quedan como capas regionales. Las imágenes no entran al cálculo.
-7. **Drones**: carga de ortomosaicos GeoTIFF exportados por DJI Terra u otras plataformas, en WGS84, UTM o POSGAR 2007. Se procesan en el navegador sin subir el archivo y se superponen al mapa.
-8. **Delimitar el lote**: se dibuja y se editan los vértices con Leaflet-Geoman, igual que en AgroCordS, sobre la imagen NASA HLS o sobre la base Esri de alta resolución. Valida con Turf: no puede cruzarse a sí mismo y tiene que medir entre 0,5 y 5.000 ha.
-9. **Documentación del relevamiento** (portado del módulo `lote/` basado en AgroCordS): importa el límite desde KML/KMZ, Shapefile .zip (reproyectado según su .prj), GeoJSON o DXF del plano de mensura (POSGAR 2007 fajas 1–7, UTM 19–21S o WGS84). Si el archivo trae varias parcelas, el usuario elige cuál es su lote. Los PDF o fotos del plano se adjuntan como guía. Santiago del Estero no publica catastro en línea, por eso la carga es por archivo.
-   - DXF: detecta planos escritos con X = norte e Y = este, y corrige la faja POSGAR si no coincide con las coordenadas, avisando en ambos casos.
-   - Shapefile sin `.prj`: se rechaza en vez de suponer coordenadas. Las líneas cerradas de catastro cuentan como polígono y las parcelas de varias partes quedan bloqueadas. Tope de 30 MB por archivo.
-   - Un lote importado y después editado a mano queda registrado como tal.
-   - Con lote cargado, el punto del análisis es su centro: si el clima se calculó lejos, la app ofrece recalcular ahí. «Ampliar mapa» lo abre a pantalla completa (Esc cierra).
-10. **Orden de vuelo**: el lote se dibuja en el mapa y se exporta en KML (importable en DJI Pilot 2) y GeoJSON, con qué revisar en cada mes según la opción elegida. Field Shift no define altura ni solapamiento: eso lo decide el piloto, por ejemplo de Vuelo Verde.
-11. **Rotaciones descartadas** con su motivo. No se inventan alternativas.
-12. **Estados** de carga, error de red con respaldo en la serie guardada, y aviso cuando hay pocas alternativas o ninguna.
+1. **Tu lote** (`#/lote`): se dibuja el lote sobre imagen satelital o se carga el plano (KML/KMZ, Shapefile .zip, GeoJSON, o DXF de mensura en POSGAR 2007 / UTM). La app calcula superficie, centro (punto del clima), relieve (NASA SRTM) y suelo (SoilGrids). Un DSM de dron o un análisis de suelo reemplazan esas estimaciones. «Probar con el lote de ejemplo» carga 46 ha cerca de Añatuya.
+2. **Tu campaña** (`#/campana`): cultivo actual, riego (el único recurso que hoy entra al cálculo) y prioridades.
+3. **Tus opciones** (`#/opciones`):
+   - el manejo actual contra la alternativa mejor puntuada, con por qué aparece y qué tener en cuenta;
+   - años de prueba: campañas Niño o Niña, más seco, más caluroso;
+   - calor en la floración y agua en el suelo al sembrar, campaña por campaña;
+   - calendario de 24 meses y el campo mes a mes;
+   - qué verificar y cuándo, con el pedido de relevamiento con dron;
+   - **trabajos con dron**: mapeo, siembra de cultivos de servicio y pulverización, planificados sobre el calendario;
+   - una **ficha imprimible / PDF** para el técnico o el piloto.
 
-### Propuesta de interfaz para evaluar
+   Lo técnico (índices, clima, descartadas, fuentes) queda plegado en «¿De dónde sale esto?».
 
-Los resultados se organizan en tres pantallas (ver «Flujo de la app» más abajo). Se mantienen las correcciones de la revisión del 14/11:
-- coordenadas vacías que se recuperan;
-- varios adjuntos sin perder los enlaces;
-- riego compartido o contratado pendiente: aporta 0 mm hasta confirmar;
-- ventanas de seguimiento sin inventar un mes de máximo estrés.
+## Datos
 
-Ver la [revisión y propuesta](https://github.com/geroo03/NasaSpaceChallengue/blob/main/docs/revisiones/REVISION_FRONT_Y_PROPUESTA_2026-11-14.md) en el repo del proyecto.
+| Fuente | Uso |
+| --- | --- |
+| NASA POWER (diario: Tmax, Tmin, lluvia, humedad de suelo) | Perfil climático, ET₀, heladas, calor, agua y El Niño por campaña |
+| NASA SRTM (~30 m, AWS Terrain Tiles) | Relieve y pendiente del lote; la pendiente entra al cálculo |
+| NASA HLS vía GIBS y CMR · MODIS NDVI · SMAP L4 | Imagen del lote y capas regionales (no entran al cálculo) |
+| ISRIC SoilGrids 2.0 | Agua útil 0–100 cm, textura y carbono orgánico del lote |
+| NOAA CPC ONI | Fase de El Niño / La Niña de cada campaña y estado actual observado |
 
-### Lo que todavía no hace
+Todo se consulta desde el navegador, **sin backend ni claves**. Los archivos del productor (planos, DSM, ortomosaicos) se procesan en su equipo, sin subirlos. En `public/data/` hay respuestas guardadas sin modificar, para que la demo funcione sin conexión:
+- NASA POWER 2011–2025 del punto de Santiago del Estero y del lote de ejemplo;
+- SoilGrids del lote de ejemplo.
 
-- **Compatibilidad con equipos**: el acceso a herramientas (propio, compartido, contratado, sin acceso, falta confirmar) se registra, pero no filtra ni ordena las alternativas. La app lo muestra como "Compatibilidad de equipos pendiente de evaluación".
-- **Datos de suelo**: el tipo de suelo se registra, pero el cálculo sigue usando una reserva supuesta de 120 mm.
-- **Fechas del productor**: el motor optimiza también las fechas de la referencia. Las fechas reales del productor todavía no se conservan.
-- **Integraciones pendientes**: SMAP numérico, ECOSTRESS, HLS, caupí e intercultivos.
+## Supuestos (visibles en la app)
 
-## Stack
-
-React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet, geotiff.js + proj4 (cargados solo al usar imágenes de dron) y Vitest. No usa backend, API keys ni LLM.
+- ET₀ por Hargreaves (solo temperatura), no Penman–Monteith.
+- **Oferta de agua del índice:** 75 % de la lluvia + agua útil del suelo × humedad POWER al sembrar + riego. El agua útil sale, en este orden, del análisis del productor, de SoilGrids o de 120 mm supuestos. La reserva se reinicia en cada cultivo.
+- **Balance diario complementario:** dos capas sobre el registro real. Un barbecho sin malezas pierde solo la capa superficial. No está calibrado con mediciones.
+- Índices de 0 a 100 orientativos: no son probabilidades ni rentabilidad.
+- «Meses sin cultivo programado» sale del calendario: no es suelo desnudo observado.
+- **El Niño:** hay pocas campañas por fase (5, 4 y 5). Es una referencia, no un pronóstico.
+- **Trabajos con dron:**
+  - el mapeo usa la cámara RGB del DJI Mavic 3M (resolución = altura / 36,5 cm);
+  - la pulverización usa los parámetros del informe de Vuelo Verde;
+  - los valores sin fuente están marcados como ejemplo;
+  - producto y dosis van siempre con receta agronómica.
 
 ## Ejecutar
 
 ```sh
 git clone https://github.com/geroo03/nasa field-shift-app && cd field-shift-app
-npm install
+npm ci
 npm run dev        # servidor local
-npm test           # motor, caso, verificación, HLS, coordenadas, orden de vuelo e importación de catastro/planos
+npm test           # 120 pruebas: motor, caso, suelo, El Niño, agua, drones, importación de planos
 npm run build      # typecheck + build estático en dist/
-npm run preview
 ```
+
+Node 20 o más. Opcional: `VITE_VUELO_VERDE_WHATSAPP` en Vercel activa el botón de WhatsApp del pedido de dron. Ningún contacto queda escrito en el código.
 
 ## Estructura
 
 ```text
-src/engine/            Motor del prototipo Field Shift (puro, sin React)
-  data/power.ts          Cliente y parser de NASA POWER
-  analysis/climate.ts    Perfil climático, Hargreaves y escenarios
-  domain/crops.ts        Catálogo de 12 cultivos (parámetros genéricos)
-  domain/rotations.ts    Calendario, evaluación, ranking y descartadas
-  test/                  Pruebas del motor
-src/case/              Respuestas del productor → contexto del motor (con supuestos) y plan de verificación
-src/imagery/           Escenas HLS (CMR/GIBS), GeoTIFF de dron, importación de límites (KML/KMZ/SHP/GeoJSON/DXF) y orden de vuelo
-src/i18n/              Textos ES/EN (motor + interfaz)
-src/components/        Recorrido, resultados y "Cómo funciona"
-public/data/           Serie NASA POWER 2011–2025 guardada (punto -27.7834, -64.2642)
+src/
+  engine/       Motor puro (sin React): NASA POWER, perfil climático, cultivos y rotaciones
+  case/         Caso del productor → motor (con supuestos), suelo, El Niño, calor, agua, drones, verificación
+  imagery/      Relieve SRTM, HLS, DSM y ortomosaicos de dron, CRS/POSGAR, importación de planos, KML
+  components/
+    flow/       Pantallas 1 y 2, navegación, estado sin señal
+    lot/        Editor del lote, terreno, suelo, pedido y trabajos con dron
+    results/    Pantalla 3, gráficos, ficha imprimible, mapa e imágenes del lote
+  i18n/         Textos ES/EN
+  data/         ONI de NOAA (guardado)
+  lib/          Leaflet como global (lo necesita Leaflet-Geoman)
+public/
+  data/         Respuestas guardadas de NASA POWER y SoilGrids
+  sw.js         Service worker (app instalable y uso sin señal)
 ```
 
-La serie guardada se descargó el 14/11/2026 (POWER API v2.10.3, MERRA-2, SHA-256 `c5c4cab9…5725`). Sirve como respaldo sin conexión solo para ese punto.
-
-## Supuestos visibles en la app
-
-- ET₀ por Hargreaves (solo temperatura), no Penman–Monteith.
-- Oferta de agua aproximada: 75 % de la lluvia + 120 mm × humedad relativa POWER + riego. Usa 0,4 si falta el dato, y la reserva se reinicia en cada cultivo.
-- Riesgo de helada: máximo mensual ponderado. No es la frecuencia de campañas con helada.
-- Los índices (0–100) son orientativos: no son probabilidades ni rentabilidad.
-- "Meses sin cultivo programado" sale del calendario. No equivale a suelo desnudo observado.
-
-## Flujo de la app (3 pantallas)
-
-1. **Tu lote** (`#/lote`): se dibuja o se carga el plano, o se elige un punto. Aparecen la superficie, el centro (punto de NASA POWER) y el relieve de NASA SRTM. El botón «Probar con el lote de ejemplo» carga 46 ha cerca de Añatuya. Para ese punto hay una serie NASA POWER 2011–2025 guardada sin modificar en `public/data/`.
-2. **Tu campaña** (`#/campana`): el cultivo actual, el riego (el único recurso que entra al cálculo) y las prioridades. La maquinaria queda plegada.
-3. **Tus opciones** (`#/opciones`):
-   - el manejo actual contra la alternativa mejor puntuada, con por qué y qué tener en cuenta;
-   - años de prueba (seco, caluroso);
-   - el campo mes a mes;
-   - qué verificar, junto al pedido de dron con esas fechas;
-   - la **ficha imprimible o en PDF**.
-
-   Lo técnico va plegado en «¿De dónde sale esto?».
-
-Si NASA POWER no responde y el punto tiene una serie guardada, la app la usa y lo avisa.
-
-## Suelo, calor, agua y El Niño
-
-- **Suelo (ISRIC SoilGrids 2.0):** agua útil 0–100 cm (capacidad de campo − punto de marchitez), textura y carbono orgánico en el punto. Reemplaza la reserva genérica de 120 mm. Un análisis de suelo cargado por el productor tiene prioridad.
-- **El Niño / La Niña:** ONI de NOAA guardado en `src/data/oni.ts`, actualizado el 03/11/2026.
-  - Fase de cada campaña con la regla de NOAA.
-  - Aviso del estado observado actual.
-  - Qué pasó en el punto en cada fase.
-  - Comparación de las opciones solo con campañas Niño o Niña.
-
-  No es un pronóstico.
-- **Calor en floración:** mes aproximado de floración por cultivo y días con máxima sobre su umbral en NASA POWER.
-- **Agua del suelo día por día:** balance de dos capas sobre el registro 2011–2025, con agua al sembrar por campaña y gráfico mes a mes. Es complementario: el índice todavía usa la reserva por cultivo.
-
-Textos para el formulario de entrega: [docs/entrega/ENTREGA_FORMULARIO.md](https://github.com/geroo03/NasaSpaceChallengue/blob/main/docs/entrega/ENTREGA_FORMULARIO.md), en el repo del proyecto.
-
-## Lote primero, relieve y pedido de dron
-
-- **Paso 1 = el lote.** Se dibuja sobre Esri World Imagery (Geoman) o se carga el plano: KML/KMZ, SHP zip, GeoJSON o DXF en POSGAR. El centro del lote pasa a ser el punto de NASA POWER. "Solo un punto" queda como alternativa.
-- **Datos del terreno.** Con el lote cargado, la app calcula:
-  - superficie y centro;
-  - altura media y desnivel (percentil 5 a 95);
-  - pendiente general, con un plano ajustado por mínimos cuadrados, y hacia dónde escurre el agua.
-
-  El relieve sale de **NASA SRTM** (~30 m, AWS Terrain Tiles, sin clave). Si el productor no declaró la pendiente, se usa esta, marcada como dato NASA. SRTM tiene un error de varios metros: no sirve para curvas de nivel.
-- **DSM del dron.** Un GeoTIFF de una banda en metros (WGS 84, UTM o POSGAR 2007) reemplaza la estimación de SRTM y queda como "Medido con dron". Se procesa en el navegador.
-- **Pedir relevamiento con dron.** Usa los servicios del informe técnico de Vuelo Verde:
-  - altimetría con DSM/RTK y curvas cada 5–7 cm;
-  - ortomosaico RGB;
-  - multiespectral, a confirmar con el prestador.
-
-  Genera el texto del pedido, con el centro en WGS 84 y en POSGAR faja 4, y el KML del límite. El botón de WhatsApp aparece solo si se configura `VITE_VUELO_VERDE_WHATSAPP` en Vercel. Ningún contacto queda escrito en el código.
-
-## Documentación del proyecto
-
-Este repositorio tiene **solo la app**: código, pruebas y datos guardados en `public/data/`. El resto del proyecto está en [geroo03/NasaSpaceChallengue](https://github.com/geroo03/NasaSpaceChallengue):
-
-- el vault de Obsidian (`Field Shift - Obsidian/`), con decisiones, datos, entrevista con Vuelo Verde y presentación;
-- `docs/`: auditoría, matriz de datos NASA y estrategias;
-- `docs/entrega/`: formulario de Space Apps, guion del video y subtítulos;
-- `docs/revisiones/`: revisiones del código y del front.
+React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet + Leaflet-Geoman, Turf, proj4, geotiff.js, shpjs, dxf-parser y Vitest. Despliegue automático en Vercel desde `main`.
