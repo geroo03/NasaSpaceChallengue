@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Raleway', system-ui, -apple-system, sans-serif;
+
+  --color-crema: #FEFAE0;
+  --color-bosque: #283618;
+  --color-oliva: #606C38;
+  --color-salvia: #A3B18A;
+  --color-niebla: #E3EBDD;
+  --color-arena: #EFE3C2;
+  --color-arena-borde: #DECFA7;
+  --color-terracota: #BC6C25;
+  --color-terracota-oscuro: #9A5518;
+  --color-ocre: #DDA15E;
+  --color-tierra: #3B2F20;
+  --color-fondo: #f0ede4;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: var(--color-fondo);
+    color: #3B2F20;
+    font-family: 'Raleway', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button:not(:disabled),
+  select:not(:disabled),
+  [role="button"] {
+    cursor: pointer;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.cover-crop-hatch {
+  background-color: #E3EBDD;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #E3EBDD 0px,
+    #E3EBDD 7px,
+    rgba(163, 177, 138, 0.55) 7px,
+    rgba(163, 177, 138, 0.55) 8.5px
+  );
+}
+
+.shadow-earth-card {
+  box-shadow:
+    0 4px 16px -2px rgba(59, 47, 32, 0.06),
+    0 2px 6px -1px rgba(59, 47, 32, 0.04);
+}
+
+.shadow-earth-modal {
+  box-shadow:
+    0 12px 32px -4px rgba(59, 47, 32, 0.14),
+    0 4px 12px -2px rgba(59, 47, 32, 0.08);
+}
+
+.headline-display {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 200;
+  letter-spacing: 0.06em;
+  text-wrap: balance;
+}
+
+.headline-display--bold {
+  font-weight: 700;
+}
+
+/* Months with no crop scheduled: hatched earth, so the state never depends on colour alone. */
+.empty-month {
+  background-color: #F4EAD2;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #F4EAD2 0px,
+    #F4EAD2 4px,
+    rgba(176, 138, 90, 0.45) 4px,
+    rgba(176, 138, 90, 0.45) 5.5px
+  );
+}
+
+.leaflet-container {
+  font-family: 'Raleway', system-ui, sans-serif;
+}
+
+/* Field use: slightly larger text on phones, read in the sun and with one hand. */
+@media (max-width: 640px) {
+  html { font-size: 17px; }
+}
+
+/* Small, calm motion. All of it is switched off by the reduced-motion rule below. */
+@keyframes fs-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fs-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes fs-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+.fs-enter { animation: fs-rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.fs-stagger > * { animation: fs-rise 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.fs-stagger > *:nth-child(2) { animation-delay: 70ms; }
+.fs-stagger > *:nth-child(3) { animation-delay: 140ms; }
+.fs-stagger > *:nth-child(4) { animation-delay: 210ms; }
+.fs-stagger > *:nth-child(5) { animation-delay: 280ms; }
+.fs-stagger > *:nth-child(n + 6) { animation-delay: 340ms; }
+.fs-draw { stroke-dasharray: 1; animation: fs-draw 1100ms ease-out both; }
+.fs-pulse { animation: fs-pulse 2.4s ease-in-out infinite; }
+.fs-press { transition: transform 120ms ease, background-color 150ms ease, border-color 150ms ease; }
+.fs-press:active { transform: scale(0.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
