@@ -1,6 +1,6 @@
 # Field Shift — aplicación web
 
-> **Prototipo anterior (primer maquetado).** No es la app actual. La app de Field Shift está en https://github.com/geroo03/nasa y publicada en https://field-shift-lab.vercel.app.
+> **Prototipo anterior (primer maquetado).** No es la app actual. La app de Field Shift está en [`front-nasa/`](../../front-nasa/) de este repositorio y publicada en https://field-shift-lab.vercel.app.
 
 Prototipo Vite/TypeScript para explorar rotaciones a dos años. La documentación principal y el stack de trabajo están en el [README de la raíz](../../README.md). Las instrucciones para Claude están en [CLAUDE.md](../../CLAUDE.md).
 

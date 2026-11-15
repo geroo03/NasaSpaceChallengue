@@ -3,7 +3,7 @@
 **Decidir antes de sembrar, con datos de la NASA y el lote de cada productor.** App web que compara rotaciones de cultivos a 24 meses para el secano de Santiago del Estero (Argentina). Proyecto para NASA Space Apps 2026, desafío *Field Shift: Adapting Farms with NASA Data*.
 
 - **App:** https://field-shift-lab.vercel.app. Se instala en el teléfono o la tablet y funciona sin señal con lo ya consultado.
-- **Proyecto** (vault, documentos, entrega y material): https://github.com/geroo03/NasaSpaceChallengue
+- **Proyecto:** esta carpeta es parte de [NasaSpaceChallengue](https://github.com/geroo03/NasaSpaceChallengue), junto con el vault, los documentos, la entrega y el material (carpetas hermanas).
 
 ## Cómo se usa: 3 pantallas
 
@@ -51,7 +51,7 @@ Todo se consulta desde el navegador, **sin backend ni claves**. Los archivos del
 ## Ejecutar
 
 ```sh
-git clone https://github.com/geroo03/nasa field-shift-app && cd field-shift-app
+git clone https://github.com/geroo03/NasaSpaceChallengue && cd NasaSpaceChallengue/front-nasa
 npm ci
 npm run dev        # servidor local
 npm test           # 120 pruebas: motor, caso, suelo, El Niño, agua, drones, importación de planos

@@ -3,7 +3,7 @@
 Borrador del 15/11/2026, armado según «Componentes del Proyecto» y «Criterios de Evaluación».
 
 - **Demo:** https://field-shift-lab.vercel.app (pública, sin login). Probar con «Probar con el lote de ejemplo».
-- **Repositorio:** https://github.com/geroo03/nasa
+- **Repositorio:** https://github.com/geroo03/NasaSpaceChallengue (la app está en `front-nasa/`)
 
 Antes de pegar, revisar con el equipo:
 - nombres;
@@ -116,7 +116,7 @@ No se usaron logos, banderas ni identificadores de misiones de la NASA. Sugerenc
 2. Subir el PDF a Google Drive y compartirlo con «Cualquier persona con el enlace».
 3. Probar el enlace en una ventana de incógnito.
 
-Opcional: copiar el PDF a `front-nasa/public/field-shift-pitch.pdf`, en el repo de la app. Queda en https://field-shift-lab.vercel.app/field-shift-pitch.pdf.
+Opcional: copiar el PDF a `front-nasa/public/field-shift-pitch.pdf`. Queda en https://field-shift-lab.vercel.app/field-shift-pitch.pdf.
 
 Contenido del deck (el borrador de abajo quedó como referencia):
 

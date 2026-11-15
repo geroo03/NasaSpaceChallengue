@@ -1,6 +1,6 @@
 # Instrucciones para trabajar en Field Shift
 
-> **Estructura (15/11/2026).** La app actual está en `front-nasa/` (repo [geroo03/nasa](https://github.com/geroo03/nasa), React + TypeScript + Vite, desplegada en Vercel); sus convenciones están en `front-nasa/README.md`. `prototipo/` es la versión anterior, que se conserva como referencia. La entrega está en `docs/entrega/`, las revisiones en `docs/revisiones/` y el material de terceros en `material/`. El informe técnico de Vuelo Verde es solo local: no publicarlo.
+> **Estructura (15/11/2026).** La app actual está en `front-nasa/` de este repositorio (React + TypeScript + Vite, desplegada en Vercel desde esa carpeta); sus convenciones están en `front-nasa/README.md`. `prototipo/` es la versión anterior, que se conserva como referencia. La entrega está en `docs/entrega/`, las revisiones en `docs/revisiones/` y el material de terceros en `material/`. El informe técnico de Vuelo Verde es solo local: no publicarlo.
 
 ## Objetivo
 
