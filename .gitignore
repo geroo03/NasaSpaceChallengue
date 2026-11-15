@@ -22,8 +22,6 @@ coverage/
 **/.obsidian/workspace*.json
 **/.obsidian/cache/
 
-# La app vive en su propio repositorio: https://github.com/geroo03/nasa
-front-nasa/
 
 # Registros locales del navegador de pruebas
 .playwright-mcp/
