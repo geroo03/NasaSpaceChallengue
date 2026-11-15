@@ -33,6 +33,26 @@ export function LoginScreen() {
   return <ProfileForm />;
 }
 
+/** The header (with its ES/EN switch) is behind the dialog, so the dialog carries its own. */
+function LangSwitch() {
+  const { t, lang, setLang } = useLang();
+  return (
+    <div role="group" aria-label={t('lang.label')} className="flex shrink-0 rounded-lg border border-[#DECFA7] bg-white p-0.5">
+      {(['en', 'es'] as const).map((l) => (
+        <button
+          key={l}
+          type="button"
+          aria-pressed={lang === l}
+          onClick={() => setLang(l)}
+          className={`min-h-[40px] min-w-11 rounded-md px-2.5 text-xs font-bold focus-visible:outline-2 focus-visible:outline-[#BC6C25] ${lang === l ? 'bg-[#283618] text-[#FEFAE0]' : 'text-[#3B2F20]'}`}
+        >
+          {l === 'en' ? 'EN' : 'ES'}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Shell({ children, onSubmit, onClose, labelledBy }: { children: ReactNode; onSubmit: () => void; onClose: () => void; labelledBy: string }) {
   return (
     <div className="fixed inset-0 z-[1500] overflow-y-auto bg-[#283618]/70 backdrop-blur-sm px-4 py-6 sm:py-12" role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
@@ -44,7 +64,10 @@ function Shell({ children, onSubmit, onClose, labelledBy }: { children: ReactNod
         }}
         onKeyDown={(e) => e.key === 'Escape' && onClose()}
       >
-        <img src="/brand/agrofield-logo.svg" alt="AgroField" width={567} height={240} className="h-14 w-auto -ml-2" />
+        <div className="flex items-start justify-between gap-3">
+          <img src="/brand/agrofield-logo.svg" alt="AgroField" width={567} height={240} className="h-14 w-auto -ml-2" />
+          <LangSwitch />
+        </div>
         {children}
       </form>
     </div>
