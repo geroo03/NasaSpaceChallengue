@@ -43,7 +43,7 @@ La consigna combina **observaciones NASA + suelo local + cultivos + prioridades*
 - **Prioridad:** si el productor carga un análisis de suelo, ese valor reemplaza al mapa.
 - **Efecto en el resultado:** chico (unos ±1 punto de índice en el ejemplo), porque el modelo usa la reserva solo al sembrar. Hay que decirlo así, sin exagerarlo.
 
-**Siguiente profundidad, si hubiera tiempo:** un balance de agua mes a mes que conserve la reserva entre cultivos. Ahí el suelo pesaría de verdad. Es un cambio de modelo grande: no entra antes del cierre.
+**Balance de agua entre cultivos:** se agregó como modelo **complementario** (diario, dos capas; ver abajo). El índice todavía reinicia la reserva en cada cultivo. Pasar el índice a ese balance es el siguiente cambio de modelo, y necesita calibración con datos de campo.
 
 Ver [[Pitch y guion]], [[Entrega 2026]], [[Entrevista Vuelo Verde]] e [[Inventario de datos]].
 
