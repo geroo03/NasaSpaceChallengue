@@ -55,4 +55,4 @@ Ver [[Pitch y guion]], [[Entrega 2026]], [[Entrevista Vuelo Verde]] e [[Inventar
   - soja de diciembre: mediana 22 de 94 mm, y en 10 de 14 campañas menos de un tercio;
   - maíz tardío de enero después del barbecho: 45 mm;
   - con vicia invernal antes del maíz: 23 mm. Es el costo de agua del cultivo de servicio en secano.
-- **Textos para el formulario:** `docs/ENTREGA_FORMULARIO.md` en el repo.
+- **Textos para el formulario:** `docs/entrega/ENTREGA_FORMULARIO.md` (repo del proyecto).

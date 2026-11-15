@@ -27,3 +27,6 @@ front-nasa/
 
 # Registros locales del navegador de pruebas
 .playwright-mcp/
+
+# Informe técnico de Vuelo Verde: documento de un cliente suyo, no se publica sin su permiso
+material/vuelo-verde/Informe_Tecnico_Unificado.pdf

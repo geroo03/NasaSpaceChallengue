@@ -1,5 +1,24 @@
 # Field Shift / Field Shift Lab
 
+> **Estado al 15/11/2026.** La app actual es **`front-nasa/`**: React + TypeScript + Vite. Tiene su propio repositorio, [geroo03/nasa](https://github.com/geroo03/nasa), y está publicada en https://field-shift-lab.vercel.app. Este repositorio guarda el proyecto: vault, documentos, entrega, material recibido y el prototipo anterior. Las secciones de más abajo describen el **prototipo anterior** (`prototipo/`) y quedan como referencia.
+
+## Estructura
+
+| Carpeta | Qué hay |
+| --- | --- |
+| `front-nasa/` | **App actual.** Repositorio aparte ([geroo03/nasa](https://github.com/geroo03/nasa)) y fuera de este por `.gitignore`. Código, pruebas y README técnico. |
+| `Field Shift - Obsidian/` | **Vault del equipo:** dirección, investigación, datos, presentación, material recibido y recursos. Abrir la carpeta como vault en Obsidian. |
+| `docs/` | Documentos del proyecto: auditoría, matriz de datos NASA, estrategias, experiencia y prompt para Claude. |
+| `docs/entrega/` | **Entrega a Space Apps:** textos del formulario, guion del video de 30 s y subtítulos `.srt`. |
+| `docs/revisiones/` | Revisiones del código y del front (14/11/2026). |
+| `material/vuelo-verde/` | Entrevista con Vuelo Verde. Su informe técnico queda **solo local**: es de un cliente suyo y no se publica. |
+| `material/prototipos/` | ZIP originales del prototipo recibidos por el equipo. |
+| `material/imagenes/` | Imágenes de referencia (captura del lote). |
+| `prototipo/` | Prototipo anterior (TypeScript sin framework) y script de revisión del caso. Se conserva como referencia y evidencia. |
+
+---
+
+
 Herramienta exploratoria para comparar rotaciones de cultivos durante **24 meses**, según datos históricos de NASA POWER y las prioridades del productor. Se desarrolla para [Field Shift: Adapting Farms with NASA Data, NASA Space Apps 2026](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/).
 
 **Dirección:** cerrar una demo explicable para Santiago del Estero, Argentina. Añatuya es el piloto territorial propuesto; el punto predeterminado todavía no representa un lote de productor confirmado.

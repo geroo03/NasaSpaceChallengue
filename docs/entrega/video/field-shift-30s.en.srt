@@ -1,0 +1,23 @@
+1
+00:00:00,000 --> 00:00:04,000
+In Santiago del Estero, the season is decided before sowing.
+
+2
+00:00:04,000 --> 00:00:10,000
+Load your field: Field Shift reads its climate,
+relief and soil with NASA data.
+
+3
+00:00:10,000 --> 00:00:17,000
+It compares your rotation with alternatives and shows
+what happened on your field in El Niño and La Niña years.
+
+4
+00:00:17,000 --> 00:00:24,000
+It warns about heat at flowering
+and the water you will have at sowing.
+
+5
+00:00:24,000 --> 00:00:30,000
+And it tells you what to check and when: satellites give
+the history, Vuelo Verde's drones confirm.
