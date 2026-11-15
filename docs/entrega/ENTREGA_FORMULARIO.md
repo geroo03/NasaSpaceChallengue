@@ -1,8 +1,8 @@
-# Field Shift: textos para el formulario de entrega (Space Apps 2026)
+# AgroField: textos para el formulario de entrega (Space Apps 2026)
 
 Borrador del 15/11/2026, armado según «Componentes del Proyecto» y «Criterios de Evaluación».
 
-- **Demo:** https://field-shift-lab.vercel.app (pública, sin login). Probar con «Probar con el lote de ejemplo».
+- **Demo:** https://field-shift-lab.vercel.app (pública; abre en inglés, con botón ES/EN). Entrar con «Try without an account» y luego el lote de ejemplo.
 - **Repositorio:** https://github.com/geroo03/NasaSpaceChallengue (la app está en `front-nasa/`)
 
 Antes de pegar, revisar con el equipo:
@@ -14,17 +14,17 @@ Antes de pegar, revisar con el equipo:
 
 ## 1. Project summary (English, 50–200 words)
 
-> Field Shift helps farmers in Santiago del Estero, Argentina, decide **before sowing** which two-year crop rotation to try. The farmer draws or uploads the field boundary (cadastre, survey plan or KML). Field Shift then reads NASA POWER daily climate (2011–2025), NASA SRTM relief and SoilGrids soil water for that field. It compares the current rotation with up to three alternatives, weighted by the farmer's priorities.
+> AgroField helps farmers in Santiago del Estero, Argentina, decide **before sowing** which two-year crop rotation to try. The farmer draws or uploads the field boundary (cadastre, survey plan or KML). AgroField then reads NASA POWER daily climate (2011–2025), NASA SRTM relief and SoilGrids soil water for that field. It compares the current rotation with up to three alternatives, weighted by the farmer's priorities.
 >
 > Every number states its source: NASA data, modelled, assumed or declared. The app warns about heat at flowering, shows how much water the soil holds at each sowing, and reports what happened in this field in past El Niño and La Niña seasons. NOAA currently observes a very strong El Niño. These are past frequencies, never forecasts.
 >
-> Each option comes with dates for checking the field and a drone survey request for Vuelo Verde, a network of 100+ agricultural drone pilots who agreed to be our territorial partner. Satellites give the history, Field Shift plans and drones confirm. The result is a printable sheet for the farmer's adviser.
+> Each option comes with dates for checking the field and a drone survey request for Vuelo Verde, a network of 100+ agricultural drone pilots who agreed to be our territorial partner. Satellites give the history, AgroField plans and drones confirm. The result is a printable sheet for the farmer's adviser.
 
 (173 palabras)
 
 ### Resumen en español (referencia)
 
-Field Shift ayuda a productores de Santiago del Estero a decidir **antes de sembrar** qué rotación probar en las próximas dos campañas. El productor dibuja o carga el lote (catastro, mensura o KML). Field Shift lee para ese lote:
+AgroField ayuda a productores de Santiago del Estero a decidir **antes de sembrar** qué rotación probar en las próximas dos campañas. El productor dibuja o carga el lote (catastro, mensura o KML). AgroField lee para ese lote:
 - el clima diario de NASA POWER (2011–2025);
 - el relieve de NASA SRTM;
 - el agua útil del suelo de SoilGrids.
@@ -67,11 +67,13 @@ Son frecuencias del pasado, no pronósticos. Cada opción trae fechas para revis
 
 Every assumption is listed in the results and in the sheet.
 
+**Also in the app.** A 7-day forecast at the field with alerts (hold irrigation if rain is coming, heat ≥ 35 °C, frost, wind ≥ 20 km/h = no spraying). Drone work on the rotation's calendar (mapping, NDVI variable-rate prescription, seeding, spraying). An optional sign-in asks whether the farmer owns a drone: jobs their drone can do are planned with its specs; the rest are sent to Vuelo Verde by WhatsApp or email.
+
 **Benefits.** Decisions before the costly part of the season, made with the farmer's own field rather than a regional average. The tool does not invent missing data. It hands a clear next step to the adviser and to a drone pilot.
 
 **What we hope to achieve.** A pilot near Añatuya with Vuelo Verde and a real field, comparing the plan with what the drone measures.
 
-**Tools.** TypeScript, React 19, Vite, Tailwind CSS, Leaflet and Leaflet-Geoman, Turf, proj4, geotiff.js, shpjs, dxf-parser, fflate, Vitest (114 automated tests) and Vercel. Everything runs in the browser, with no server or API keys. Files uploaded by the farmer are processed locally.
+**Tools.** TypeScript, React 19, Vite, Tailwind CSS, Leaflet and Leaflet-Geoman, Turf, proj4, geotiff.js, shpjs, dxf-parser, fflate, Vitest (150 automated tests) and Vercel. Everything runs in the browser except one optional serverless function (ECOSTRESS extraction); no API keys reach the browser. Files uploaded by the farmer are processed locally.
 
 ---
 
@@ -83,12 +85,14 @@ Every assumption is listed in the results and in the sheet.
 | NASA SRTM (~30 m, via AWS Terrain Tiles) | Field relief and general slope (enters the engine) | https://www.earthdata.nasa.gov/data/instruments/srtm |
 | NASA HLS (Harmonized Landsat Sentinel-2, 30 m) via GIBS | Recent field imagery with date and cloud cover | https://www.earthdata.nasa.gov/data/projects/hls |
 | NASA CMR (granule search) | Find recent HLS scenes and cloud cover | https://cmr.earthdata.nasa.gov/search/ |
+| NASA ECOSTRESS ECO_L3T_JET.002 (70 m) | Actual daily evapotranspiration at the field point, next to modelled ET₀ | https://doi.org/10.5067/ECOSTRESS/ECO_L3T_JET.002 |
 | NASA GIBS (MODIS NDVI, SMAP L4 root-zone moisture) | Regional context layers (imagery only) | https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api |
 
 ## 4. Other data and resources
 
 | Resource | Use | Link |
 | --- | --- | --- |
+| Open-Meteo forecast API (free, no key) | 7-day forecast at the field: rain, heat, frost, wind; days fit for spraying or flying | https://open-meteo.com/ |
 | ISRIC SoilGrids 2.0 (CC-BY 4.0) | Soil texture, organic carbon, available water 0–100 cm | https://soilgrids.org · API https://rest.isric.org |
 | NOAA CPC Oceanic Niño Index (ONI) | El Niño / La Niña phase and current observed state | https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt |
 | AWS Terrain Tiles (Mapzen, from SRTM) | Delivery of SRTM elevations in the browser | https://registry.opendata.aws/terrain-tiles/ |
@@ -135,7 +139,7 @@ Guion con tomas y subtítulos `.srt` listos en [docs/video/](video/GUION_VIDEO_3
 | Tiempo | Imagen | Locución (ES) | Subtítulo (EN) |
 | --- | --- | --- | --- |
 | 0–4 s | Campo seco, título | «En Santiago del Estero, la campaña se decide antes de sembrar.» | In Santiago del Estero, the season is decided before sowing. |
-| 4–10 s | Clic en lote de ejemplo; aparecen suelo y relieve | «Cargás tu lote y Field Shift lee el clima, el relieve y el suelo con datos de la NASA.» | Load your field: Field Shift reads its climate, relief and soil with NASA data. |
+| 4–10 s | Clic en lote de ejemplo; aparecen suelo y relieve | «Cargás tu lote y AgroField lee el clima, el relieve y el suelo con datos de la NASA.» | Load your field: AgroField reads its climate, relief and soil with NASA data. |
 | 10–17 s | Hoy contra alternativa; botón «Campañas Niño» | «Compara tu rotación con alternativas, y te muestra qué pasó acá en años Niño y Niña.» | It compares your rotation with alternatives and shows what happened here in El Niño and La Niña years. |
 | 17–24 s | Calor en floración y agua al sembrar | «Te avisa del calor en la floración y del agua que vas a tener al sembrar.» | It warns about heat at flowering and the water you will have at sowing. |
 | 24–30 s | Pedido de dron y ficha | «Y te dice qué revisar y cuándo: el satélite da la historia, el dron de Vuelo Verde confirma.» | And tells you what to check and when: satellites give the history, Vuelo Verde's drones confirm. |
