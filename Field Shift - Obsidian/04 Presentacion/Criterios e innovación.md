@@ -46,3 +46,13 @@ La consigna combina **observaciones NASA + suelo local + cultivos + prioridades*
 **Siguiente profundidad, si hubiera tiempo:** un balance de agua mes a mes que conserve la reserva entre cultivos. Ahí el suelo pesaría de verdad. Es un cambio de modelo grande: no entra antes del cierre.
 
 Ver [[Pitch y guion]], [[Entrega 2026]], [[Entrevista Vuelo Verde]] e [[Inventario de datos]].
+
+## Agregado el 15/11 (madrugada): calor, agua y El Niño
+
+- **El Niño ahora:** NOAA observa un Niño muy fuerte (ONI +2,46 en ago–oct 2026). En el lote de ejemplo, las campañas Niño 2011–2025 tuvieron 721 mm entre octubre y marzo, las neutras 597 mm y las Niña 500 mm. Días ≥ 35 °C: 74, 84 y 93. Índice del manejo actual: 67 con campañas Niño y 58 con campañas Niña. Hay pocas campañas por fase: es una referencia, no una probabilidad.
+- **Calor en floración:** la soja que florece en febrero tiene ~14 días ≥ 35 °C (riesgo alto); el maíz tardío que florece en marzo, 7,5 (medio).
+- **Agua al sembrar (balance diario de dos capas):**
+  - soja de diciembre: mediana 22 de 94 mm, y en 10 de 14 campañas menos de un tercio;
+  - maíz tardío de enero después del barbecho: 45 mm;
+  - con vicia invernal antes del maíz: 23 mm. Es el costo de agua del cultivo de servicio en secano.
+- **Textos para el formulario:** `docs/ENTREGA_FORMULARIO.md` en el repo.

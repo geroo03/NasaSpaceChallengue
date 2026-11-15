@@ -93,6 +93,21 @@ La serie guardada se descargó el 14/11/2026 (POWER API v2.10.3, MERRA-2, SHA-25
 
 Si NASA POWER no responde y el punto tiene una serie guardada, la app la usa y lo avisa.
 
+## Suelo, calor, agua y El Niño
+
+- **Suelo (ISRIC SoilGrids 2.0):** agua útil 0–100 cm (capacidad de campo − punto de marchitez), textura y carbono orgánico en el punto. Reemplaza la reserva genérica de 120 mm. Un análisis de suelo cargado por el productor tiene prioridad.
+- **El Niño / La Niña:** ONI de NOAA guardado en `src/data/oni.ts`, actualizado el 03/11/2026.
+  - Fase de cada campaña con la regla de NOAA.
+  - Aviso del estado observado actual.
+  - Qué pasó en el punto en cada fase.
+  - Comparación de las opciones solo con campañas Niño o Niña.
+
+  No es un pronóstico.
+- **Calor en floración:** mes aproximado de floración por cultivo y días con máxima sobre su umbral en NASA POWER.
+- **Agua del suelo día por día:** balance de dos capas sobre el registro 2011–2025, con agua al sembrar por campaña y gráfico mes a mes. Es complementario: el índice todavía usa la reserva por cultivo.
+
+Textos para el formulario de entrega: [docs/ENTREGA_FORMULARIO.md](docs/ENTREGA_FORMULARIO.md).
+
 ## Lote primero, relieve y pedido de dron
 
 - **Paso 1 = el lote.** Se dibuja sobre Esri World Imagery (Geoman) o se carga el plano: KML/KMZ, SHP zip, GeoJSON o DXF en POSGAR. El centro del lote pasa a ser el punto de NASA POWER. "Solo un punto" queda como alternativa.
