@@ -21,6 +21,7 @@ import { FieldSheet } from './FieldSheet';
 // Map tools (Geoman, Turf, file importers) load only when someone opens them.
 const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
 const DroneRequestPanel = lazy(() => import('../lot/DroneRequestPanel').then((m) => ({ default: m.DroneRequestPanel })));
+const DroneServices = lazy(() => import('../lot/DroneServices').then((m) => ({ default: m.DroneServices })));
 const TerrainCard = lazy(() => import('../lot/TerrainCard').then((m) => ({ default: m.TerrainCard })));
 
 export type LoadState =
@@ -498,6 +499,11 @@ function Results({
           </Suspense>
         </div>
       </section>
+
+      {/* 5b. Drone work on this rotation's calendar */}
+      <Suspense fallback={null}>
+        <DroneServices farmCase={farmCase} strategy={shown} />
+      </Suspense>
 
       {/* 6. Everything behind the result, folded */}
       <section aria-labelledby="behind-h" className="space-y-3">
