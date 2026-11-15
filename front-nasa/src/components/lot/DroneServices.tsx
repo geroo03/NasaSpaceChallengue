@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Check, Copy, Layers, Map as MapIcon, SprayCan, Sprout } from 'lucide-react';
+import { Check, Copy, Layers, Map as MapIcon, Plane, Send, SprayCan, Sprout } from 'lucide-react';
+import { useProfile } from '../../profile/ProfileContext';
+import { ownCan, type OwnDrone } from '../../profile/profile';
+import { whatsappLink } from '../../case/droneRequest';
 import { VigorPrescription } from './VigorPrescription';
 import { useLang } from '../../i18n/LangContext';
 import { ringCentroid, type FarmCase } from '../../case/model';
@@ -10,6 +13,7 @@ import type { StrategyResult } from '../../engine/domain/rotations';
 import { Notice, primaryBtn, secondaryBtn } from '../ui';
 
 type Tab = DroneJob | 'vra';
+const PROVIDER_WHATSAPP = (import.meta.env.VITE_VUELO_VERDE_WHATSAPP as string | undefined) ?? '';
 const JOBS: { id: Tab; Icon: typeof MapIcon }[] = [
   { id: 'map', Icon: MapIcon },
   { id: 'vra', Icon: Layers },
@@ -48,20 +52,31 @@ function NumberField({ label, value, onChange, unit, step = 1, min = 0, max = 10
   );
 }
 
-/** Mapping, seeding and spraying by drone, planned from the chosen rotation (Vuelo Verde operates). */
-export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; strategy: StrategyResult }) {
+/**
+ * Mapping, seeding and spraying by drone, planned from the chosen rotation.
+ * Jobs the user's own drone can do are planned with its settings; the rest go to Vuelo Verde.
+ */
+export function DroneServices(props: { farmCase: FarmCase; strategy: StrategyResult }) {
+  const { profile } = useProfile();
+  const own = profile?.drone ?? null;
+  return <Services key={own ? JSON.stringify(own) : 'vuelo-verde'} own={own} {...props} />;
+}
+
+function Services({ farmCase, strategy, own }: { farmCase: FarmCase; strategy: StrategyResult; own: OwnDrone | null }) {
   const { t, num, months, crop } = useLang();
+  const { setEditing } = useProfile();
   const [job, setJob] = useState<Tab>('map');
   const [height, setHeight] = useState(MAPPING_DEFAULTS.heightM);
   const [side, setSide] = useState(Math.round(MAPPING_DEFAULTS.sideOverlap * 100));
-  const [seed, setSeed] = useState(SEED_DEFAULTS);
-  const [spray, setSpray] = useState(SPRAY_DEFAULTS);
+  const [seed, setSeed] = useState(own?.seed ? { ...SEED_DEFAULTS, loadCapacity: own.seed.hopperKg, swathM: own.seed.swathM, speedKmh: own.seed.speedKmh } : SEED_DEFAULTS);
+  const [spray, setSpray] = useState(own?.spray ? { ...SPRAY_DEFAULTS, loadCapacity: own.spray.tankL, swathM: own.spray.swathM, speedKmh: own.spray.speedKmh } : SPRAY_DEFAULTS);
+  const mine = ownCan(own, job);
   const [copied, setCopied] = useState(false);
   const ring = farmCase.lotPolygon;
   const tasks = useMemo(() => droneCalendar(strategy), [strategy]);
   const when = (i: number) => `${months[(strategy.timeline[i]?.calendarMonth ?? 1) - 1]} · ${t('scene.year', { n: i < 12 ? 1 : 2 })}`;
   const area = ring ? polygonAreaHa(ring) : 0;
-  const plan = useMemo(() => (ring ? planMapping(ring, { ...MAPPING_DEFAULTS, heightM: height, sideOverlap: side / 100 }) : null), [ring, height, side]);
+  const plan = useMemo(() => (ring ? planMapping(ring, { ...MAPPING_DEFAULTS, heightM: height, sideOverlap: side / 100, batteryMin: own && own.mapping !== 'none' && own.batteryMin > 0 ? own.batteryMin : MAPPING_DEFAULTS.batteryMin }) : null), [ring, height, side, own]);
   const seedPlan = planApplication({ areaHa: area, ...seed });
   const sprayPlan = planApplication({ areaHa: area, ...spray });
   const covers = tasks.filter((x) => x.job === 'seed');
@@ -70,7 +85,7 @@ export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; stra
     if (!ring) return '';
     const c = ringCentroid(ring) ?? [farmCase.lat, farmCase.lon];
     const pg = toPosgar(c[0], c[1]);
-    const lines = [t(`ops.text.hello.${job}`), '', t('req.text.lot', { ha: num(area, 1) }), t('req.text.centre', { lat: c[0].toFixed(5), lon: c[1].toFixed(5) })];
+    const lines = [mine && own ? t('own.text.title', { job: t(`ops.job.${job}`), model: own.model }) : t(`ops.text.hello.${job}`), '', t('req.text.lot', { ha: num(area, 1) }), t('req.text.centre', { lat: c[0].toFixed(5), lon: c[1].toFixed(5) })];
     if (pg) lines.push(t('req.text.posgar', { faja: pg.faja, epsg: pg.epsg, x: num(Math.round(pg.x)), y: num(Math.round(pg.y)) }));
     lines.push('', t('ops.text.when'));
     tasks.filter((x) => x.job === job).forEach((x) => lines.push(`• ${when(x.month)}: ${t(`ops.reason.${x.reason}`, { crop: x.crop ? crop(x.crop) : '' })}`));
@@ -80,6 +95,23 @@ export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; stra
     if (job === 'spray') lines.push(t('ops.text.spray', { rate: spray.ratePerHa, total: num(sprayPlan.total), loads: sprayPlan.loads, hours: num(sprayPlan.hours, 1) }), t('ops.text.prescription'));
     lines.push('', t('req.text.kml'), t('req.text.sign'));
     return lines.join('\n');
+  };
+  const sendToProvider = async () => {
+    const text = orderText();
+    const wa = whatsappLink(PROVIDER_WHATSAPP, text);
+    if (wa) {
+      window.open(wa, '_blank', 'noopener');
+      return;
+    }
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: t('own.send'), text });
+        return;
+      } catch {
+        // cancelled: fall back to copying
+      }
+    }
+    await copy();
   };
   const copy = async () => {
     try {
@@ -155,6 +187,23 @@ export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; stra
         ))}
       </div>
 
+      {job !== 'vra' || own ? (
+        <div className={`fs-enter flex flex-wrap items-start gap-3 rounded-xl border-2 p-3 text-sm ${mine ? 'border-[#606C38] bg-[#E3EBDD]' : 'border-[#DDA15E] bg-[#FBF1DD]'}`} key={`who-${job}`}>
+          {mine ? <Plane aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-[#283618]" /> : <Send aria-hidden className="mt-0.5 h-5 w-5 shrink-0 text-[#7A3F0C]" />}
+          <p className="min-w-0 flex-1 text-[#283618]">
+            <strong className="block">
+              {mine && own ? t('own.who.mine', { model: own.model }) : own ? t('own.who.cant', { model: own.model, job: t(`ops.job.${job}`).toLowerCase() }) : t('own.who.vv')}
+            </strong>
+            {mine ? t('own.who.mineHelp') : t('own.who.vvHelp')}
+          </p>
+          {!own && (
+            <button type="button" className="text-sm font-bold text-[#9A5518] underline underline-offset-2" onClick={() => setEditing(true)}>
+              {t('own.setup')}
+            </button>
+          )}
+        </div>
+      ) : null}
+
       <div id="ops-panel" role="tabpanel" aria-labelledby={`ops-tab-${job}`} className="fs-enter rounded-2xl border border-[#DECFA7] bg-[#FEFAE0] p-4 sm:p-5 space-y-4" key={job}>
         {!ring ? (
           <p className="text-sm font-bold text-[#7A3F0C]">{t('req.needLot')}</p>
@@ -196,7 +245,7 @@ export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; stra
                 )}
                 <div className="flex flex-wrap gap-4">
                   <NumberField label={t('ops.seed.rate')} value={seed.ratePerHa} onChange={(v) => setSeed({ ...seed, ratePerHa: v })} unit="kg/ha" note={t('ops.example')} />
-                  <NumberField label={t('ops.seed.load')} value={seed.loadCapacity} onChange={(v) => setSeed({ ...seed, loadCapacity: v })} unit="kg" note={t('ops.example')} />
+                  <NumberField label={t('ops.seed.load')} value={seed.loadCapacity} onChange={(v) => setSeed({ ...seed, loadCapacity: v })} unit="kg" note={own?.seed ? t('own.fromYours') : t('ops.example')} />
                   <NumberField label={t('ops.swath')} value={seed.swathM} onChange={(v) => setSeed({ ...seed, swathM: v })} unit="m" note={t('ops.example')} />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -215,7 +264,7 @@ export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; stra
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-4">
                   <NumberField label={t('ops.spray.rate')} value={spray.ratePerHa} onChange={(v) => setSpray({ ...spray, ratePerHa: v })} unit="L/ha" note={t('ops.fromReport')} />
-                  <NumberField label={t('ops.spray.load')} value={spray.loadCapacity} onChange={(v) => setSpray({ ...spray, loadCapacity: v })} unit="L" note={t('ops.example')} />
+                  <NumberField label={t('ops.spray.load')} value={spray.loadCapacity} onChange={(v) => setSpray({ ...spray, loadCapacity: v })} unit="L" note={own?.spray ? t('own.fromYours') : t('ops.example')} />
                   <NumberField label={t('ops.swath')} value={spray.swathM} onChange={(v) => setSpray({ ...spray, swathM: v })} unit="m" note={t('ops.fromReport')} />
                   <NumberField label={t('ops.speed')} value={spray.speedKmh} onChange={(v) => setSpray({ ...spray, speedKmh: v })} unit="km/h" note={t('ops.fromReport')} />
                 </div>
@@ -231,12 +280,20 @@ export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; stra
 
             {job !== 'vra' && (<>
             <div className="flex flex-wrap gap-2">
-              <button type="button" className={primaryBtn} onClick={() => void copy()}>
-                {copied ? <Check aria-hidden className="h-4 w-4" /> : <Copy aria-hidden className="h-4 w-4" />} {copied ? t('req.copied') : t('ops.copy', { job: t(`ops.job.${job}`).toLowerCase() })}
-              </button>
-              <a className={secondaryBtn} href="#req-h">
-                {t('ops.toRequest')}
-              </a>
+              {mine ? (
+                <button type="button" className={primaryBtn} onClick={() => void copy()}>
+                  {copied ? <Check aria-hidden className="h-4 w-4" /> : <Copy aria-hidden className="h-4 w-4" />} {copied ? t('req.copied') : t('own.copy')}
+                </button>
+              ) : (
+                <>
+                  <button type="button" className={primaryBtn} onClick={() => void sendToProvider()}>
+                    <Send aria-hidden className="h-4 w-4" /> {t('own.send')}
+                  </button>
+                  <button type="button" className={secondaryBtn} onClick={() => void copy()}>
+                    {copied ? <Check aria-hidden className="h-4 w-4" /> : <Copy aria-hidden className="h-4 w-4" />} {copied ? t('req.copied') : t('ops.copy', { job: t(`ops.job.${job}`).toLowerCase() })}
+                  </button>
+                </>
+              )}
             </div>
             <span aria-live="polite" className="sr-only">
               {copied ? t('req.copied') : ''}

@@ -1,9 +1,12 @@
+import { UserRound } from 'lucide-react';
 import { useLang, type Lang } from '../i18n/LangContext';
+import { useProfile } from '../profile/ProfileContext';
 
 export type Screen = 'explore' | 'method';
 
 export function HeaderBar({ screen, onNavigate }: { screen: Screen; onNavigate: (s: Screen) => void }) {
   const { t, lang, setLang } = useLang();
+  const { profile, setEditing } = useProfile();
   const items: Screen[] = ['explore', 'method'];
   return (
     <header className="print:hidden sticky top-0 z-[1100] bg-[#283618] text-[#FEFAE0] border-b border-[#1d2711] shadow-sm">
@@ -37,6 +40,14 @@ export function HeaderBar({ screen, onNavigate }: { screen: Screen; onNavigate: 
               </button>
             ))}
           </nav>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="inline-flex max-w-[11rem] items-center gap-1.5 rounded-lg border border-[#FEFAE0]/30 px-2.5 py-1 text-xs font-bold text-[#FEFAE0] hover:bg-[#FEFAE0]/10 focus-visible:outline-2 focus-visible:outline-[#DDA15E]"
+          >
+            <UserRound aria-hidden className="h-4 w-4 shrink-0" />
+            <span className="truncate">{profile ? profile.name : t('login.enter')}</span>
+          </button>
           <div role="group" aria-label={t('lang.label')} className="flex rounded-lg border border-[#FEFAE0]/30 bg-[#FEFAE0]/10 p-0.5">
             {(['es', 'en'] as Lang[]).map((l) => (
               <button

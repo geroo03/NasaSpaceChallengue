@@ -12,6 +12,8 @@ import { sampleSrtm } from './imagery/terrain';
 import { fetchSoil, SoilError } from './case/soil';
 import { loadLive, loadSaved, snapshotMatches } from './case/climateSource';
 import { useLang } from './i18n/LangContext';
+import { useProfile } from './profile/ProfileContext';
+import { LoginScreen } from './profile/LoginScreen';
 
 const HASH: Record<FlowView, string> = { lot: '#/lote', farm: '#/campana', results: '#/opciones' };
 function viewFromHash(): FlowView {
@@ -162,6 +164,9 @@ export default function App() {
     [farmCase.lat, farmCase.lon, farmCase.years, setView],
   );
 
+  const { profile, guest, editing } = useProfile();
+  const showLogin = editing || (!profile && !guest);
+
   const navigate = (s: Screen) => {
     setScreen(s);
     window.scrollTo({ top: 0 });
@@ -173,6 +178,7 @@ export default function App() {
         {t('nav.skip')}
       </a>
       <HeaderBar screen={screen} onNavigate={navigate} />
+      {showLogin && <LoginScreen />}
       <main id="main" className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-10">
         {screen === 'method' && <MethodScreen />}
         <FieldStatus />

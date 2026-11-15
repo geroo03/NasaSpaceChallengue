@@ -2,12 +2,15 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { LangProvider } from './i18n/LangContext.tsx';
+import { ProfileProvider } from './profile/ProfileContext.tsx';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LangProvider>
-      <App />
+      <ProfileProvider>
+        <App />
+      </ProfileProvider>
     </LangProvider>
   </StrictMode>,
 );
