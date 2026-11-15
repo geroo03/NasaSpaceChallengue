@@ -122,8 +122,11 @@ export default function App() {
   }, []);
 
   /** Live NASA POWER first; if it fails and this point has a saved series, use it and say so. */
+  const runSeq = useRef(0);
   const run = useCallback(
     async (at?: { lat: number; lon: number }) => {
+      const seq = ++runSeq.current;
+      const stale = () => seq !== runSeq.current; // a newer run started: drop this answer
       const lat = at?.lat ?? farmCase.lat;
       const lon = at?.lon ?? farmCase.lon;
       setView('results');
@@ -137,18 +140,22 @@ export default function App() {
       try {
         const data = await loadLive(lat, lon, farmCase.years);
         cache.current.set(key, data);
+        if (stale()) return;
         setLoad({ status: 'ready', data });
       } catch (err) {
+        if (stale()) return;
         const message = err instanceof Error ? err.message : String(err);
         if (snapshotMatches(lat, lon)) {
           try {
             const data = { ...(await loadSaved(lat, lon)), liveError: message };
+            if (stale()) return;
             setLoad({ status: 'ready', data });
             return;
           } catch {
             // fall through to the error screen
           }
         }
+        if (stale()) return;
         setLoad({ status: 'error', message, canUseSaved: false });
       }
     },

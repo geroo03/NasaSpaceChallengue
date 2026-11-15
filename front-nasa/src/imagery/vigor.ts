@@ -199,7 +199,7 @@ export async function readVigor(file: File, ring: LatLon[] | null, bands: { red:
         values[i] = nodata !== null && v === nodata ? NaN : v;
       }
       source = 'index';
-    } else if (spp > Math.max(bands.red, bands.nir)) {
+    } else if (spp - alphaSamples(image) > Math.max(bands.red, bands.nir)) {
       const r = (await image.readRasters({ width: rw, height: rh, samples: [bands.red, bands.nir], resampleMethod: 'nearest' })) as unknown as ArrayLike<number>[];
       for (let i = 0; i < values.length; i++) {
         const red = r[0]![i]!;
@@ -244,4 +244,11 @@ export async function readVigor(file: File, ring: LatLon[] | null, bands: { red:
   const midLat = epsg === 4326 ? ((bbox[1] + bbox[3]) / 2) * (Math.PI / 180) : 0;
   const pixelAreaM2 = epsg === 4326 ? pxW * 111_320 * Math.cos(midLat) * pxH * 110_574 : pxW * pxH;
   return { name: file.name, epsg, width: rw, height: rh, values, bbox, pixelAreaM2, source };
+}
+
+/** Alpha channels (TIFF ExtraSamples 1 or 2) are transparency, not a near-infrared band: an RGBA photo has no NIR. */
+function alphaSamples(image: { getFileDirectory(): Record<string, unknown> }): number {
+  const extra = image.getFileDirectory().ExtraSamples;
+  const list = Array.isArray(extra) || ArrayBuffer.isView(extra) ? Array.from(extra as ArrayLike<number>) : typeof extra === 'number' ? [extra] : [];
+  return list.filter((v) => v === 1 || v === 2).length;
 }
