@@ -3,7 +3,14 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "functions": { "api/ecostress.ts": { "maxDuration": 60 } },
+  "functions": {
+    "api/ecostress.ts": {
+      "maxDuration": 60
+    },
+    "api/v1.ts": {
+      "maxDuration": 15
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
@@ -65,6 +72,12 @@
           "value": "application/manifest+json"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/v1/:ruta*",
+      "destination": "/api/v1?ruta=:ruta*"
     }
   ]
 }

@@ -10,6 +10,7 @@ import { Notice, primaryBtn, secondaryBtn } from '../ui';
 
 // Optional, set in Vercel when Vuelo Verde confirms the contact channel. Never hard-coded.
 import { VUELO_VERDE } from '../../case/provider';
+import { logDroneRequest } from '../../backend/cloudLog';
 const PROVIDER_WHATSAPP = VUELO_VERDE.whatsapp;
 
 function download(name: string, mime: string, text: string) {
@@ -57,9 +58,12 @@ export function DroneRequestPanel({ farmCase, checks }: { farmCase: FarmCase; ch
   const wa = ready ? whatsappLink(PROVIDER_WHATSAPP, text) : null;
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
+  const log = (canal: 'whatsapp' | 'compartir' | 'copiado') =>
+    void logDroneRequest(farmCase, { trabajo: 'survey', ejecutor: 'vuelo_verde', canal, texto: text, plan: { servicios: services, cuando: when }, droneId: null });
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(text);
+      log('copiado');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -139,7 +143,7 @@ export function DroneRequestPanel({ farmCase, checks }: { farmCase: FarmCase; ch
 
           <div className="flex flex-wrap gap-2">
             {wa && (
-              <a href={wa} target="_blank" rel="noreferrer" className={primaryBtn}>
+              <a href={wa} target="_blank" rel="noreferrer" className={primaryBtn} onClick={() => log('whatsapp')}>
                 <MessageCircle aria-hidden className="h-4 w-4" /> {t('req.whatsapp')}
               </a>
             )}
@@ -147,7 +151,7 @@ export function DroneRequestPanel({ farmCase, checks }: { farmCase: FarmCase; ch
               {copied ? <Check aria-hidden className="h-4 w-4" /> : <Copy aria-hidden className="h-4 w-4" />} {copied ? t('req.copied') : t('req.copy')}
             </button>
             {canShare && (
-              <button type="button" className={secondaryBtn} disabled={!ready} onClick={() => void navigator.share({ title: t('req.title'), text }).catch(() => undefined)}>
+              <button type="button" className={secondaryBtn} disabled={!ready} onClick={() => void navigator.share({ title: t('req.title'), text }).then(() => log('compartir')).catch(() => undefined)}>
                 <Share2 aria-hidden className="h-4 w-4" /> {t('req.share')}
               </button>
             )}
