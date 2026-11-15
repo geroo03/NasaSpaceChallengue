@@ -1,6 +1,6 @@
 # AgroField
 
-**Decidir antes de sembrar, con datos de la NASA y el lote de cada productor.** App web que compara rotaciones de cultivos a 24 meses para el secano de Santiago del Estero (Argentina). Proyecto para NASA Space Apps 2026, desafío *AgroField: Adapting Farms with NASA Data*.
+**Decidir antes de sembrar, con datos de la NASA y el lote de cada productor.** App web que compara rotaciones de cultivos a 24 meses para el secano de Santiago del Estero (Argentina). Proyecto para NASA Space Apps 2026, desafío *Adapting Farms with NASA Data*.
 
 - **App:** https://field-shift-lab.vercel.app. Se instala en el teléfono o la tablet y funciona sin señal con lo ya consultado.
 - **Proyecto:** esta carpeta es parte de [NasaSpaceChallengue](https://github.com/geroo03/NasaSpaceChallengue), junto con el vault, los documentos, la entrega y el material (carpetas hermanas).
