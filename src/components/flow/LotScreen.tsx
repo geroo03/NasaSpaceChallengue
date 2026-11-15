@@ -27,7 +27,7 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
   const [mode, setMode] = useState<'lot' | 'point'>('lot');
   const isExample = value.lotSource?.kind === 'example';
   return (
-    <div className="max-w-5xl mx-auto space-y-5">
+    <div className="fs-enter max-w-5xl mx-auto space-y-5">
       <header>
         <h1 className="headline-display headline-display--bold text-3xl sm:text-4xl text-[#283618]">{t('loc.q')}</h1>
         <p className="mt-2 text-[#3B2F20]/90">{t('loc.help')}</p>
@@ -189,7 +189,7 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
           <p className="mt-2 text-xs text-[#3B2F20]/85">{t('loc.soilNote')}</p>
         </fieldset>
       </Collapsible>
-      <div className="flex justify-end border-t border-[#DECFA7] pt-6">
+      <div className="flex justify-end sm:pt-6 sticky bottom-0 z-[1050] -mx-4 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] bg-[#f0ede4]/95 backdrop-blur-sm border-t border-[#DECFA7] sm:static sm:mx-0 sm:px-0 sm:pb-0 sm:bg-transparent sm:backdrop-blur-none">
         <button type="button" className={primaryBtn} disabled={!coordsValid(value)} onClick={onNext}>
           {t('flow.toFarm')} <ArrowRight aria-hidden className="h-4 w-4" />
         </button>

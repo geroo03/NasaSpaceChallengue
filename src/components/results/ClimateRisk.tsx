@@ -32,6 +32,7 @@ export function EnsoBanner({
   return (
     <section aria-labelledby="enso-h" className={`rounded-2xl border-2 p-5 ${tone}`}>
       <div className="flex flex-wrap items-center gap-2">
+        {latest.phase !== 'neutral' && <span aria-hidden className="fs-pulse inline-block h-2.5 w-2.5 rounded-full bg-[#2F7BB8]" />}
         <Waves aria-hidden className="h-5 w-5 text-[#1F4E73]" />
         <h2 id="enso-h" className="font-bold text-[#1F3A52]">
           {t(`enso.now.${latest.phase}`, { strength: t(`enso.strength.${latest.strength}`) })}
@@ -124,7 +125,7 @@ export function FloweringHeatList({ items, title }: { items: FloweringHeat[]; ti
     <div>
       <p className="text-sm font-bold text-[#283618]">{title}</p>
       {!items.length && <p className="text-sm">—</p>}
-      <ul className="mt-1.5 space-y-1.5">
+      <ul className="fs-stagger mt-1.5 space-y-1.5">
         {items.map((h) => (
           <li key={`${h.crop}-${h.index}`} className={`rounded-lg border px-3 py-2 text-sm ${LEVEL_STYLE[h.level]}`}>
             <span className="flex flex-wrap items-center gap-2 font-bold">
@@ -215,8 +216,8 @@ export function SoilWaterChart({
           </text>
           <line x1={x(11.5)} x2={x(11.5)} y1={pad.t} y2={H - pad.b} stroke="#3B2F20" strokeOpacity={0.2} strokeDasharray="3 3" />
           {option && <path d={band(option)} fill={C_OPT} fillOpacity={0.15} stroke="none" />}
-          <path d={line(reference)} fill="none" stroke={C_REF} strokeWidth={2} strokeLinejoin="round" />
-          {option && <path d={line(option)} fill="none" stroke={C_OPT} strokeWidth={2} strokeLinejoin="round" />}
+          <path d={line(reference)} pathLength={1} className="fs-draw" fill="none" stroke={C_REF} strokeWidth={2} strokeLinejoin="round" />
+          {option && <path d={line(option)} pathLength={1} className="fs-draw" style={{ animationDelay: '250ms' }} fill="none" stroke={C_OPT} strokeWidth={2} strokeLinejoin="round" />}
           {hover !== null && (
             <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={H - pad.b} stroke="#3B2F20" strokeOpacity={0.35} />
           )}
@@ -290,7 +291,7 @@ export function SowingWaterList({ balance, label, strategy }: { balance: DailyWa
   return (
     <div>
       <p className="text-sm font-bold text-[#283618]">{label}</p>
-      <ul className="mt-1.5 space-y-1.5">
+      <ul className="fs-stagger mt-1.5 space-y-1.5">
         {balance.sowing.map((s) => {
           const low = Math.round(s.lowShare * s.values.length);
           return (

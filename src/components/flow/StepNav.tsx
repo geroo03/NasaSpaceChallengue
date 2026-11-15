@@ -21,7 +21,7 @@ export function StepNav({ view, onGo, canGo }: { view: FlowView; onGo: (v: FlowV
                 onClick={() => onGo(s)}
                 disabled={!canGo && i > 0}
                 aria-current={current ? 'step' : undefined}
-                className={`flex w-full min-h-[52px] items-center gap-2 rounded-xl border-2 px-3 py-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25] disabled:opacity-50 ${
+                className={`fs-press transition-colors duration-300 flex w-full min-h-[52px] items-center gap-2 rounded-xl border-2 px-3 py-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25] disabled:opacity-50 ${
                   current ? 'border-[#283618] bg-[#283618] text-[#FEFAE0]' : 'border-[#DECFA7] bg-white/80 text-[#283618] hover:border-[#A3B18A]'
                 }`}
               >

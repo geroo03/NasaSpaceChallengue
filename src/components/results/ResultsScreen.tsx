@@ -274,7 +274,7 @@ function Results({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="fs-enter space-y-8">
       {/* 1. Where, with which data */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
@@ -299,6 +299,7 @@ function Results({
         </div>
       </div>
       {data.liveError && <Notice tone="warn">{t('res.fallback')}</Notice>}
+      {data.deviceCachedOn && <Notice tone="warn">{t('res.deviceCache', { date: data.deviceCachedOn })}</Notice>}
       {lotCentreKm !== null && lotCentreKm > 1 && lotCentre && (
         <Notice tone="warn">
           <strong className="block">{t('lot.centroidTitle')}</strong>
@@ -366,7 +367,7 @@ function Results({
         <h2 id="hero-h" className="sr-only">
           {t('hero.title')}
         </h2>
-        <div className="grid gap-4 md:grid-cols-2 items-stretch">
+        <div className="fs-stagger grid gap-4 md:grid-cols-2 items-stretch">
           <OptionCard s={reference} label={t('hero.today')} tone="ref" />
           {shown !== reference ? (
             <OptionCard

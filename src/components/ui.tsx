@@ -106,9 +106,9 @@ export function ChoiceCard({
 }
 
 export const primaryBtn =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-[#BC6C25] px-5 py-3 min-h-[48px] font-bold text-white hover:bg-[#9A5518] disabled:opacity-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#283618]';
+  'fs-press inline-flex items-center justify-center gap-2 rounded-xl bg-[#9A5518] px-5 py-3 min-h-[48px] font-bold text-white hover:bg-[#7A4310] disabled:opacity-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#283618]';
 export const secondaryBtn =
-  'inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#283618] px-5 py-3 min-h-[48px] font-bold text-[#283618] hover:bg-[#E3EBDD] disabled:opacity-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25]';
+  'fs-press inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#283618] bg-white/60 px-5 py-3 min-h-[48px] font-bold text-[#283618] hover:bg-[#E3EBDD] disabled:opacity-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25]';
 export const linkBtn = 'font-bold text-[#9A5518] underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-[#BC6C25] rounded';
 
 // ---------------------------------------------------------------------------

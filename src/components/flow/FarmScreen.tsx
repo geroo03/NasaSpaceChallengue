@@ -35,7 +35,7 @@ export function FarmScreen({
 }) {
   const { t } = useLang();
   return (
-    <div className="max-w-3xl mx-auto space-y-10">
+    <div className="fs-enter max-w-3xl mx-auto space-y-10">
       <header>
         <h1 className="headline-display headline-display--bold text-3xl sm:text-4xl text-[#283618]">{t('farm.title')}</h1>
         <p className="mt-2 text-[#3B2F20]/90">{t('farm.help')}</p>
@@ -52,7 +52,7 @@ export function FarmScreen({
       <Collapsible title={t('farm.machinery')}>
         <MachineryList value={value} onChange={onChange} />
       </Collapsible>
-      <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[#DECFA7] pt-6">
+      <div className="flex flex-row items-center justify-between gap-3 sm:pt-6 sticky bottom-0 z-[1050] -mx-4 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] bg-[#f0ede4]/95 backdrop-blur-sm border-t border-[#DECFA7] sm:static sm:mx-0 sm:px-0 sm:pb-0 sm:bg-transparent sm:backdrop-blur-none">
         <button type="button" className={secondaryBtn} onClick={onBack}>
           <ArrowLeft aria-hidden className="h-4 w-4" /> {t('flow.backLot')}
         </button>

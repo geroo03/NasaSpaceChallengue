@@ -3,6 +3,7 @@ import { HeaderBar, type Screen } from './components/HeaderBar';
 import { LotScreen, coordsValid } from './components/flow/LotScreen';
 import { FarmScreen } from './components/flow/FarmScreen';
 import { StepNav, type FlowView } from './components/flow/StepNav';
+import { FieldStatus } from './components/flow/FieldStatus';
 import { ResultsScreen, type LoadState } from './components/results/ResultsScreen';
 import { MethodScreen } from './components/MethodScreen';
 import { loadCase, saveCase, withDeclaredSlope, withLot, withTerrain, type FarmCase } from './case/model';
@@ -167,6 +168,7 @@ export default function App() {
       <HeaderBar screen={screen} onNavigate={navigate} />
       <main id="main" className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-10">
         {screen === 'method' && <MethodScreen />}
+        <FieldStatus />
         {screen === 'explore' && (
           <div className="print:hidden">
             <StepNav view={view} canGo={coordsValid(farmCase)} onGo={(v) => (v === 'results' ? void run() : setView(v))} />

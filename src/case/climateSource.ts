@@ -10,6 +10,8 @@ export interface LoadedSeries {
   endYear: number;
   /** Set when the live request failed and this saved series was used instead. */
   liveError?: string;
+  /** Set when the answer came from this device's offline copy of an earlier query (service worker). */
+  deviceCachedOn?: string;
 }
 
 export interface Snapshot {
@@ -67,7 +69,15 @@ export function snapshotMatches(lat: number, lon: number): boolean {
 
 export async function loadLive(lat: number, lon: number, years: number): Promise<LoadedSeries> {
   const { startYear, endYear } = yearRange(years);
-  const series = await fetchClimateSeries(lat, lon, startYear, endYear);
+  // The service worker marks answers it serves from this device's storage (no signal in the field).
+  let cachedOn: string | null = null;
+  const marked: typeof fetch = async (input, init) => {
+    const res = await fetch(input, init);
+    cachedOn = res.headers.get('x-fs-cached-on');
+    return res;
+  };
+  const series = await fetchClimateSeries(lat, lon, startYear, endYear, marked);
+  if (cachedOn) return { series, origin: 'saved', retrievedOn: cachedOn, startYear, endYear, deviceCachedOn: cachedOn };
   return { series, origin: 'live', retrievedOn: new Date().toISOString().slice(0, 10), startYear, endYear };
 }
 

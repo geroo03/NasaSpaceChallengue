@@ -121,16 +121,30 @@ const SAVED: { lat: number; lon: number; url: string; retrievedOn: string }[] = 
   { lat: -28.38175, lon: -62.73655, url: `${import.meta.env.BASE_URL}data/soilgrids-anatuya-example.json`, retrievedOn: '2026-11-14' },
 ];
 
+/** SoilGrids can take 10–15 s; in the field we never wait forever. A point with a saved answer waits less. */
+export const SOIL_TIMEOUT_MS = 25_000;
+export const SOIL_TIMEOUT_SAVED_MS = 6_000;
+
 export async function fetchSoil(lat: number, lon: number, signal?: AbortSignal): Promise<SoilSummary> {
   const saved = SAVED.find((s) => Math.abs(s.lat - lat) < 1e-4 && Math.abs(s.lon - lon) < 1e-4);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), saved ? SOIL_TIMEOUT_SAVED_MS : SOIL_TIMEOUT_MS);
+  const stop = () => ctrl.abort();
+  signal?.addEventListener('abort', stop);
   try {
-    const res = await fetch(soilgridsUrl(lat, lon), { signal });
+    const res = await fetch(soilgridsUrl(lat, lon), { signal: ctrl.signal });
     if (!res.ok) throw new SoilError('http');
-    return parseSoilgrids(await res.json(), lat, lon, new Date().toISOString().slice(0, 10));
+    // A copy stored on this device by the service worker keeps its original date.
+    const on = res.headers.get('x-fs-cached-on') ?? new Date().toISOString().slice(0, 10);
+    return parseSoilgrids(await res.json(), lat, lon, on);
   } catch (err) {
+    if (signal?.aborted) throw err; // the point changed: nobody needs this answer
     if (!saved || (err instanceof SoilError && err.code === 'noData')) throw err;
     const res = await fetch(saved.url, { signal });
     if (!res.ok) throw err;
     return parseSoilgrids(await res.json(), lat, lon, saved.retrievedOn);
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', stop);
   }
 }

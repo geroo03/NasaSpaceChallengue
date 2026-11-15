@@ -253,9 +253,19 @@ export const lotEs: Record<string, string> = {
   "method.a10": "Calor en floración: mes aproximado de floración por cultivo y umbral de 32 a 38 °C según el cultivo. Cuenta días y rachas de 3 días en NASA POWER; no es un modelo fenológico.",
   "method.a11": "El Niño / La Niña: fase de cada campaña con el ONI de NOAA (±0,5 °C durante 5 trimestres, mayoría de septiembre a febrero). Con 14 campañas hay pocas por fase: es una referencia, no una probabilidad ni un pronóstico.",
   "footer.sources": "Datos: NASA POWER (clima), NASA SRTM (relieve), NASA HLS (Sentinel-2/Landsat), GIBS y CMR · Suelo: ISRIC SoilGrids · El Niño: NOAA CPC (ONI) · Mapas base: © OpenStreetMap, Esri World Imagery",
+  "field.offline": "Sin señal",
+  "field.offlineHelp": "La app sigue funcionando con lo que este equipo ya guardó: los lotes y consultas anteriores, y el lote de ejemplo. Las consultas nuevas (clima, suelo, relieve y mapa) esperan a que vuelva la conexión.",
+  "field.installHelp": "Instalá Field Shift en este teléfono o tablet: abre como una app y guarda lo que consultás, para usarlo en el campo sin señal.",
+  "field.install": "Instalar",
+  "res.deviceCache": "Sin señal: usamos la consulta a NASA POWER que este equipo guardó el {date}. Cuando vuelva la conexión, volvé a consultar para tener la serie al día.",
 };
 
 export const lotEn: Record<string, string> = {
+  "field.offline": "No signal",
+  "field.offlineHelp": "The app keeps working with what this device already stored: previous fields and queries, and the example field. New queries (climate, soil, relief and map) wait for the connection.",
+  "field.installHelp": "Install Field Shift on this phone or tablet: it opens like an app and keeps what you query, for use in the field without signal.",
+  "field.install": "Install",
+  "res.deviceCache": "No signal: we used the NASA POWER query this device stored on {date}. When the connection is back, query again for an up-to-date series.",
   "method.a9": "Month-by-month water balance (complementary): daily, two layers, over the real 2011–2025 record. A weed-free fallow only loses the surface layer (0.6 × ET₀); crops use Kc × ET₀ from the whole profile. Not calibrated against field measurements.",
   "method.a10": "Heat at flowering: approximate flowering month per crop and a 32–38 °C threshold by crop. Counts days and 3-day spells in NASA POWER; not a phenology model.",
   "method.a11": "El Niño / La Niña: each campaign’s phase from NOAA’s ONI (±0.5 °C for 5 seasons, most of September–February). With 14 campaigns there are few per phase: a reference, not a probability or a forecast.",
