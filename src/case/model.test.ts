@@ -102,7 +102,7 @@ describe('lot-first flow', () => {
   const srtm: TerrainSummary = { source: 'srtm', samples: 400, meanM: 120, reliefM: 3, slopePct: 0.3, aspectDeg: 90, slopeClass: 'flat', sources: ['srtm/S29W063.tif'] };
   const drone: TerrainSummary = { ...srtm, source: 'drone', slopePct: 1.4, slopeClass: 'gentle', sources: ['dsm.tif'] };
 
-  it('moves the climate point to the lot centre only in the wizard', () => {
+  it('moves the climate point to the lot centre only on the field screen', () => {
     const moved = withLot(base, ring, { kind: 'drawn' }, { movePoint: true });
     expect(moved.lat).toBeCloseTo(-28.465, 4);
     expect(moved.lon).toBeCloseTo(-62.845, 4);

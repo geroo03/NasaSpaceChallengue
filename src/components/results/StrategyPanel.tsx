@@ -30,37 +30,6 @@ function List({ items, empty }: { items: string[]; empty: string }) {
   );
 }
 
-export function StrategyTabs({ strategies, selectedId, onSelect }: { strategies: StrategyResult[]; selectedId: string; onSelect: (id: string) => void }) {
-  const { t } = useLang();
-  let alt = 0;
-  return (
-    <div role="group" aria-label={t('cmp.choose')} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {strategies.map((s) => {
-        const n = s.isCurrent ? 0 : ++alt;
-        const active = s.id === selectedId;
-        return (
-          <button
-            key={s.id}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onSelect(s.id)}
-            className={`flex min-w-0 flex-col rounded-2xl border-2 p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25] ${
-              active ? 'border-[#283618] bg-[#283618] text-white' : 'border-[#DECFA7] bg-white text-[#283618] hover:border-[#A3B18A]'
-            }`}
-          >
-            <span className={`text-xs font-bold ${active ? 'text-[#E3EBDD]' : 'text-[#606C38]'}`}>{s.isCurrent ? t('cmp.tabRef') : t('cmp.tabAlt', { n })}</span>
-            <span className="mt-2 block flex-1 text-sm font-bold sm:text-base">{t(`template.${s.templateId}`)}</span>
-            <span className="mt-4 block text-xs">{t('workspace.bareMonths', { n: s.bareMonths })}</span>
-            <span className={`mt-2 block border-t pt-2 text-xs ${active ? 'border-white/25' : 'border-[#DECFA7]'}`}>
-              <strong className="text-lg tabular-nums">{Math.round(s.overall)}</strong>/100 · {t('cmp.index')}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 export function StrategyPanel({ strategy, reference, altIndex, farm }: { strategy: StrategyResult; reference: StrategyResult; altIndex: number; farm: FarmContext }) {
   const { t, m, crop, months } = useLang();
   const [open, setOpen] = useState(false);

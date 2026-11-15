@@ -6,7 +6,7 @@ import { TerrainCard } from './TerrainCard';
 import { DroneRequestPanel } from './DroneRequestPanel';
 import { Collapsible } from '../ui';
 
-/** Wizard step 1, lot-first: boundary → land data → optional drone survey request. Lazy-loaded (Leaflet, Geoman, importers). */
+/** Screen 1, lot-first: boundary → land data → optional drone survey request. Lazy-loaded (Leaflet, Geoman, importers). */
 export function LotStep({ farmCase, lot }: { farmCase: FarmCase; lot: LotApi }) {
   const { t } = useLang();
   return (

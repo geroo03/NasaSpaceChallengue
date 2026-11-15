@@ -2,9 +2,9 @@ import { ArrowLeft, Satellite } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import type { FarmCase } from '../../case/model';
 import { Collapsible, primaryBtn, secondaryBtn } from '../ui';
-import { StepCrop } from '../wizard/StepCrop';
-import { IrrigationQuestion, MachineryList } from '../wizard/StepResources';
-import { StepPriorities } from '../wizard/StepPriorities';
+import { StepCrop } from './StepCrop';
+import { IrrigationQuestion, MachineryList } from './StepResources';
+import { StepPriorities } from './StepPriorities';
 
 function Section({ n, title, help, children }: { n: number; title: string; help: string; children: React.ReactNode }) {
   return (

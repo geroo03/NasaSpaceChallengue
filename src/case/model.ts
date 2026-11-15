@@ -189,10 +189,6 @@ export function toFarmContext(c: FarmCase): { farm: FarmContext; assumptions: As
   return { farm: { irrigationMm, slope, priorities: c.priorities, ...(soilPawMm !== undefined ? { soilPawMm } : {}) }, assumptions };
 }
 
-export function matchingPreset(lat: number, lon: number): PlacePreset | undefined {
-  return PLACE_PRESETS.find((p) => Math.abs(p.lat - lat) < 1e-4 && Math.abs(p.lon - lon) < 1e-4);
-}
-
 const STORAGE_KEY = 'field-shift-lab.case.v1';
 
 function validCoordinates(lat: unknown, lon: unknown): boolean {
@@ -267,7 +263,7 @@ export const MIN_TERRAIN_SAMPLES = 50;
 /**
  * Sets (or clears) the lot. Terrain belongs to a boundary, so it is reset and re-derived; a slope that came
  * from terrain goes back to unknown until the new estimate arrives. With `movePoint`, the climate point
- * moves to the lot centre (the wizard's lot-first flow); the results view keeps the analysed point and warns instead.
+ * moves to the lot centre (screen 1, lot first); the results view keeps the analysed point and warns instead.
  */
 export function withLot(c: FarmCase, ring: [number, number][] | null, source: LotSource | null, opts: { movePoint: boolean }): FarmCase {
   const next: FarmCase = { ...c, lotPolygon: ring, lotSource: ring ? source : null, terrain: null };

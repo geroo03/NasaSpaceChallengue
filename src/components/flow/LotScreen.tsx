@@ -4,10 +4,11 @@ import { useLang } from '../../i18n/LangContext';
 import { EXAMPLE_LOT, PLACE_PRESETS, type FarmCase, type Slope, type SoilTexture } from '../../case/model';
 import type { LotApi } from '../../case/lotApi';
 import { ChoiceCard, Collapsible, Notice, ProvTag, primaryBtn, secondaryBtn } from '../ui';
-import { MapPicker } from '../wizard/MapPicker';
 import { SoilCard } from '../lot/SoilCard';
 
 // Lot editor, importers and terrain tools load only when this step shows them.
+// The point-mode map (Leaflet) loads only when someone chooses "just a point".
+const MapPicker = lazy(() => import('./MapPicker').then((m) => ({ default: m.MapPicker })));
 const LotStep = lazy(() => import('../lot/LotStep').then((m) => ({ default: m.LotStep })));
 
 /** The farmer answered the slope (older saved cases have no source but a concrete answer). */
@@ -102,12 +103,14 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
           </button>
         </Notice>
       )}
-      <MapPicker
-        lat={value.lat}
-        lon={value.lon}
-        label={t('loc.map')}
-        onPick={(lat, lon) => (value.lotPolygon ? undefined : onChange({ lat, lon, placeId: null }))}
-      />
+      <Suspense fallback={<div className="h-64 sm:h-80 w-full rounded-xl border border-[#DECFA7] bg-[#E3EBDD]" aria-hidden />}>
+        <MapPicker
+          lat={value.lat}
+          lon={value.lon}
+          label={t('loc.map')}
+          onPick={(lat, lon) => (value.lotPolygon ? undefined : onChange({ lat, lon, placeId: null }))}
+        />
+      </Suspense>
       <p className="text-sm text-[#3B2F20]/85">
         {value.placeId === null && <strong className="text-[#283618]">{t('loc.place.custom')} · </strong>}
         {Number.isFinite(value.lat) ? value.lat.toFixed(4) : '—'}, {Number.isFinite(value.lon) ? value.lon.toFixed(4) : '—'} — {t('loc.pointNote')}

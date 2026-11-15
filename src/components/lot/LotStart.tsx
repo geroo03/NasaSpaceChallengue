@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import L from '../../lib/leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import { Eraser, MapPin, PenLine, SquarePen } from 'lucide-react';
@@ -23,7 +22,7 @@ function sameRing(a: LatLon[], b: LatLon[]): boolean {
 }
 
 /**
- * First step of the wizard: trace the lot on high-resolution imagery (Geoman, like AgroCordS) or import
+ * Screen 1 ("Your field"): trace the lot on high-resolution imagery (Geoman, like AgroCordS) or import
  * the survey plan / cadastre file. The lot centre becomes the climate point (App does that).
  */
 export function LotStart({

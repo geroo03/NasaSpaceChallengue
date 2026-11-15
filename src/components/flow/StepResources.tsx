@@ -2,7 +2,7 @@ import { Droplets, Hand, Layers, SprayCan, Sprout, Tractor, Wheat, type LucideIc
 import { useLang } from '../../i18n/LangContext';
 import { ACCESS_LEVELS, RESOURCES, hasIrrigationAccess, type Access, type Availability, type FarmCase, type ResourceId } from '../../case/model';
 import { Notice } from '../ui';
-import { Pill } from '../flow/LotScreen';
+import { Pill } from './LotScreen';
 
 const ICONS: Record<ResourceId, LucideIcon> = {
   manual: Hand,

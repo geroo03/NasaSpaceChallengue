@@ -1,6 +1,6 @@
 import type { LotSource, Slope, TerrainSummary } from './model';
 
-/** Lot and terrain actions owned by App, shared by the wizard and the results "My field" view. */
+/** Lot and terrain actions owned by App, shared by screen 1 and the results tools. */
 export interface LotApi {
   terrainStatus: 'idle' | 'loading' | 'error';
   retryTerrain: () => void;

@@ -1,5 +1,4 @@
 import type { ClimateSeries, DailyRecord } from '../engine/data/power';
-import type { ClimateProfile } from '../engine/analysis/climate';
 import { getCrop, type CropId } from '../engine/domain/crops';
 import type { StrategyResult } from '../engine/domain/rotations';
 import { ONI } from '../data/oni';

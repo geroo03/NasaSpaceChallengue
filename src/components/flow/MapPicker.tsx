@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import L from '../../lib/leaflet';
 
 /** Point picker. Leaflet is driven imperatively; React only passes the point in and out. */
 export function MapPicker({ lat, lon, label, onPick }: { lat: number; lon: number; label: string; onPick: (lat: number, lon: number) => void }) {

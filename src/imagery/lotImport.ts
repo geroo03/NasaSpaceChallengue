@@ -1,6 +1,5 @@
 import area from '@turf/area';
 import kinks from '@turf/kinks';
-import centroid from '@turf/centroid';
 import { polygon as turfPolygon } from '@turf/helpers';
 import { unzipSync, strFromU8 } from 'fflate';
 import proj4 from 'proj4';
@@ -62,12 +61,6 @@ function closed(ring: LatLon[]): [number, number][] {
 export function areaHa(ring: LatLon[]): number {
   if (ring.length < 3) return 0;
   return area(turfPolygon([closed(ring)])) / 10_000;
-}
-
-/** Centroid of the lot as [lat, lon]: used as the analysis point when a lot exists. */
-export function lotCentroid(ring: LatLon[]): LatLon {
-  const [lon, lat] = centroid(turfPolygon([closed(ring)])).geometry.coordinates as [number, number];
-  return [lat, lon];
 }
 
 export function validateLot(ring: LatLon[]): LotProblem | null {

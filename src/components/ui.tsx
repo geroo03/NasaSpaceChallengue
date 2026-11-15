@@ -64,7 +64,7 @@ export function Notice({ tone = 'info', children }: { tone?: 'info' | 'warn' | '
   );
 }
 
-/** Large, tappable option used across the wizard. */
+/** Large, tappable option used across the screens. */
 export function ChoiceCard({
   selected,
   onSelect,

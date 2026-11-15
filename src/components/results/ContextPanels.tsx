@@ -2,7 +2,7 @@ import { RotateCcw } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import type { Scenario } from '../../engine/analysis/climate';
 import type { DiscardedStrategy } from '../../engine/domain/rotations';
-import { Notice, ProvTag, secondaryBtn } from '../ui';
+import { Notice, secondaryBtn } from '../ui';
 
 export function SensitivityPanel({ scenario, onChange }: { scenario: Scenario; onChange: (s: Scenario) => void }) {
   const { t, num } = useLang();
