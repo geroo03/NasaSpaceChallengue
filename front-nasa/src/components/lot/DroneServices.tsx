@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Check, Copy, Map as MapIcon, SprayCan, Sprout } from 'lucide-react';
+import { Check, Copy, Layers, Map as MapIcon, SprayCan, Sprout } from 'lucide-react';
+import { VigorPrescription } from './VigorPrescription';
 import { useLang } from '../../i18n/LangContext';
 import { ringCentroid, type FarmCase } from '../../case/model';
 import { droneCalendar, MAPPING_DEFAULTS, planApplication, planMapping, SEED_DEFAULTS, SPRAY_DEFAULTS, type DroneJob } from '../../case/droneOps';
@@ -8,8 +9,10 @@ import { toPosgar } from '../../imagery/crs';
 import type { StrategyResult } from '../../engine/domain/rotations';
 import { Notice, primaryBtn, secondaryBtn } from '../ui';
 
-const JOBS: { id: DroneJob; Icon: typeof MapIcon }[] = [
+type Tab = DroneJob | 'vra';
+const JOBS: { id: Tab; Icon: typeof MapIcon }[] = [
   { id: 'map', Icon: MapIcon },
+  { id: 'vra', Icon: Layers },
   { id: 'seed', Icon: Sprout },
   { id: 'spray', Icon: SprayCan },
 ];
@@ -48,7 +51,7 @@ function NumberField({ label, value, onChange, unit, step = 1, min = 0, max = 10
 /** Mapping, seeding and spraying by drone, planned from the chosen rotation (Vuelo Verde operates). */
 export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; strategy: StrategyResult }) {
   const { t, num, months, crop } = useLang();
-  const [job, setJob] = useState<DroneJob>('map');
+  const [job, setJob] = useState<Tab>('map');
   const [height, setHeight] = useState(MAPPING_DEFAULTS.heightM);
   const [side, setSide] = useState(Math.round(MAPPING_DEFAULTS.sideOverlap * 100));
   const [seed, setSeed] = useState(SEED_DEFAULTS);
@@ -206,6 +209,8 @@ export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; stra
               </div>
             )}
 
+            {job === 'vra' && <VigorPrescription farmCase={farmCase} />}
+
             {job === 'spray' && (
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-4">
@@ -224,6 +229,7 @@ export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; stra
               </div>
             )}
 
+            {job !== 'vra' && (<>
             <div className="flex flex-wrap gap-2">
               <button type="button" className={primaryBtn} onClick={() => void copy()}>
                 {copied ? <Check aria-hidden className="h-4 w-4" /> : <Copy aria-hidden className="h-4 w-4" />} {copied ? t('req.copied') : t('ops.copy', { job: t(`ops.job.${job}`).toLowerCase() })}
@@ -236,6 +242,7 @@ export function DroneServices({ farmCase, strategy }: { farmCase: FarmCase; stra
               {copied ? t('req.copied') : ''}
             </span>
             <p className="text-xs text-[#3B2F20]/85">{t('ops.disclaimer')}</p>
+            </>)}
           </>
         )}
       </div>
