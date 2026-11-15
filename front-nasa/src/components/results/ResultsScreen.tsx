@@ -19,6 +19,7 @@ import { VerificationPanel } from './VerificationPanel';
 import { AssumptionList, DiscardedList, SensitivityPanel } from './ContextPanels';
 import { FieldSheet } from './FieldSheet';
 import { IrrigationNeeds } from './IrrigationNeeds';
+import { ForecastPanel } from './ForecastPanel';
 // Map tools (Geoman, Turf, file importers) load only when someone opens them.
 const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
 const DroneRequestPanel = lazy(() => import('../lot/DroneRequestPanel').then((m) => ({ default: m.DroneRequestPanel })));
@@ -419,6 +420,9 @@ function Results({
         )}
         <p className="text-xs text-[#3B2F20]/85">{t('cmp.indexNote')}</p>
       </section>
+
+      {/* 3a. What the next week brings at the lot */}
+      <ForecastPanel key={`fc-${farmCase.lat},${farmCase.lon}`} lat={farmCase.lat} lon={farmCase.lon} />
 
       {/* 3b. Heat and water alerts from the real record */}
       <section aria-labelledby="risk-h" className="space-y-4">

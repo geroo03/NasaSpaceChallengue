@@ -28,6 +28,7 @@ const API_HOSTS = [
   /^https:\/\/rest\.isric\.org\//,
   /^https:\/\/s3\.amazonaws\.com\/elevation-tiles-prod\//,
   /^https:\/\/cmr\.earthdata\.nasa\.gov\//,
+  /^https:\/\/api\.open-meteo\.com\//,
   /^https:\/\/fonts\.(googleapis|gstatic)\.com\//,
 ];
 const API_MAX_ENTRIES = 400;
