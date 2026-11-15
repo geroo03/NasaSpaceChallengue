@@ -23,6 +23,30 @@ responsable: Sebastián Peralta
 
 **Consecuencia:** la entrevista **no convierte el caso ilustrativo en un lote real**. Valida el problema y suma un aliado operativo. El caso de Santiago del Estero sigue siendo ilustrativo y Añatuya sigue como piloto por confirmar.
 
+## Versión editada (recibida el 14/11, 20:58)
+
+El equipo pasó una versión ordenada por preguntas, con Lucas como entrevistador: [[Vuelo Verde - entrevista editada 2026-11-14]]. Está **reescrita a partir del audio, no es literal**. El cuerpo de las respuestas coincide con la transcripción automática y agrega o aclara:
+
+- **Permiso para incluir a Vuelo Verde formalmente como alianza territorial** en el proyecto: «Sí, totalmente, no hay ningún problema. Cuenten con eso al 100 %».
+- **Equipo a disposición:** pilotos con experiencia y estudiantes próximos a recibirse en informática.
+- **Plataformas:** procesan con DJI Terra y con QGIS. Probablemente sea lo que la transcripción automática escribió «pis cookies»; conviene confirmarlo con él. El informe técnico de Vuelo Verde también se hizo en QGIS.
+- **Condición:** «Lo que hay que trabajar es la vinculación: cómo la aplicación de ustedes le da un valor agregado y marca una diferencia respecto a lo que ya existe».
+- **Decidir antes de sembrar:** cuenta un caso reciente en que lluvia con granizo después de la siembra compactó la semilla. Con información previa se elige sembrar antes o después de una lluvia según el agua del suelo.
+- **Dos realidades en la zona:** riego por acequia y secano. En secano: siembra directa y suelo lo más cubierto posible con rastrojo, porque bloquea la luz, frena malezas y retiene humedad y nutrientes.
+- **No solo para grandes productores:** antes el monitoreo se concentraba en las cabeceras de lotes grandes; hoy sirve para cualquier productor.
+- **Aplicación variable:** aplicar solo donde hace falta, para ahorrar y contaminar menos.
+
+### Cuidado al usarla
+
+- **«Citas destacadas»:** combinan frases de respuestas distintas. Por ejemplo, «La posibilidad de vincularnos es total, al 100 %» no está en el cuerpo de la entrevista. En el video y en las slides usar solo frases del cuerpo o del audio.
+- **«Conclusiones técnicas para el jurado»:** son del equipo, no del entrevistado, y exageran:
+  - Field Shift no usa ECOSTRESS ni detecta anomalías con SMAP o Landsat.
+  - El entrevistado no mencionó sorgo ni caupí.
+  - El dron no hace «prescripción agronómica» dentro de Field Shift.
+
+  No usar esa sección tal cual.
+- **Identidad:** la versión editada lo llama «Referente / Director». Mantenemos el nombre autorizado, Juan Pablo Suárez Ríos.
+
 ## Lo que respalda del producto
 
 - **Decidir antes de sembrar** es para él el problema central: «No existe un problema básico dirigido hacia la agricultura, sino poder tomar decisiones antes de sembrar». Field Shift compara rotaciones y fechas a dos años.
@@ -48,8 +72,9 @@ responsable: Sebastián Peralta
 ## Pendiente con el entrevistado
 
 - [x] Nombre, cargo y permiso de cita y de nombre de la empresa.
-- [ ] Nombre real de la plataforma «pis cookies».
-- [ ] Alcance de la colaboración: carta de interés, piloto conjunto o solo mención.
+- [~] Plataforma de procesamiento: la versión editada dice DJI Terra y QGIS. Confirmar que «pis cookies» era eso.
+- [x] Permiso para incluir a Vuelo Verde como alianza territorial en Space Apps (versión editada: «Cuenten con eso al 100 %»).
+- [ ] Forma de la vinculación: carta de interés, piloto conjunto, canal de pedidos (WhatsApp o mail para el botón de la app).
 - [ ] Si conoce productores de Añatuya o de Santiago del Estero dispuestos a aportar un lote para el piloto.
 
 ## Uso en el pitch
@@ -60,7 +85,9 @@ Citas literales del audio, con permiso:
 - «No existe un problema básico dirigido hacia la agricultura, sino poder tomar decisiones antes de sembrar.»
 - «Lo que tenemos como déficit en el país es la mano de obra calificada.»
 - Sobre trabajar juntos: «No solo creo, estoy seguro.»
+- Sobre el permiso (versión editada): «Sí, totalmente, no hay ningún problema. Cuenten con eso al 100 %.»
+- Sobre decidir antes (versión editada): «Poder tomar decisiones antes de sembrar, antes de iniciar el proceso que es muy costoso, es fundamental.»
 
-Si se cita su estimación del 10 %, hay que presentarla como lo que es: su cálculo del aporte posible hoy, no una métrica del proyecto. No presentar la colaboración como sociedad formal hasta definir el alcance.
+Si se cita su estimación del 10 %, hay que presentarla como lo que es: su cálculo del aporte posible hoy, no una métrica del proyecto. Presentar a Vuelo Verde como **alianza territorial con permiso del entrevistado**. No presentarla como sociedad formal ni como contrato: falta definir la forma de vinculación.
 
 Ver [[Caso Añatuya]], [[Pitch y guion]] y [[Entrega 2026]].

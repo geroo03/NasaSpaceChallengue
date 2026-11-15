@@ -195,7 +195,7 @@ export const uiEs: Record<string, string> = {
   'verify.residue': 'Meses sin cultivo programado: confirmar si hay rastrojo o cobertura, o si aparecen malezas.',
   'verify.coverEnd': '{crop}: revisar biomasa y humedad del perfil antes del secado, para no quitarle agua al cultivo siguiente.',
   'verify.partnerTitle': 'Verificación en campo con Vuelo Verde',
-  'verify.partnerText': 'Vuelo Verde, una red de más de 100 pilotos de drones agrícolas, aceptó colaborar con Field Shift como brazo operativo: el satélite y el clima dan el historial, el dron confirma el detalle del lote. El alcance de la colaboración está en definición.',
+  'verify.partnerText': 'Vuelo Verde, una red de más de 100 pilotos de drones agrícolas que procesa con DJI Terra y QGIS, es la alianza territorial de Field Shift: el satélite y el clima dan el historial, el dron confirma el detalle del lote. Está por definir cómo se vinculan las herramientas.',
   'verify.partnerSource': 'Entrevista con Juan Pablo Suárez Ríos (Vuelo Verde), 14/11/2026.',
   'scene.emptyNoteResidue': 'En siembra directa es común dejar el rastrojo del cultivo anterior: un recorrido o un vuelo de dron puede confirmarlo.',
   'lot.title': 'Imagen del lote y drones',
@@ -410,7 +410,7 @@ export const uiEs: Record<string, string> = {
   'method.case': 'Sobre el caso',
   'method.caseText': 'El punto de Santiago del Estero es ilustrativo. Añatuya es un piloto propuesto: falta confirmar lote, manejo y suelo con productores y técnicos de la zona.',
   'method.partner': 'Con quién lo estamos validando',
-  'method.partnerText': 'Entrevistamos a Juan Pablo Suárez Ríos, dueño de Vuelo Verde (más de 100 pilotos de drones agrícolas). Para él, el desafío del productor es «poder tomar decisiones antes de sembrar» y la herramienta tiene que ser fácil de entender. Contó que en siembra directa se deja el rastrojo, sobre todo en secano: por eso un mes sin cultivo programado no se presenta como suelo desnudo. Vuelo Verde aceptó colaborar; Field Shift aporta la planificación y el qué y cuándo verificar, no el procesamiento de imágenes de dron.',
+  'method.partnerText': 'Entrevistamos a Juan Pablo Suárez Ríos, dueño de Vuelo Verde (más de 100 pilotos de drones agrícolas). Para él, el desafío del productor es «poder tomar decisiones antes de sembrar» y la herramienta tiene que ser fácil de entender. Contó que en siembra directa se deja el rastrojo, sobre todo en secano: por eso un mes sin cultivo programado no se presenta como suelo desnudo. Autorizó incluir a Vuelo Verde como alianza territorial («Cuenten con eso al 100 %») y puso a disposición pilotos y estudiantes de informática. Field Shift aporta la planificación y el qué y cuándo verificar; el procesamiento de imágenes de dron lo hacen ellos.',
 };
 
 export const uiEn: Record<string, string> = {
@@ -608,7 +608,7 @@ export const uiEn: Record<string, string> = {
   'verify.residue': 'Months with no crop scheduled: confirm whether there is residue or cover, or whether weeds appear.',
   'verify.coverEnd': '{crop}: check biomass and profile moisture before termination, so it does not take water from the next crop.',
   'verify.partnerTitle': 'Field verification with Vuelo Verde',
-  'verify.partnerText': 'Vuelo Verde, a network of 100+ agricultural drone pilots, agreed to work with Field Shift as its operational arm: satellite and climate data give the history, the drone confirms field detail. The scope of the collaboration is being defined.',
+  'verify.partnerText': 'Vuelo Verde, a network of 100+ agricultural drone pilots who process with DJI Terra and QGIS, is Field Shift’s territorial partner: satellite and climate data give the history, the drone confirms field detail. How the tools connect is still being defined.',
   'verify.partnerSource': 'Interview with Juan Pablo Suárez Ríos (Vuelo Verde), 14 Nov 2026.',
   'scene.emptyNoteResidue': 'Under no-till it is common to leave the previous crop’s residue: a field visit or drone flight can confirm it.',
   'lot.title': 'Field imagery and drones',
@@ -823,5 +823,5 @@ export const uiEn: Record<string, string> = {
   'method.case': 'About the case',
   'method.caseText': 'The Santiago del Estero point is illustrative. Añatuya is a proposed pilot: field, management and soil are still to be confirmed with local farmers and advisers.',
   'method.partner': 'Who we are validating it with',
-  'method.partnerText': 'We interviewed Juan Pablo Suárez Ríos, owner of Vuelo Verde (100+ agricultural drone pilots). For him the farmer’s challenge is “being able to make decisions before sowing”, and the tool must be easy to understand. He explained that under no-till residue is left on the field, especially in rainfed areas: that is why a month with no crop scheduled is not shown as bare soil. Vuelo Verde agreed to collaborate; Field Shift contributes planning and what/when to verify, not drone image processing.',
+  'method.partnerText': 'We interviewed Juan Pablo Suárez Ríos, owner of Vuelo Verde (100+ agricultural drone pilots). For him the farmer’s challenge is “being able to make decisions before sowing”, and the tool must be easy to understand. He explained that under no-till residue is left on the field, especially in rainfed areas: that is why a month with no crop scheduled is not shown as bare soil. He authorised including Vuelo Verde as a territorial partner (“count on it 100%”) and offered pilots and computing students. Field Shift contributes planning and what/when to verify; they do the drone image processing.',
 };
