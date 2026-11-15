@@ -7,6 +7,8 @@ import { DEFAULT_PAW_MM } from '../../engine/domain/rotations';
 import type { LoadedSeries } from '../../case/climateSource';
 import { polygonAreaHa } from '../../imagery/flightOrder';
 import { CROP_COLORS, cropAbbr, primaryBtn, secondaryBtn, textOn } from '../ui';
+import { readEcostress } from '../../ecostress/storage';
+import { ECOSTRESS_PRODUCT, parseEcostressCsv } from '../../ecostress/data';
 
 function Calendar({ s, label }: { s: StrategyResult; label: string }) {
   const { lang, months } = useLang();
@@ -78,6 +80,8 @@ export function FieldSheet({
   const { farm } = toFarmContext(farmCase);
   const soilHere = farmCase.soil && Math.abs(farmCase.soil.lat - farmCase.lat) < 1e-4 && Math.abs(farmCase.soil.lon - farmCase.lon) < 1e-4 ? farmCase.soil : null;
   const declared = RESOURCES.filter((r) => farmCase.resources[r] !== 'unknown');
+  const ecoSaved = readEcostress(farmCase);
+  const eco = ecoSaved.csv ? parseEcostressCsv(ecoSaved.csv, farmCase) : null;
 
   return (
     <div className="max-w-[820px] mx-auto">
@@ -210,6 +214,13 @@ export function FieldSheet({
             ))}
           </ul>
         </Block>
+        {eco && <Block title={t('eco.title')}>
+          <p>{t('eco.point', { lat: farmCase.lat.toFixed(5), lon: farmCase.lon.toFixed(5) })}</p>
+          {eco.observations[0] ? <p className="mt-1 font-bold">{eco.observations[0].date} · ETdaily {num(eco.observations[0].etMmDay, 2)} {t('eco.unit')}</p> : <p>{t('eco.noValid')}</p>}
+          <p className="mt-1">{t('eco.quality', { valid: eco.observations.length, ...eco.rejected })}</p>
+          <p className="mt-1 text-xs">{ECOSTRESS_PRODUCT} · {ecoSaved.source === 'file' ? t('eco.file', { name: ecoSaved.fileName ?? 'CSV' }) : ecoSaved.source === 'earthdata' || ecoSaved.source === 'saved' ? t(`eco.origin.${ecoSaved.source}`) : 'AppEEARS'} · {t('eco.loaded', { date: ecoSaved.retrievedOn ?? '' })}</p>
+          <p className="mt-1 text-xs">{t('eco.limit')}</p>
+        </Block>}
 
         <Block title={t('verify.titleShort')}>
           <ul className="space-y-1">

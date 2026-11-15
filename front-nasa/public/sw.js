@@ -21,6 +21,7 @@ const SHELL_FILES = [
   '/data/power-sde-2011-2025.json',
   '/data/power-anatuya-2011-2025.json',
   '/data/soilgrids-anatuya-example.json',
+  '/data/ecostress-anatuya-example-2026-09.json',
 ];
 const API_HOSTS = [
   /^https:\/\/power\.larc\.nasa\.gov\//,

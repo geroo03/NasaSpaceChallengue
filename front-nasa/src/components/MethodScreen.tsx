@@ -53,7 +53,7 @@ export function MethodScreen() {
         <Card>
           <h2 className="text-lg font-bold text-[#283618] mb-3">{t('method.pending')}</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm">
-            {['p1', 'p2', 'p3', 'p4', 'p5'].map((k) => (
+            {['p1', 'p3', 'p4', 'p5'].map((k) => (
               <li key={k}>{t(`method.${k}`)}</li>
             ))}
           </ul>
@@ -63,6 +63,10 @@ export function MethodScreen() {
           <p className="text-sm leading-relaxed">{t('method.caseText')}</p>
           <h3 className="mt-4 font-bold text-[#283618]">{t('sources.title')}</h3>
           <ul className="mt-1 list-disc pl-5 space-y-1 text-sm">
+            <li>
+              <a className="underline" href="https://doi.org/10.5067/ECOSTRESS/ECO_L3T_JET.002" target="_blank" rel="noreferrer">NASA ECOSTRESS ECO_L3T_JET.002 · AppEEARS</a>
+              <p className="mt-1 text-xs">{t('eco.limit')}</p>
+            </li>
             <li>
               <a className="underline" href="https://power.larc.nasa.gov/docs/services/api/temporal/daily/" target="_blank" rel="noreferrer">
                 NASA POWER Daily API

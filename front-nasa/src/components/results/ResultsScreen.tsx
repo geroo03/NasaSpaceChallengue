@@ -24,6 +24,7 @@ const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.L
 const DroneRequestPanel = lazy(() => import('../lot/DroneRequestPanel').then((m) => ({ default: m.DroneRequestPanel })));
 const DroneServices = lazy(() => import('../lot/DroneServices').then((m) => ({ default: m.DroneServices })));
 const TerrainCard = lazy(() => import('../lot/TerrainCard').then((m) => ({ default: m.TerrainCard })));
+const EcostressPanel = lazy(() => import('./EcostressPanel').then((m) => ({ default: m.EcostressPanel })));
 
 export type LoadState =
   | { status: 'loading'; saved: boolean }
@@ -456,6 +457,9 @@ function Results({
       </section>
 
       {/* 4. The field, month by month */}
+      <Suspense fallback={null}>
+        <EcostressPanel key={`${farmCase.lat},${farmCase.lon}`} lat={farmCase.lat} lon={farmCase.lon} />
+      </Suspense>
       <section aria-labelledby="scene-h" className="space-y-4">
         <h2 id="scene-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
           {t('scene.title')}
@@ -540,7 +544,7 @@ function Results({
         </Collapsible>
         <Collapsible title={t('sources.title')}>
           <ul className="list-disc pl-5 space-y-1 text-sm">
-            {['source.power', 'source.srtm', 'source.soilgrids', 'source.oni', 'source.gibs', 'source.fao'].map((k) => (
+            {['source.power', 'source.srtm', 'source.soilgrids', 'source.oni', 'source.ecostress', 'source.gibs', 'source.fao'].map((k) => (
               <li key={k}>{t(k)}</li>
             ))}
           </ul>

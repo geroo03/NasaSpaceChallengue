@@ -27,12 +27,25 @@
 | NASA POWER (diario: Tmax, Tmin, lluvia, humedad de suelo) | Perfil climático, ET₀, heladas, calor, agua y El Niño por campaña |
 | NASA SRTM (~30 m, AWS Terrain Tiles) | Relieve y pendiente del lote; la pendiente entra al cálculo |
 | NASA HLS vía GIBS y CMR · MODIS NDVI · SMAP L4 | Imagen del lote y capas regionales (no entran al cálculo) |
+| NASA ECOSTRESS ECO_L3T_JET.002 | Catálogo de pasadas y valores ETdaily por punto; filtros cloud/water; evidencia complementaria y ficha |
 | ISRIC SoilGrids 2.0 | Agua útil 0–100 cm, textura y carbono orgánico del lote |
 | NOAA CPC ONI | Fase de El Niño / La Niña de cada campaña y estado actual observado |
 
-Todo se consulta desde el navegador, **sin backend ni claves**. Los archivos del productor (planos, DSM, ortomosaicos) se procesan en su equipo, sin subirlos. En `public/data/` hay respuestas guardadas sin modificar, para que la demo funcione sin conexión:
+POWER, suelo, relieve y catálogos se consultan desde el navegador sin claves. **ECOSTRESS agrega una función de servidor opcional**, `/api/ecostress`, que permite extraer píxeles de COG con un token Earthdata o tramitar tareas de AppEEARS. Sin configurarla, funcionan el catálogo, el CSV local y la extracción real guardada del ejemplo. Los archivos del productor (planos, DSM, ortomosaicos y CSV) se procesan en su equipo, sin subirlos. En `public/data/` hay respuestas guardadas sin modificar para el ejemplo:
 - NASA POWER 2011–2025 del punto de Santiago del Estero y del lote de ejemplo;
 - SoilGrids del lote de ejemplo.
+
+### ECOSTRESS
+
+Para conectar una cuenta desde una pantalla local, ejecutar `npm run connect:earthdata`. Abre una pantalla local con enlaces al registro oficial y a AppEEARS; una vez activada la cuenta, valida el ingreso contra NASA y guarda únicamente un token temporal en `.env.local` (permisos privados, excluido de Git). No almacena la contraseña. El alta y la activación por correo se completan en NASA. Después reiniciar `npm run dev`.
+
+En **Tus opciones → El agua que evapora tu campo: ECOSTRESS**, abrir «Consultar o cargar ECOSTRESS». Se puede buscar pasadas NASA sin cuenta y cargar un CSV de Point Sample de AppEEARS con `ETdaily`, `cloud` y `water` del producto **ECO_L3T_JET.002**. Las observaciones válidas quedan guardadas por punto y aparecen en la ficha imprimible. El catálogo no garantiza que un píxel esté libre de nubes.
+
+Para la extracción directa, configurar en Vercel (Root Directory: `front-nasa`) **`EARTHDATA_TOKEN`**. Alternativamente, para AppEEARS usar **`EARTHDATA_USERNAME` y `EARTHDATA_PASSWORD`**, o un **`APPEEARS_TOKEN`** válido. Agregar `APPEEARS_JOB_SECRET` como secreto largo. Son variables de servidor, **sin prefijo `VITE_`**. Después se necesita un nuevo despliegue. En local, copiar `.env.example` a `.env.local` y reiniciar `npm run dev`; Vite sirve el mismo endpoint local. Los tokens de AppEEARS vencen; con usuario/contraseña se renuevan al iniciar nuevas conexiones.
+
+**Unidades:** ETdaily se conserva en **mm/día**, según el algoritmo y la validación científica de Collection 2. El catálogo de AppEEARS y una tabla de la guía lo etiquetan W/m² de forma inconsistente con el método; ver la explicación y fuentes de la guía técnica. No se aplica una conversión energética ni se sustituye ET₀ de Hargreaves. Solo se admite versión 002.
+
+Ver [guía técnica y verificación](../docs/INTEGRACION_ECOSTRESS.md). La descarga directa autenticada ya fue verificada en el ejemplo: 5 pasadas, 2 valores válidos y 3 faltantes. El botón «Usar extracción NASA guardada» carga esos valores reales con sus fechas, sin necesitar credenciales ni una nueva descarga para la presentación.
 
 ## Supuestos (visibles en la app)
 
@@ -54,7 +67,7 @@ Todo se consulta desde el navegador, **sin backend ni claves**. Los archivos del
 git clone https://github.com/geroo03/NasaSpaceChallengue && cd NasaSpaceChallengue/front-nasa
 npm ci
 npm run dev        # servidor local
-npm test           # 120 pruebas: motor, caso, suelo, El Niño, agua, drones, importación de planos
+npm test           # motor, caso, suelo, clima, drones, planos y ECOSTRESS
 npm run build      # typecheck + build estático en dist/
 ```
 
@@ -73,7 +86,10 @@ src/
     results/    Pantalla 3, gráficos, ficha imprimible, mapa e imágenes del lote
   i18n/         Textos ES/EN
   data/         ONI de NOAA (guardado)
+  ecostress/    Contrato, calidad y lectura de CSV; catálogo NASA y almacenamiento por punto
   lib/          Leaflet como global (lo necesita Leaflet-Geoman)
+api/ecostress.ts Función Vercel (también disponible en npm run dev)
+server/         Earthdata: píxel COG; AppEEARS: autenticación, tareas y descarga
 public/
   data/         Respuestas guardadas de NASA POWER y SoilGrids
   sw.js         Service worker (app instalable y uso sin señal)

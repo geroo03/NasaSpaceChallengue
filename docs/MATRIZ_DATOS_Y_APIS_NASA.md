@@ -1,6 +1,14 @@
 # Matriz de datos y APIs — estado de integración
 
-Actualizado el 14 de noviembre de 2026. Distingue capacidades documentadas de funciones presentes en el proyecto. La presencia de una misión en el catálogo del desafío no implica una integración realizada.
+Actualizado el 15 de noviembre de 2026. La tabla siguiente conserva el relevamiento original del prototipo. La app actual está en `front-nasa/`; el estado nuevo de ECOSTRESS se detalla abajo y en [INTEGRACION_ECOSTRESS.md](INTEGRACION_ECOSTRESS.md). La presencia de una misión en el catálogo no implica una integración realizada.
+
+## ECOSTRESS en la app actual
+
+- **Producto:** ECO_L3T_JET.002; ETdaily en mm/día y máscaras cloud/water. La unidad sigue el método y la validación científica de Collection 2; hay una etiqueta inconsistente de W/m² en AppEEARS, documentada en la guía técnica.
+- **Implementado:** búsqueda pública CMR, lectura numérica de CSV de AppEEARS por punto, exclusión de nubes/agua/rellenos, persistencia por ubicación y ficha imprimible. Servidor para leer COG con un token Earthdata o tramitar tareas asíncronas de AppEEARS, sin exponer credenciales.
+- **Verificado:** el token Earthdata habilitó descargas protegidas y extracción de cinco pasadas del ejemplo de Añatuya; dos valores válidos y tres faltantes. Hay un snapshot reproducible para la demo. Vercel necesita su propia configuración de variables para habilitar consultas nuevas.
+- **Uso:** evidencia complementaria de ET derivada de satélite. No alimenta el ranking ni sustituye ET₀ con observaciones irregulares. No es una media del polígono ni una alerta de sequía.
+- **Sin cuenta:** se puede buscar pasadas e importar el CSV ya descargado. No se presentan valores numéricos simulados como observaciones NASA.
 
 ## Datos presentes
 
@@ -33,7 +41,7 @@ La respuesta guardada indica fuentes MERRA2/POWER, API v2.10.3 y tiempo LST. `GW
 | SMAP numérico | Contexto regional de humedad | Producto/versión, extracción, unidades, profundidad, calidad y período |
 | AppEEARS | Extraer productos compatibles | Verificar catálogo vigente, autenticación, tarea asíncrona y resultado |
 | GPM IMERG | Episodios y distribución histórica de lluvia | Distinguir tasa/acumulado y Early/Final; documentar cobertura |
-| ECOSTRESS | Contexto superficial de ET/temperatura | Escena válida, calidad, unidades y alcance espacial |
+| ECOSTRESS | Implementación actual descrita arriba | Extracción directa real verificada y guardada; no modifica el ranking |
 | HLS | Contexto de vegetación y fenología | Escenas/bandas y máscara de calidad; indicadores reproducibles |
 | SRTM | Contexto de terreno | Modelo, escala y método para derivar pendiente |
 | Suelo local/SoilGrids | Propiedades y restricciones | Identificar medición o estimación y su incertidumbre |

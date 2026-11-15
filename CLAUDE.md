@@ -1,6 +1,10 @@
 # Instrucciones para trabajar en Field Shift
 
+> **Continuación actual:** leer primero [docs/CLAUDE_TERMINAR_PROYECTO.md](docs/CLAUDE_TERMINAR_PROYECTO.md). Reúne el estado local verificado, los errores pendientes, enlaces directos de APIs, orden de cierre y criterios de aceptación. Conserva prioridad sobre las descripciones históricas del prototipo incluidas más abajo.
+
 > **Estructura (15/11/2026).** La app actual está en `front-nasa/` de este repositorio (React + TypeScript + Vite, desplegada en Vercel desde esa carpeta); sus convenciones están en `front-nasa/README.md`. `prototipo/` es la versión anterior, que se conserva como referencia. La entrega está en `docs/entrega/`, las revisiones en `docs/revisiones/` y el material de terceros en `material/`. El informe técnico de Vuelo Verde es solo local: no publicarlo.
+
+> **ECOSTRESS (15/11):** `/api/ecostress` admite descarga directa de COG con `EARTHDATA_TOKEN` o extracción asíncrona con AppEEARS. Hay un snapshot numérico real del ejemplo de Añatuya (dos observaciones válidas). Leer `docs/INTEGRACION_ECOSTRESS.md`: ETdaily se conserva en mm/día según el algoritmo y la validación de Collection 2; una etiqueta de AppEEARS dice W/m² de forma inconsistente. No aplicar conversión fija ni cambiar el ranking. Credenciales solo en servidor, sin `VITE_`. Los checks actuales se ejecutan desde `front-nasa/`; las referencias a `prototipo/` son históricas.
 
 ## Objetivo
 

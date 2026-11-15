@@ -2,12 +2,15 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 import { cropName, extendDict, MONTHS, msg, t as translate, type Lang } from './engineText';
 import { uiEn, uiEs } from './ui';
 import { lotEn, lotEs } from './uiLot';
+import { ecoEn, ecoEs } from './ecostress';
 import type { Msg } from '../engine/domain/rotations';
 
 extendDict('es', uiEs);
 extendDict('en', uiEn);
 extendDict('es', lotEs);
 extendDict('en', lotEn);
+extendDict('es', ecoEs);
+extendDict('en', ecoEn);
 
 export type { Lang };
 

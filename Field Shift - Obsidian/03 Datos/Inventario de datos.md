@@ -5,6 +5,8 @@ actualizado: 2026-11-14
 ---
 # Inventario de datos
 
+La primera parte registra el estado histórico del ZIP. Los agregados posteriores describen la app actual en `front-nasa/`.
+
 | Material | Estado comprobado |
 | --- | --- |
 | Conversaciones GPT, Claude original y actualización | Preservadas en `05 Material recibido` |
@@ -58,3 +60,4 @@ La caché de la app guarda una serie en memoria; se pierde al recargar. Guardar 
 | NASA POWER para el lote de ejemplo (2011–2025) | Serie guardada sin modificar, `public/data/power-anatuya-2011-2025.json` | Dato NASA |
 | SoilGrids para el lote de ejemplo | Respuesta guardada sin modificar, `public/data/soilgrids-anatuya-example.json` | Mapa modelado |
 | NOAA CPC ONI (2009–ASO 2026) | Fase El Niño / La Niña de cada campaña y estado observado actual; `src/data/oni.ts` | Dato observado (NOAA, no NASA) |
+| ECOSTRESS ECO_L3T_JET.002 | Catálogo CMR + lectura de ETdaily (mm/día) por punto desde CSV de AppEEARS; filtros cloud/water, almacenamiento y ficha. Descarga directa con Earthdata verificada: cinco pasadas, dos observaciones válidas y tres faltantes; snapshot real disponible para la demo | Derivado satelital NASA; evidencia complementaria, no entra al ranking |

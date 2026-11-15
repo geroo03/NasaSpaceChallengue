@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "connect:earthdata": "node scripts/connect-earthdata.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
