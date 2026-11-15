@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Mail } from 'lucide-react';
+import { sendMagicLink } from '../backend/supabase';
+import { HistoryPanel } from './HistoryPanel';
 import { Plane, Send, UserRound } from 'lucide-react';
 import { useLang } from '../i18n/LangContext';
 import { DRONE_PRESETS, type MappingSensor, type OwnDrone, type Profile } from './profile';
@@ -19,10 +22,86 @@ function Num({ label, value, onChange, unit }: { label: string; value: number; o
   );
 }
 
-/** Sign-in (device profile) with the one question that changes the app: do you fly your own drone? */
+/**
+ * Sign-in. With the backend configured: email → magic link → profile (synced to the cloud).
+ * Without it, or if the visitor prefers, a profile kept on this device only.
+ */
 export function LoginScreen() {
+  const { cloud, email, profile } = useProfile();
+  const [localOnly, setLocalOnly] = useState(false);
+  if (cloud && !email && !profile && !localOnly) return <EmailStep onLocal={() => setLocalOnly(true)} />;
+  return <ProfileForm />;
+}
+
+function Shell({ children, onSubmit, onClose, labelledBy }: { children: ReactNode; onSubmit: () => void; onClose: () => void; labelledBy: string }) {
+  return (
+    <div className="fixed inset-0 z-[1500] overflow-y-auto bg-[#283618]/70 backdrop-blur-sm px-4 py-6 sm:py-12" role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
+      <form
+        className="fs-enter mx-auto max-w-xl rounded-2xl bg-fondo p-5 sm:p-7 shadow-xl space-y-5"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit();
+        }}
+        onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      >
+        <img src="/brand/agrofield-logo.svg" alt="AgroField" width={567} height={240} className="h-14 w-auto -ml-2" />
+        {children}
+      </form>
+    </div>
+  );
+}
+
+function EmailStep({ onLocal }: { onLocal: () => void }) {
   const { t } = useLang();
-  const { profile, setProfile, setGuest, setEditing } = useProfile();
+  const { setGuest } = useProfile();
+  const [mail, setMail] = useState('');
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.trim());
+  const send = async () => {
+    if (!valid) return;
+    setState('sending');
+    const { error } = await sendMagicLink(mail);
+    setState(error ? 'error' : 'sent');
+  };
+  return (
+    <Shell onSubmit={() => void send()} onClose={() => setGuest(true)} labelledBy="mail-h">
+      <div>
+        <h2 id="mail-h" className="text-2xl font-bold text-[#283618]">{t('login.title')}</h2>
+        <p className="mt-1 text-sm text-[#3B2F20]">{t('login.mail.help')}</p>
+      </div>
+      {state === 'sent' ? (
+        <p role="status" className="rounded-xl border-2 border-[#606C38] bg-[#E3EBDD] p-4 text-sm text-[#283618]">
+          <strong className="block">{t('login.mail.sentTitle')}</strong>
+          {t('login.mail.sent', { email: mail.trim() })}
+        </p>
+      ) : (
+        <label className="block text-sm font-bold text-[#283618]">
+          {t('login.mail.label')}
+          <input className={input} type="email" inputMode="email" autoComplete="email" value={mail} onChange={(e) => setMail(e.target.value)} autoFocus required />
+        </label>
+      )}
+      {state === 'error' && <p role="alert" className="text-sm font-bold text-[#7A3F0C]">{t('login.mail.error')}</p>}
+      <div className="flex flex-wrap items-center gap-2">
+        {state !== 'sent' && (
+          <button type="submit" className={primaryBtn} disabled={!valid || state === 'sending'}>
+            <Mail aria-hidden className="h-4 w-4" /> {state === 'sending' ? t('login.mail.sending') : t('login.mail.send')}
+          </button>
+        )}
+        <button type="button" className={secondaryBtn} onClick={() => setGuest(true)}>
+          {t('login.guest')}
+        </button>
+        <button type="button" className="text-sm font-bold text-[#9A5518] underline underline-offset-2" onClick={onLocal}>
+          {t('login.mail.local')}
+        </button>
+      </div>
+    </Shell>
+  );
+}
+
+/** Name, farm and the one question that changes the app: do you fly your own drone? */
+function ProfileForm() {
+  const { t } = useLang();
+  const { profile, setProfile, setGuest, setEditing, email, logout, syncError } = useProfile();
   const [name, setName] = useState(profile?.name ?? '');
   const [farm, setFarm] = useState(profile?.farm ?? '');
   const [hasDrone, setHasDrone] = useState<boolean | null>(profile ? profile.drone !== null : null);
@@ -45,18 +124,9 @@ export function LoginScreen() {
   const close = () => (profile ? setEditing(false) : setGuest(true));
 
   return (
-    <div className="fixed inset-0 z-[1500] overflow-y-auto bg-[#283618]/70 backdrop-blur-sm px-4 py-6 sm:py-12" role="dialog" aria-modal="true" aria-labelledby="login-h">
-      <form
-        className="fs-enter mx-auto max-w-xl rounded-2xl bg-fondo p-5 sm:p-7 shadow-xl space-y-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit();
-        }}
-        onKeyDown={(e) => e.key === 'Escape' && close()}
-      >
+    <Shell onSubmit={submit} onClose={close} labelledBy="login-h">
         <div>
-          <img src="/brand/agrofield-logo.svg" alt="AgroField" width={567} height={240} className="h-14 w-auto -ml-2" />
-          <h2 id="login-h" className="mt-3 text-2xl font-bold text-[#283618]">{profile ? t('login.editTitle') : t('login.title')}</h2>
+          <h2 id="login-h" className="text-2xl font-bold text-[#283618]">{profile ? t('login.editTitle') : t('login.title')}</h2>
           <p className="mt-1 text-sm text-[#3B2F20]">{t('login.help')}</p>
         </div>
 
@@ -151,22 +221,26 @@ export function LoginScreen() {
           <button type="button" className={secondaryBtn} onClick={close}>
             {profile ? t('login.cancel') : t('login.guest')}
           </button>
-          {profile && (
+          {(profile || email) && (
             <button
               type="button"
               className="ml-auto text-sm font-bold text-[#7A3F0C] underline underline-offset-2"
               onClick={() => {
-                setProfile(null);
                 setEditing(false);
-                setGuest(false);
+                if (email) void logout();
+                else {
+                  setProfile(null);
+                  setGuest(false);
+                }
               }}
             >
               {t('login.logout')}
             </button>
           )}
         </div>
-        <p className="text-xs text-[#3B2F20]/80">{t('login.privacy')}</p>
-      </form>
-    </div>
+        {email && profile && <HistoryPanel />}
+        <p className="text-xs text-[#3B2F20]/80">{email ? t('login.cloud', { email }) : t('login.privacy')}</p>
+        {syncError && <p role="alert" className="text-xs font-bold text-[#7A3F0C]">{t('login.syncError')}</p>}
+    </Shell>
   );
 }

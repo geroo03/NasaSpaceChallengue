@@ -3,6 +3,7 @@ import { Check, Copy, Layers, Map as MapIcon, Plane, Send, SprayCan, Sprout } fr
 import { useProfile } from '../../profile/ProfileContext';
 import { ownCan, type OwnDrone } from '../../profile/profile';
 import { whatsappLink } from '../../case/droneRequest';
+import { logDroneRequest } from '../../backend/cloudLog';
 import { VigorPrescription } from './VigorPrescription';
 import { useLang } from '../../i18n/LangContext';
 import { ringCentroid, type FarmCase } from '../../case/model';
@@ -65,7 +66,7 @@ export function DroneServices(props: { farmCase: FarmCase; strategy: StrategyRes
 
 function Services({ farmCase, strategy, own }: { farmCase: FarmCase; strategy: StrategyResult; own: OwnDrone | null }) {
   const { t, num, months, crop } = useLang();
-  const { setEditing } = useProfile();
+  const { setEditing, droneId } = useProfile();
   const [job, setJob] = useState<Tab>('map');
   const [height, setHeight] = useState(MAPPING_DEFAULTS.heightM);
   const [side, setSide] = useState(Math.round(MAPPING_DEFAULTS.sideOverlap * 100));
@@ -97,16 +98,29 @@ function Services({ farmCase, strategy, own }: { farmCase: FarmCase; strategy: S
     lines.push('', t('req.text.kml'), t('req.text.sign'));
     return lines.join('\n');
   };
+  const planNumbers = (): Record<string, unknown> => {
+    const base = { ha: Math.round(area * 10) / 10 };
+    if (job === 'map' && plan) return { ...base, altura_m: height, solape_lateral: side, gsd_cm: plan.gsdCm, lineas: plan.lines.length, km: plan.totalPathM / 1000, minutos: plan.minutes, fotos: plan.photos };
+    if (job === 'seed') return { ...base, ...seed, total: seedPlan.total, cargas: seedPlan.loads, horas: seedPlan.hours };
+    if (job === 'spray') return { ...base, ...spray, total: sprayPlan.total, cargas: sprayPlan.loads, horas: sprayPlan.hours };
+    return base;
+  };
+  const log = (canal: 'whatsapp' | 'email' | 'compartir' | 'copiado', text: string) => {
+    if (job === 'vra') return;
+    void logDroneRequest(farmCase, { trabajo: job, ejecutor: mine ? 'propio' : 'vuelo_verde', canal, texto: text, plan: planNumbers(), droneId });
+  };
   const sendToProvider = async () => {
     const text = orderText();
     const wa = whatsappLink(PROVIDER_WHATSAPP, text);
     if (wa) {
       window.open(wa, '_blank', 'noopener');
+      log('whatsapp', text);
       return;
     }
     if (typeof navigator.share === 'function') {
       try {
         await navigator.share({ title: t('own.send'), text });
+        log('compartir', text);
         return;
       } catch {
         // cancelled: fall back to copying
@@ -116,7 +130,9 @@ function Services({ farmCase, strategy, own }: { farmCase: FarmCase; strategy: S
   };
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(orderText());
+      const text = orderText();
+      await navigator.clipboard.writeText(text);
+      log('copiado', text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -199,7 +215,7 @@ function Services({ farmCase, strategy, own }: { farmCase: FarmCase; strategy: S
             {!mine && (
               <span className="mt-1 block text-xs text-[#3B2F20]">
                 {VUELO_VERDE.name} · WhatsApp {VUELO_VERDE.phoneLabel} ·{' '}
-                <a className="font-bold text-[#9A5518] underline underline-offset-2" href={mailtoLink(t('own.mailSubject', { job: t(`ops.job.${job}`) }), orderText())}>
+                <a className="font-bold text-[#9A5518] underline underline-offset-2" href={mailtoLink(t('own.mailSubject', { job: t(`ops.job.${job}`) }), orderText())} onClick={() => log('email', orderText())}>
                   {VUELO_VERDE.email}
                 </a>{' '}
                 · {VUELO_VERDE.address}

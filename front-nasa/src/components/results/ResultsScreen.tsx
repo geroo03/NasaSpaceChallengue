@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, FileText, Loader2, Pencil, RefreshCw } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import { applyScenario, buildClimateProfile, hargreavesEt0, type Scenario } from '../../engine/analysis/climate';
@@ -19,6 +19,8 @@ import { VerificationPanel } from './VerificationPanel';
 import { AssumptionList, DiscardedList, SensitivityPanel } from './ContextPanels';
 import { FieldSheet } from './FieldSheet';
 import { IrrigationNeeds } from './IrrigationNeeds';
+import { logAnalysis } from '../../backend/cloudLog';
+import { useProfile } from '../../profile/ProfileContext';
 import { ForecastPanel } from './ForecastPanel';
 // Map tools (Geoman, Turf, file importers) load only when someone opens them.
 const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
@@ -195,6 +197,16 @@ function Results({
     }
   }, [waterSeries]);
   const south = data.series.lat < 0;
+
+  // Signed-in users: save this analysis (and the lot, once) to their history.
+  const { email } = useProfile();
+  const refForLog = computed.outcome?.strategies[0];
+  const bestForLog = computed.outcome?.strategies[1] ?? refForLog;
+  useEffect(() => {
+    if (!email || !refForLog || !bestForLog) return;
+    void logAnalysis(farmCase, refForLog, bestForLog);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per result, not per render
+  }, [email, refForLog?.id, bestForLog?.id, refForLog?.overall, bestForLog?.overall]);
 
   if (!computed.profile || !computed.outcome) {
     return (
