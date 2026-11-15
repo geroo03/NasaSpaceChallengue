@@ -47,6 +47,7 @@ React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet, geotiff.js + proj
 ## Ejecutar
 
 ```sh
+git clone https://github.com/geroo03/nasa field-shift-app && cd field-shift-app
 npm install
 npm run dev        # servidor local
 npm test           # motor, caso, verificación, HLS, coordenadas, orden de vuelo e importación de catastro/planos
