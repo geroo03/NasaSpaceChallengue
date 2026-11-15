@@ -12,6 +12,7 @@ import {
   findOverlaps,
   slotStartIndex,
   TEMPLATES,
+  assessSlot,
   type FarmContext,
 } from '../domain/rotations';
 import { syntheticSeries } from './fixtures';
@@ -157,5 +158,17 @@ describe('discarded alternatives', () => {
   it('reports outranked rotations when fewer slots than viable candidates are requested', () => {
     const { discarded } = compareStrategiesDetailed(south, farm, { currentTemplate: 'soy_maize_fallow', alternatives: 1 });
     expect(discarded.some((d) => d.reason === 'outranked')).toBe(true);
+  });
+});
+
+describe('soil water reserve', () => {
+  const slot = { crop: 'maize' as const, sowMonthSouth: 12, year: 1 as const };
+  it('uses 120 mm when no soil data is given and the soil value when it is', () => {
+    const generic = assessSlot(slot, south, farm);
+    const same = assessSlot(slot, south, { ...farm, soilPawMm: 120 });
+    const shallow = assessSlot(slot, south, { ...farm, soilPawMm: 60 });
+    expect(same.supplyMm).toBeCloseTo(generic.supplyMm, 6);
+    expect(shallow.supplyMm).toBeLessThan(generic.supplyMm);
+    expect(shallow.deficitRatio).toBeGreaterThanOrEqual(generic.deficitRatio);
   });
 });

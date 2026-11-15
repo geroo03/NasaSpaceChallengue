@@ -2,7 +2,8 @@ import { ArrowLeft, Printer } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import type { Scenario } from '../../engine/analysis/climate';
 import type { StrategyResult } from '../../engine/domain/rotations';
-import { RESOURCES, ringCentroid, type AssumptionKey, type FarmCase } from '../../case/model';
+import { RESOURCES, ringCentroid, toFarmContext, type AssumptionKey, type FarmCase } from '../../case/model';
+import { DEFAULT_PAW_MM } from '../../engine/domain/rotations';
 import type { LoadedSeries } from '../../case/climateSource';
 import { polygonAreaHa } from '../../imagery/flightOrder';
 import { CROP_COLORS, cropAbbr, primaryBtn, secondaryBtn, textOn } from '../ui';
@@ -70,6 +71,8 @@ export function FieldSheet({
   const terrain = farmCase.terrain;
   const today = new Date().toISOString().slice(0, 10);
   const used = new Set([...reference.timeline, ...option.timeline].map((c) => c.crop).filter((c): c is NonNullable<typeof c> => c !== null));
+  const { farm } = toFarmContext(farmCase);
+  const soilHere = farmCase.soil && Math.abs(farmCase.soil.lat - farmCase.lat) < 1e-4 && Math.abs(farmCase.soil.lon - farmCase.lon) < 1e-4 ? farmCase.soil : null;
   const declared = RESOURCES.filter((r) => farmCase.resources[r] !== 'unknown');
 
   return (
@@ -123,6 +126,16 @@ export function FieldSheet({
               {t('res.point', { lat: farmCase.lat.toFixed(4), lon: farmCase.lon.toFixed(4) })} · {t('sheet.noLot')}
             </p>
           )}
+        </Block>
+
+        <Block title={t('soil.title')}>
+          <p>
+            {t('sheet.soil', {
+              texture: farm.soilPawMm !== undefined && soilHere ? t(`soil.${soilHere.texture}`) : t('soil.unknown'),
+              mm: num(farm.soilPawMm ?? DEFAULT_PAW_MM),
+              src: t(farmCase.soilPawDeclaredMm !== null ? 'sheet.srcTest' : farm.soilPawMm !== undefined ? 'sheet.srcSoilgrids' : 'sheet.srcDefault'),
+            })}
+          </p>
         </Block>
 
         <Block title={t('sheet.climate')}>

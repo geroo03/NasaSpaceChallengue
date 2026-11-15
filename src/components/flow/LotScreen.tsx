@@ -5,6 +5,7 @@ import { EXAMPLE_LOT, PLACE_PRESETS, type FarmCase, type Slope, type SoilTexture
 import type { LotApi } from '../../case/lotApi';
 import { ChoiceCard, Collapsible, Notice, ProvTag, primaryBtn, secondaryBtn } from '../ui';
 import { MapPicker } from '../wizard/MapPicker';
+import { SoilCard } from '../lot/SoilCard';
 
 // Lot editor, importers and terrain tools load only when this step shows them.
 const LotStep = lazy(() => import('../lot/LotStep').then((m) => ({ default: m.LotStep })));
@@ -113,6 +114,8 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
       </p>
       </>
       )}
+
+      <SoilCard farmCase={value} lot={lot} onChange={onChange} />
 
       <Collapsible title={t('loc.details')}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">

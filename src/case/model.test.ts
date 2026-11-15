@@ -156,3 +156,26 @@ describe('example lot', () => {
     expect(snapshotFor(c.lat, c.lon)?.id).toBe('anatuya-example');
   });
 });
+
+describe('soil water reserve provenance', () => {
+  const soil = { source: 'soilgrids' as const, lat: base.lat, lon: base.lon, retrievedOn: '2026-11-14', pawMm: 94.2, sandPct: 37, clayPct: 20, siltPct: 43, socGkg: 15, texture: 'loam' as const, layers: [] };
+
+  it('says the 120 mm reserve is an assumption when there is no soil data', () => {
+    const { farm, assumptions } = toFarmContext(base);
+    expect(farm.soilPawMm).toBeUndefined();
+    expect(assumptions).toContain('soilReserveAssumed');
+  });
+
+  it('uses the SoilGrids water only at the point it was read for', () => {
+    const here = toFarmContext({ ...base, soil });
+    expect(here.farm.soilPawMm).toBe(94);
+    expect(here.assumptions).toContain('soilFromSoilgrids');
+    const moved = toFarmContext({ ...base, soil, lat: base.lat + 0.1 });
+    expect(moved.farm.soilPawMm).toBeUndefined();
+  });
+
+  it('prefers the farmer’s own soil test and flags a texture that disagrees with the map', () => {
+    expect(toFarmContext({ ...base, soil, soilPawDeclaredMm: 150 }).farm.soilPawMm).toBe(150);
+    expect(toFarmContext({ ...base, soil, soilTexture: 'sandy' }).assumptions).toContain('soilTextureDiffers');
+  });
+});

@@ -119,6 +119,11 @@ export interface FarmContext {
   irrigationMm: number;
   slope: 'flat' | 'gentle' | 'steep';
   priorities: Priorities;
+  /**
+   * Plant-available water of the root zone at full wetness (mm, ~0–100 cm), e.g. from SoilGrids
+   * field capacity − wilting point. Omitted → the generic 120 mm assumption.
+   */
+  soilPawMm?: number;
 }
 
 /** A translatable message: the UI owns the wording, the engine owns the facts. */
@@ -356,7 +361,7 @@ function monthAt(climate: ClimateProfile, index: number): MonthlyClimate {
 }
 
 const EFFECTIVE_RAIN = 0.75; // share of rainfall that infiltrates and is usable (USDA-SCS rule of thumb)
-const PAW_AT_FULL_WETNESS_MM = 120; // plant-available water in the root zone when GWETROOT ≈ 1 (loam, ~1 m)
+export const DEFAULT_PAW_MM = 120; // assumed plant-available water in the root zone when GWETROOT ≈ 1 (loam, ~1 m)
 
 export function assessSlot(slot: Slot, climate: ClimateProfile, farm: FarmContext, addedAsCover = false): SlotAssessment {
   const crop = getCrop(slot.crop);
@@ -381,7 +386,8 @@ export function assessSlot(slot: Slot, climate: ClimateProfile, farm: FarmContex
       frostRisk = Math.max(frostRisk, weight * mc.frostProb);
     }
   });
-  const stored = PAW_AT_FULL_WETNESS_MM * (startClimate.rootWetness ?? 0.4);
+  const paw = farm.soilPawMm !== undefined && Number.isFinite(farm.soilPawMm) ? Math.max(0, Math.min(400, farm.soilPawMm)) : DEFAULT_PAW_MM;
+  const stored = paw * (startClimate.rootWetness ?? 0.4);
   const irrigation = crop.role === 'cover' ? 0 : farm.irrigationMm;
   const supply = rain + stored + irrigation;
   const deficitRatio = demand > 0 ? clamp01((demand - supply) / demand) : 0;

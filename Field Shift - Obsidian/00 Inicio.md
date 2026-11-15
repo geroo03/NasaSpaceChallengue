@@ -37,7 +37,7 @@ Añatuya sigue siendo el territorio propuesto para el piloto. El punto predeterm
 | Producto | [[MVP y demo]] · [[Decisiones]] · [[Caso Añatuya]] · [[Preparación para Claude]] |
 | Evidencia | [[Inventario de datos]] · [[Protocolo reproducible]] · [[Matriz de evidencia]] · [[Entrevista Vuelo Verde]] |
 | Ciencia | [[Consigna oficial y encaje]] · [[Correcciones técnicas]] · [[Fuentes verificadas]] |
-| Presentación | [[Pitch y guion]] · [[Evaluación y prioridades]] · [[Entrega 2026]] · [[Prompt para Stitch]] |
+| Presentación | [[Criterios e innovación]] · [[Pitch y guion]] · [[Evaluación y prioridades]] · [[Entrega 2026]] · [[Prompt para Stitch]] |
 | Material recibido | [[GPT - original]] · [[Claude - original]] · [[Claude - actualizacion 2026-11-14]] |
 | Plantillas | [[Ficha de fuente]] · [[Entrevista de campo]] |
 

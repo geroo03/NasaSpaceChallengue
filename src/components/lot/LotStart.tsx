@@ -124,7 +124,7 @@ export function LotStart({
       onLotRef.current(ring, src?.kind === 'file' ? { ...src, edited: true } : { kind: 'drawn' });
     });
     polyLayer.current = layer;
-    m.fitBounds(layer.getBounds(), { padding: [28, 28] });
+    m.fitBounds(layer.getBounds(), { padding: [28, 28], animate: false });
   }, [polygon]);
 
   const startDraw = () => {

@@ -1,5 +1,6 @@
 import type { FarmContext, Priorities, TemplateId } from '../engine/domain/rotations';
 import { TEMPLATES } from '../engine/domain/rotations';
+import type { SoilSummary } from './soil';
 
 /**
  * What the farmer told us, kept separate from what the engine consumes.
@@ -59,6 +60,10 @@ export interface FarmCase {
   terrain: TerrainSummary | null;
   /** Who set the slope the engine uses. */
   slopeSource: 'declared' | 'srtm' | 'drone' | null;
+  /** Soil at the analysis point from SoilGrids (modelled 250 m map). */
+  soil: SoilSummary | null;
+  /** Plant-available water from the farmer's own soil test (mm in ~1 m); overrides the map. */
+  soilPawDeclaredMm: number | null;
 }
 
 /** Plain copy of TerrainStats kept in the case (no imports from the imagery layer). */
@@ -118,6 +123,8 @@ export const DEFAULT_CASE: FarmCase = {
   lotSource: null,
   terrain: null,
   slopeSource: null,
+  soil: null,
+  soilPawDeclaredMm: null,
 };
 
 export const PRESET_TEMPLATES: TemplateId[] = Object.values(TEMPLATES)
@@ -142,7 +149,7 @@ export function hasIrrigationAccess(c: FarmCase): boolean {
 }
 
 /** Keys of assumptions made while translating the case for the engine (shown in the UI). */
-export type AssumptionKey = 'slopeAssumed' | 'slopeFromSrtm' | 'slopeFromDrone' | 'irrigationAssumedZero' | 'irrigationUnknownMm' | 'irrigationPending' | 'referenceSubstitute' | 'soilNotUsed';
+export type AssumptionKey = 'soilReserveAssumed' | 'soilFromSoilgrids' | 'soilFromTest' | 'soilTextureDiffers' | 'slopeAssumed' | 'slopeFromSrtm' | 'slopeFromDrone' | 'irrigationAssumedZero' | 'irrigationUnknownMm' | 'irrigationPending' | 'referenceSubstitute' | 'soilNotUsed';
 
 export function toFarmContext(c: FarmCase): { farm: FarmContext; assumptions: AssumptionKey[] } {
   const assumptions: AssumptionKey[] = [];
@@ -165,8 +172,21 @@ export function toFarmContext(c: FarmCase): { farm: FarmContext; assumptions: As
     assumptions.push('irrigationAssumedZero');
   }
   if (c.currentChoice !== 'preset') assumptions.push('referenceSubstitute');
-  if (c.soilTexture !== 'unknown') assumptions.push('soilNotUsed');
-  return { farm: { irrigationMm, slope, priorities: c.priorities }, assumptions };
+  // Soil water reserve: the farmer's soil test, else the SoilGrids map at this point, else the generic 120 mm.
+  const soilHere = c.soil && Math.abs(c.soil.lat - c.lat) < 1e-4 && Math.abs(c.soil.lon - c.lon) < 1e-4 ? c.soil : null;
+  let soilPawMm: number | undefined;
+  if (c.soilPawDeclaredMm !== null && Number.isFinite(c.soilPawDeclaredMm)) {
+    soilPawMm = Math.max(0, Math.min(400, c.soilPawDeclaredMm));
+    assumptions.push('soilFromTest');
+  } else if (soilHere) {
+    soilPawMm = Math.round(soilHere.pawMm);
+    assumptions.push('soilFromSoilgrids');
+    if (c.soilTexture !== 'unknown' && c.soilTexture !== soilHere.texture) assumptions.push('soilTextureDiffers');
+  } else {
+    assumptions.push('soilReserveAssumed');
+    if (c.soilTexture !== 'unknown') assumptions.push('soilNotUsed');
+  }
+  return { farm: { irrigationMm, slope, priorities: c.priorities, ...(soilPawMm !== undefined ? { soilPawMm } : {}) }, assumptions };
 }
 
 export function matchingPreset(lat: number, lon: number): PlacePreset | undefined {

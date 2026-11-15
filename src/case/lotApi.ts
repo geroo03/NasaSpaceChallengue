@@ -9,4 +9,7 @@ export interface LotApi {
   /** Drops a drone DSM so the SRTM estimate is computed again. */
   dropDroneTerrain: () => void;
   setSlope: (s: Slope) => void;
+  /** SoilGrids read for the analysis point. */
+  soilStatus: 'idle' | 'loading' | 'error' | 'noData';
+  retrySoil: () => void;
 }

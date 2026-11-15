@@ -8,6 +8,7 @@ import { MethodScreen } from './components/MethodScreen';
 import { loadCase, saveCase, withDeclaredSlope, withLot, withTerrain, type FarmCase } from './case/model';
 import type { LotApi } from './case/lotApi';
 import { sampleSrtm } from './imagery/terrain';
+import { fetchSoil, SoilError } from './case/soil';
 import { loadLive, loadSaved, snapshotMatches } from './case/climateSource';
 import { useLang } from './i18n/LangContext';
 
@@ -60,6 +61,35 @@ export default function App() {
     };
   }, [ring, needsTerrain, terrainTry]);
 
+  // Soil at the analysis point from SoilGrids; re-read when the point moves (debounced for map clicks and typing).
+  const [soilStatus, setSoilStatus] = useState<LotApi['soilStatus']>('idle');
+  const [soilTry, setSoilTry] = useState(0);
+  const { lat, lon } = farmCase;
+  const soilMatches = farmCase.soil !== null && Math.abs(farmCase.soil.lat - lat) < 1e-4 && Math.abs(farmCase.soil.lon - lon) < 1e-4;
+  useEffect(() => {
+    if (soilMatches || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+      setSoilStatus('idle');
+      return;
+    }
+    const ctrl = new AbortController();
+    setSoilStatus('loading');
+    const timer = setTimeout(() => {
+      fetchSoil(lat, lon, ctrl.signal)
+        .then((soil) => {
+          setFarmCase((c) => (Math.abs(c.lat - lat) < 1e-4 && Math.abs(c.lon - lon) < 1e-4 ? { ...c, soil } : c));
+          setSoilStatus('idle');
+        })
+        .catch((err: unknown) => {
+          if (ctrl.signal.aborted) return;
+          setSoilStatus(err instanceof SoilError && err.code === 'noData' ? 'noData' : 'error');
+        });
+    }, 600);
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+  }, [lat, lon, soilMatches, soilTry]);
+
   const lot = useMemo<LotApi>(
     () => ({
       terrainStatus,
@@ -73,8 +103,10 @@ export default function App() {
           ...(c.slopeSource === 'drone' ? { slope: 'unknown' as const, slopeSource: null } : {}),
         })),
       setSlope: (s) => setFarmCase((c) => withDeclaredSlope(c, s)),
+      soilStatus,
+      retrySoil: () => setSoilTry((n) => n + 1),
     }),
-    [terrainStatus],
+    [terrainStatus, soilStatus],
   );
 
   const setView = useCallback((v: FlowView) => {

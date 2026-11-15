@@ -430,7 +430,7 @@ function Results({
         </Collapsible>
         <Collapsible title={t('sources.title')}>
           <ul className="list-disc pl-5 space-y-1 text-sm">
-            {['source.power', 'source.srtm', 'source.gibs', 'source.fao'].map((k) => (
+            {['source.power', 'source.srtm', 'source.soilgrids', 'source.gibs', 'source.fao'].map((k) => (
               <li key={k}>{t(k)}</li>
             ))}
           </ul>
