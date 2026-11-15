@@ -111,6 +111,15 @@ No se usaron logos, banderas ni identificadores de misiones de la NASA. Sugerenc
 
 ## 6. Demo: 7 diapositivas (si se elige ese formato)
 
+**Deck armado (15/11):** https://claude.ai/artifact/VJFey2JDWo8RF8AK9f4syH. Es privado: el formulario pide un enlace público sin login. Para subirlo:
+1. Abrir el deck y exportarlo a PDF (menú Compartir › Exportar).
+2. Subir el PDF a Google Drive y compartirlo con «Cualquier persona con el enlace».
+3. Probar el enlace en una ventana de incógnito.
+
+Opcional: copiar el PDF a `public/field-shift-pitch.pdf` del repo. Queda en https://field-shift-lab.vercel.app/field-shift-pitch.pdf.
+
+Contenido del deck (el borrador de abajo quedó como referencia):
+
 1. **La pregunta:** «Poder tomar decisiones antes de sembrar» (Juan Pablo Suárez Ríos, Vuelo Verde). En secano, en Santiago del Estero, todo depende de la lluvia.
 2. **Tu lote:** captura del lote de ejemplo con suelo (94 mm) y relieve (SRTM). Mensaje: el lote del productor, no un promedio regional.
 3. **Tus opciones:** hoy contra la alternativa, con índice, meses sin cultivo, por qué y qué tener en cuenta.
@@ -120,6 +129,8 @@ No se usaron logos, banderas ni identificadores de misiones de la NASA. Sugerenc
 7. **Datos y honestidad:** NASA POWER, SRTM, HLS, GIBS y CMR, más SoilGrids y NOAA. Qué es dato, qué es modelo y qué falta: un lote real y la calibración. Próximo paso: el piloto en Añatuya.
 
 ## 7. Video de 30 s (si se elige ese formato; subtítulos en inglés obligatorios)
+
+Guion con tomas y subtítulos `.srt` listos en [docs/video/](video/GUION_VIDEO_30S.md).
 
 | Tiempo | Imagen | Locución (ES) | Subtítulo (EN) |
 | --- | --- | --- | --- |

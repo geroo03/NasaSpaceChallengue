@@ -1,0 +1,23 @@
+1
+00:00:00,000 --> 00:00:04,000
+En Santiago del Estero, la campaña se decide antes de sembrar.
+
+2
+00:00:04,000 --> 00:00:10,000
+Cargás tu lote y Field Shift lee su clima,
+su relieve y su suelo con datos de la NASA.
+
+3
+00:00:10,000 --> 00:00:17,000
+Compara tu rotación con alternativas y te muestra
+qué pasó en tu lote en años Niño y Niña.
+
+4
+00:00:17,000 --> 00:00:24,000
+Te avisa del calor en la floración
+y del agua que vas a tener al sembrar.
+
+5
+00:00:24,000 --> 00:00:30,000
+Y te dice qué revisar y cuándo: el satélite da la historia;
+el dron de Vuelo Verde confirma.
