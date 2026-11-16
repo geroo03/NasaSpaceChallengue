@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { loadProfile, saveProfile, type Profile } from './profile';
 import { cloudEnabled, onSessionChange, signOut } from '../backend/supabase';
 import { loadRemoteProfile, saveRemoteProfile } from '../backend/api';
+import { clearCloudCaches } from '../backend/cloudLog';
 
 interface Ctx {
   profile: Profile | null;
@@ -102,6 +103,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await signOut();
+    clearCloudCaches();
     setEmail(null);
     setDroneId(null);
     setLocal(null);
