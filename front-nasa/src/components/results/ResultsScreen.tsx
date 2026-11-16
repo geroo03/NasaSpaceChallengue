@@ -22,6 +22,7 @@ import { IrrigationNeeds } from './IrrigationNeeds';
 import { logAnalysis } from '../../backend/cloudLog';
 import { useProfile } from '../../profile/ProfileContext';
 import { ForecastPanel } from './ForecastPanel';
+import { ScreenGuide, SectionTip } from '../guide/Guide';
 // Map tools (Geoman, Turf, file importers) load only when someone opens them.
 const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
 const DroneRequestPanel = lazy(() => import('../lot/DroneRequestPanel').then((m) => ({ default: m.DroneRequestPanel })));
@@ -353,6 +354,8 @@ function Results({
       />
       )}
 
+      <ScreenGuide id="results" steps={4} />
+
       {/* 2. Which year */}
       <fieldset>
         <legend className="text-sm font-bold text-[#283618]">{t('year.q')}</legend>
@@ -388,6 +391,7 @@ function Results({
       </fieldset>
 
       {/* 3. The comparison */}
+      <SectionTip id="compare" />
       {alts.length === 0 && <Notice tone="warn">{t('cmp.none')}</Notice>}
       {alts.length > 0 && alts.length < 3 && <Notice tone="warn">{t('cmp.fewer', { n: alts.length })}</Notice>}
       <section aria-labelledby="hero-h" className="space-y-4">
@@ -445,10 +449,12 @@ function Results({
       </section>
 
       {/* 3a. What the next week brings at the lot */}
+      <SectionTip id="forecast" />
       <ForecastPanel key={`fc-${farmCase.lat},${farmCase.lon}`} lat={farmCase.lat} lon={farmCase.lon} />
 
       {/* 3b. Heat and water alerts from the real record */}
       <section aria-labelledby="risk-h" className="space-y-4">
+        <SectionTip id="risk" />
         <div>
           <h2 id="risk-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
             {t('risk.title')}
@@ -489,6 +495,7 @@ function Results({
       </section>
 
       {/* 4. The field, month by month */}
+      <SectionTip id="field" />
       <Suspense fallback={null}>
         <EcostressPanel key={`${farmCase.lat},${farmCase.lon}`} lat={farmCase.lat} lon={farmCase.lon} />
       </Suspense>
@@ -517,6 +524,7 @@ function Results({
       </section>
 
       {/* 5. Before sowing: what to check, and the drone flight that checks it */}
+      <SectionTip id="verify" />
       <section aria-labelledby="verify-h" className="space-y-4">
         <h2 id="verify-h" className="text-xl sm:text-2xl font-bold text-[#283618]">
           {t('verify.titleShort')}
@@ -543,6 +551,7 @@ function Results({
       </section>
 
       {/* 5b. Drone work on this rotation's calendar */}
+      <SectionTip id="drones" />
       <Suspense fallback={null}>
         <DroneServices farmCase={farmCase} strategy={explored} />
       </Suspense>

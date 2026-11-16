@@ -6,6 +6,7 @@ import type { LotApi } from '../../case/lotApi';
 import { ChoiceCard, Collapsible, Notice, ProvTag, primaryBtn, secondaryBtn } from '../ui';
 import { SoilCard } from '../lot/SoilCard';
 import { MyLots } from '../lot/MyLots';
+import { ScreenGuide } from '../guide/Guide';
 import { useProfile } from '../../profile/ProfileContext';
 import { openRemoteLot, rememberLot } from '../../backend/cloudLog';
 import { currentSession } from '../../backend/supabase';
@@ -49,6 +50,7 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
         <h1 className="headline-display headline-display--bold text-3xl sm:text-4xl text-[#283618]">{t('loc.q')}</h1>
         <p className="mt-2 text-[#3B2F20]/90">{t('loc.help')}</p>
       </header>
+      <ScreenGuide id="lot" steps={4} />
       {email && <MyLots onOpen={openSaved} activeId={openedId} />}
       {!isExample && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border-2 border-dashed border-[#DDA15E] bg-[#FEFAE0] p-4">
