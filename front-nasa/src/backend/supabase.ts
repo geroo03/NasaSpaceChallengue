@@ -51,7 +51,7 @@ export interface GuideProgress {
   off: boolean;
   seen: string[];
 }
-const GUIDE_META = 'agrofield_guide';
+const GUIDE_META = 'agrofield_guide_v2';
 
 export async function loadGuideProgress(): Promise<GuideProgress | null> {
   const sb = supabase();

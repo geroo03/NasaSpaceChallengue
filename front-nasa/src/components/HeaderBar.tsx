@@ -49,7 +49,7 @@ export function HeaderBar({ screen, onNavigate }: { screen: Screen; onNavigate: 
             className="inline-flex items-center gap-1.5 rounded-lg border border-[#FEFAE0]/30 px-2.5 py-1 text-xs font-bold text-[#FEFAE0] hover:bg-[#FEFAE0]/10 focus-visible:outline-2 focus-visible:outline-[#DDA15E]"
           >
             <HelpCircle aria-hidden className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('guide.button')}</span>
+            <span>{t('guide.button')}</span>
           </button>
           <button
             type="button"

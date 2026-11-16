@@ -9,7 +9,8 @@ import { loadGuideProgress, saveGuideProgress } from '../../backend/supabase';
  * follows the user across devices; without a session it is kept on this device. "Guide" in the header
  * shows everything again.
  */
-const KEY = 'agrofield.guide.v1';
+// v2: guides changed with the demo mode; everyone sees them once more.
+const KEY = 'agrofield.guide.v2';
 
 interface GuideApi {
   isOpen: (id: string) => boolean;

@@ -121,6 +121,8 @@ self.addEventListener('fetch', (event) => {
   }
   if (url.origin === self.location.origin) {
     if (url.pathname.startsWith('/api/')) return; // backend: always live
+    // Tutorial videos: Safari asks for byte ranges (206), which the Cache API can't store. Straight to the network.
+    if (url.pathname.startsWith('/tutorial/') || request.headers.has('range')) return;
     if (url.pathname.startsWith('/data/')) event.respondWith(staleWhileRevalidate(request));
     else event.respondWith(cacheFirst(request)); // hashed assets, icons, brand, manifest
     return;
