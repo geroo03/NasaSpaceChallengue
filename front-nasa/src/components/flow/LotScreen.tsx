@@ -5,6 +5,11 @@ import { EXAMPLE_LOT, PLACE_PRESETS, type FarmCase, type Slope, type SoilTexture
 import type { LotApi } from '../../case/lotApi';
 import { ChoiceCard, Collapsible, Notice, ProvTag, primaryBtn, secondaryBtn } from '../ui';
 import { SoilCard } from '../lot/SoilCard';
+import { MyLots } from '../lot/MyLots';
+import { useProfile } from '../../profile/ProfileContext';
+import { openRemoteLot, rememberLot } from '../../backend/cloudLog';
+import { currentSession } from '../../backend/supabase';
+import type { RemoteLot } from '../../backend/api';
 
 // Lot editor, importers and terrain tools load only when this step shows them.
 // The point-mode map (Leaflet) loads only when someone chooses "just a point".
@@ -27,12 +32,24 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
   const soils: SoilTexture[] = ['sandy', 'loam', 'clay', 'unknown'];
   const [mode, setMode] = useState<'lot' | 'point'>('lot');
   const isExample = value.lotSource?.kind === 'example';
+  const { email } = useProfile();
+  const [openedId, setOpenedId] = useState<string | null>(null);
+  const openSaved = (remote: RemoteLot) => {
+    const { ring, source, soilPawDeclaredMm } = openRemoteLot(remote);
+    setMode('lot');
+    lot.setLot(ring, source, true);
+    if (soilPawDeclaredMm !== null) onChange({ soilPawDeclaredMm });
+    setOpenedId(remote.id);
+    void currentSession().then((s) => s && rememberLot(s.user.id, ring, remote.id));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   return (
     <div className="fs-enter max-w-5xl mx-auto space-y-5">
       <header>
         <h1 className="headline-display headline-display--bold text-3xl sm:text-4xl text-[#283618]">{t('loc.q')}</h1>
         <p className="mt-2 text-[#3B2F20]/90">{t('loc.help')}</p>
       </header>
+      {email && <MyLots onOpen={openSaved} activeId={openedId} />}
       {!isExample && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border-2 border-dashed border-[#DDA15E] bg-[#FEFAE0] p-4">
           <Sparkles aria-hidden className="h-6 w-6 shrink-0 text-[#BC6C25]" />

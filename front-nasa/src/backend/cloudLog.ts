@@ -1,4 +1,4 @@
-import type { FarmCase } from '../case/model';
+import type { FarmCase, LotSource } from '../case/model';
 import type { StrategyResult } from '../engine/domain/rotations';
 import { polygonAreaHa } from '../imagery/flightOrder';
 import { ringCentroid } from '../case/model';
@@ -52,9 +52,11 @@ export function lotFingerprint(ring: [number, number][]): string {
   return open.map(([a, b]) => `${a.toFixed(6)},${b.toFixed(6)}`).join(';');
 }
 
-/** [lat, lon] ring of a lot stored as GeoJSON (lon, lat). */
+/** [lat, lon] open ring (like a drawn lot) of a lot stored as GeoJSON (lon, lat, closed). */
 export function remoteRing(l: Pick<RemoteLot, 'geometry'>): [number, number][] {
-  return (l.geometry.coordinates[0] ?? []).map(([lon, lat]) => [lat, lon] as [number, number]);
+  const ring = (l.geometry.coordinates[0] ?? []).map(([lon, lat]) => [lat, lon] as [number, number]);
+  const [f, z] = [ring[0], ring[ring.length - 1]];
+  return ring.length > 3 && f && z && f[0] === z[0] && f[1] === z[1] ? ring.slice(0, -1) : ring;
 }
 
 export function lotPayload(c: FarmCase): LotPayload | null {
@@ -93,9 +95,31 @@ function remember(uid: string, key: string, id: string | null) {
   writeMap(lotsKey(uid), localStorage, map);
 }
 
+/**
+ * What the app needs to reopen a saved lot in the normal flow, as if it had been imported:
+ * the boundary, where it came from (the saved name travels as the parcel name) and a soil test
+ * the farmer had declared for it.
+ */
+export function openRemoteLot(l: RemoteLot): { ring: [number, number][]; source: LotSource; soilPawDeclaredMm: number | null } {
+  const ring = remoteRing(l);
+  const source: LotSource =
+    l.origen === 'ejemplo' ? { kind: 'example' }
+      : l.origen === 'dibujo' ? { kind: 'drawn', parcel: l.nombre }
+        : { kind: 'file', format: l.origen, fileName: l.nombre, parcel: l.nombre };
+  const declared = l.fuente_suelo === 'analisis' && l.agua_util_mm !== null && Number.isFinite(Number(l.agua_util_mm)) ? Number(l.agua_util_mm) : null;
+  return { ring, source, soilPawDeclaredMm: declared };
+}
+
 /** Records the remote id of a boundary (e.g. a lot just opened from "My fields"). */
 export function rememberLot(uid: string, ring: [number, number][], id: string): void {
   remember(uid, lotFingerprint(ring), id);
+}
+
+/** Forgets every local mapping to a lot deleted from the cloud. */
+export function forgetLot(uid: string, id: string): void {
+  const map = readMap(lotsKey(uid), localStorage);
+  for (const k of Object.keys(map)) if (map[k] === id) delete map[k];
+  writeMap(lotsKey(uid), localStorage, map);
 }
 
 /**
