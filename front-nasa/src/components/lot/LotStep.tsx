@@ -7,8 +7,9 @@ import { DroneRequestPanel } from './DroneRequestPanel';
 import { Collapsible } from '../ui';
 
 /** Screen 1, lot-first: boundary → land data → optional drone survey request. Lazy-loaded (Leaflet, Geoman, importers). */
-export function LotStep({ farmCase, lot }: { farmCase: FarmCase; lot: LotApi }) {
+export function LotStep({ farmCase, lot, readOnly = false }: { farmCase: FarmCase; lot: LotApi; readOnly?: boolean }) {
   const { t } = useLang();
+  if (readOnly) return <TerrainCard farmCase={farmCase} lot={lot} />;
   return (
     <div className="space-y-5">
       <LotStart

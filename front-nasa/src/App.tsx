@@ -6,7 +6,7 @@ import { StepNav, type FlowView } from './components/flow/StepNav';
 import { FieldStatus } from './components/flow/FieldStatus';
 import { ResultsScreen, type LoadState } from './components/results/ResultsScreen';
 import { MethodScreen } from './components/MethodScreen';
-import { applyPatch, loadCase, saveCase, withDeclaredSlope, withLot, withTerrain, type FarmCase } from './case/model';
+import { applyPatch, EXAMPLE_LOT, loadCase, saveCase, withDeclaredSlope, withLot, withTerrain, type FarmCase } from './case/model';
 import type { LotApi } from './case/lotApi';
 import { sampleSrtm } from './imagery/terrain';
 import { fetchSoil, SoilError } from './case/soil';
@@ -164,8 +164,13 @@ export default function App() {
     [farmCase.lat, farmCase.lon, farmCase.years, setView],
   );
 
-  const { profile, guest, editing } = useProfile();
+  const { profile, guest, editing, demo } = useProfile();
   const showLogin = editing || (!profile && !guest);
+  // Demo (backend on, not signed in): the example field is the only field.
+  const isExampleLot = farmCase.lotSource?.kind === 'example';
+  useEffect(() => {
+    if (demo && !isExampleLot) setFarmCase((c) => withLot(c, EXAMPLE_LOT, { kind: 'example' }, { movePoint: true }));
+  }, [demo, isExampleLot]);
 
   const navigate = (s: Screen) => {
     setScreen(s);

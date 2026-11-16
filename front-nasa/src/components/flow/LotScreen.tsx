@@ -7,6 +7,7 @@ import { ChoiceCard, Collapsible, Notice, ProvTag, primaryBtn, secondaryBtn } fr
 import { SoilCard } from '../lot/SoilCard';
 import { MyLots } from '../lot/MyLots';
 import { ScreenGuide } from '../guide/Guide';
+import { DemoBanner } from '../DemoLock';
 import { useProfile } from '../../profile/ProfileContext';
 import { openRemoteLot, rememberLot } from '../../backend/cloudLog';
 import { currentSession } from '../../backend/supabase';
@@ -33,7 +34,7 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
   const soils: SoilTexture[] = ['sandy', 'loam', 'clay', 'unknown'];
   const [mode, setMode] = useState<'lot' | 'point'>('lot');
   const isExample = value.lotSource?.kind === 'example';
-  const { email } = useProfile();
+  const { email, demo } = useProfile();
   const [openedId, setOpenedId] = useState<string | null>(null);
   const openSaved = (remote: RemoteLot) => {
     const { ring, source, soilPawDeclaredMm } = openRemoteLot(remote);
@@ -48,11 +49,12 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
     <div className="fs-enter max-w-5xl mx-auto space-y-5">
       <header>
         <h1 className="headline-display headline-display--bold text-3xl sm:text-4xl text-[#283618]">{t('loc.q')}</h1>
-        <p className="mt-2 text-[#3B2F20]/90">{t('loc.help')}</p>
+        <p className="mt-2 text-[#3B2F20]/90">{t(demo ? 'loc.helpDemo' : 'loc.help')}</p>
       </header>
+      {demo && <DemoBanner />}
       <ScreenGuide id="lot" steps={4} video="lote" />
       {email && <MyLots onOpen={openSaved} activeId={openedId} />}
-      {!isExample && (
+      {!isExample && !demo && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border-2 border-dashed border-[#DDA15E] bg-[#FEFAE0] p-4">
           <Sparkles aria-hidden className="h-6 w-6 shrink-0 text-[#BC6C25]" />
           <p className="flex-1 text-sm text-[#3B2F20]">
@@ -72,7 +74,7 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
         </div>
       )}
       {isExample && <Notice>{t('example.loaded')}</Notice>}
-      <div role="radiogroup" aria-label={t('loc.mode.label')} className="grid gap-3 sm:grid-cols-2">
+      {!demo && <div role="radiogroup" aria-label={t('loc.mode.label')} className="grid gap-3 sm:grid-cols-2">
         <ChoiceCard
           selected={mode === 'lot'}
           onSelect={() => setMode('lot')}
@@ -87,9 +89,9 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
           title={t('loc.mode.point')}
           description={t('loc.mode.point.d')}
         />
-      </div>
+      </div>}
 
-      {mode === 'lot' ? (
+      {mode === 'lot' || demo ? (
         <Suspense
           fallback={
             <p role="status" className="flex items-center gap-2 text-sm">
@@ -97,7 +99,7 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
             </p>
           }
         >
-          <LotStep farmCase={value} lot={lot} />
+          <LotStep farmCase={value} lot={lot} readOnly={demo} />
         </Suspense>
       ) : (
       <>
@@ -139,7 +141,7 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
 
       <SoilCard farmCase={value} lot={lot} onChange={onChange} />
 
-      <Collapsible title={t('loc.details')}>
+      {!demo && <Collapsible title={t('loc.details')}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
           <label className="block">
             <span className="block text-xs font-bold mb-1">{t('loc.lat')}</span>
@@ -179,7 +181,7 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
             />
           </label>
         </div>
-      </Collapsible>
+      </Collapsible>}
       {!coordsValid(value) && <Notice tone="error">{t('loc.invalid')}</Notice>}
 
       <Collapsible title={t('loc.terrain')}>

@@ -14,6 +14,8 @@ interface Ctx {
   setEditing: (e: boolean) => void;
   /** Backend configured (Supabase env present). */
   cloud: boolean;
+  /** Backend on and nobody signed in: only the example field can be explored. */
+  demo: boolean;
   /** Signed-in email, when there is a session. */
   email: string | null;
   /** Remote id of the active drone, for linking requests. */
@@ -111,7 +113,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ProfileCtx.Provider value={{ profile, guest, setProfile, setGuest, editing, setEditing, cloud, email, droneId, syncError, logout }}>
+    <ProfileCtx.Provider value={{ profile, guest, setProfile, setGuest, editing, setEditing, cloud, demo: cloud && !email, email, droneId, syncError, logout }}>
       {children}
     </ProfileCtx.Provider>
   );

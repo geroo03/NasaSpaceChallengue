@@ -23,6 +23,7 @@ import { logAnalysis } from '../../backend/cloudLog';
 import { useProfile } from '../../profile/ProfileContext';
 import { ForecastPanel } from './ForecastPanel';
 import { ScreenGuide, SectionTip } from '../guide/Guide';
+import { DemoBanner } from '../DemoLock';
 // Map tools (Geoman, Turf, file importers) load only when someone opens them.
 const LotImagery = lazy(() => import('./LotImagery').then((m) => ({ default: m.LotImagery })));
 const DroneRequestPanel = lazy(() => import('../lot/DroneRequestPanel').then((m) => ({ default: m.DroneRequestPanel })));
@@ -206,7 +207,7 @@ function Results({
   const south = data.series.lat < 0;
 
   // Signed-in users: save this analysis (and the lot, once) to their history.
-  const { email } = useProfile();
+  const { email, demo } = useProfile();
   const refForLog = computed.outcome?.strategies[0];
   const bestForLog = computed.outcome?.strategies[1] ?? refForLog;
   useEffect(() => {
@@ -354,6 +355,7 @@ function Results({
       />
       )}
 
+      {demo && <DemoBanner />}
       <ScreenGuide id="results" steps={4} video="opciones" />
 
       {/* 2. Which year */}

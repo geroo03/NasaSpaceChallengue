@@ -6,6 +6,8 @@ import { StepCrop } from './StepCrop';
 import { IrrigationQuestion, MachineryList } from './StepResources';
 import { StepPriorities } from './StepPriorities';
 import { ScreenGuide } from '../guide/Guide';
+import { useProfile } from '../../profile/ProfileContext';
+import { DemoBanner } from '../DemoLock';
 
 function Section({ n, title, help, children }: { n: number; title: string; help: string; children: React.ReactNode }) {
   return (
@@ -35,12 +37,14 @@ export function FarmScreen({
   onRun: () => void;
 }) {
   const { t } = useLang();
+  const { demo } = useProfile();
   return (
     <div className="fs-enter max-w-3xl mx-auto space-y-10">
       <header>
         <h1 className="headline-display headline-display--bold text-3xl sm:text-4xl text-[#283618]">{t('farm.title')}</h1>
         <p className="mt-2 text-[#3B2F20]/90">{t('farm.help')}</p>
       </header>
+      {demo && <DemoBanner />}
       <ScreenGuide id="farm" steps={3} video="campana" />
       <Section n={1} title={t('crop.q')} help={t('crop.help')}>
         <StepCrop value={value} onChange={onChange} />

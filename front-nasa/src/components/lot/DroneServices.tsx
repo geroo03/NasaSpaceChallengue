@@ -15,6 +15,7 @@ import { Notice, primaryBtn, secondaryBtn } from '../ui';
 
 type Tab = DroneJob | 'vra';
 import { VUELO_VERDE, mailtoLink } from '../../case/provider';
+import { DemoLock } from '../DemoLock';
 const PROVIDER_WHATSAPP = VUELO_VERDE.whatsapp;
 const JOBS: { id: Tab; Icon: typeof MapIcon }[] = [
   { id: 'map', Icon: MapIcon },
@@ -66,7 +67,7 @@ export function DroneServices(props: { farmCase: FarmCase; strategy: StrategyRes
 
 function Services({ farmCase, strategy, own }: { farmCase: FarmCase; strategy: StrategyResult; own: OwnDrone | null }) {
   const { t, num, months, crop } = useLang();
-  const { setEditing, droneId } = useProfile();
+  const { setEditing, droneId, demo } = useProfile();
   const [job, setJob] = useState<Tab>('map');
   const [height, setHeight] = useState(MAPPING_DEFAULTS.heightM);
   const [side, setSide] = useState(Math.round(MAPPING_DEFAULTS.sideOverlap * 100));
@@ -304,7 +305,8 @@ function Services({ farmCase, strategy, own }: { farmCase: FarmCase; strategy: S
               </div>
             )}
 
-            {job !== 'vra' && (<>
+            {job !== 'vra' && demo && <DemoLock what={t('demo.what.send')} />}
+            {job !== 'vra' && !demo && (<>
             <div className="flex flex-wrap gap-2">
               {mine ? (
                 <button type="button" className={primaryBtn} onClick={() => void copy()}>

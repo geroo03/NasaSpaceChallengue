@@ -27,9 +27,9 @@ function Num({ label, value, onChange, unit }: { label: string; value: number; o
  * Without it, or if the visitor prefers, a profile kept on this device only.
  */
 export function LoginScreen() {
-  const { cloud, email, profile } = useProfile();
-  const [localOnly, setLocalOnly] = useState(false);
-  if (cloud && !email && !profile && !localOnly) return <EmailStep onLocal={() => setLocalOnly(true)} />;
+  const { cloud, email } = useProfile();
+  // With the backend on, using the app with your own data needs an account; without one, the demo.
+  if (cloud && !email) return <EmailStep />;
   return <ProfileForm />;
 }
 
@@ -86,7 +86,7 @@ function Shell({ children, onSubmit, onClose, labelledBy }: { children: ReactNod
   );
 }
 
-function EmailStep({ onLocal }: { onLocal: () => void }) {
+function EmailStep() {
   const { t } = useLang();
   const { setGuest, setEditing } = useProfile();
   const leave = () => {
@@ -107,6 +107,7 @@ function EmailStep({ onLocal }: { onLocal: () => void }) {
       <div>
         <h2 id="mail-h" className="text-2xl font-bold text-[#283618]">{t('login.title')}</h2>
         <p className="mt-1 text-sm text-[#3B2F20]">{t('login.mail.help')}</p>
+        <p className="mt-2 text-xs text-[#3B2F20]/85">{t('login.demoHelp')}</p>
       </div>
       {state === 'sent' ? (
         <p role="status" className="rounded-xl border-2 border-[#606C38] bg-[#E3EBDD] p-4 text-sm text-[#283618]">
@@ -127,10 +128,7 @@ function EmailStep({ onLocal }: { onLocal: () => void }) {
           </button>
         )}
         <button type="button" className={secondaryBtn} onClick={leave}>
-          {t('login.guest')}
-        </button>
-        <button type="button" className="text-sm font-bold text-[#9A5518] underline underline-offset-2" onClick={onLocal}>
-          {t('login.mail.local')}
+          {t('login.demo')}
         </button>
       </div>
     </Shell>

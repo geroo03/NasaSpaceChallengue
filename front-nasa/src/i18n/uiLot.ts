@@ -1,6 +1,20 @@
 /** Strings for the lot-first flow: lot editor, terrain data and drone survey request (ES argentino / EN). */
 
 export const lotEs: Record<string, string> = {
+  "loc.helpDemo": "En la demo trabajás con un lote de ejemplo real: una franja de 52 ha cerca de Añatuya. Mirá qué datos salen del lote y seguí con tu campaña.",
+  "demo.title": "Estás viendo la demo",
+  "demo.text": "Sin cuenta podés recorrer todo con un lote de ejemplo cerca de Añatuya, para ver cómo funciona. Para cargar tu propio campo, guardar tus lotes y enviar pedidos, ingresá con tu mail.",
+  "demo.cta": "Ingresar con mi mail",
+  "demo.signIn": "Ingresar",
+  "demo.lock": "En la demo no se puede {what}. Ingresá con tu mail para usarlo.",
+  "demo.what.dsm": "cargar el relevamiento de tu dron",
+  "demo.what.vigor": "cargar tu mapa de vigor",
+  "demo.what.send": "enviar ni copiar pedidos",
+  "demo.what.ecostress": "consultar ECOSTRESS en vivo ni cargar archivos",
+  "demo.what.plan": "cargar tu plano",
+  "demo.what.ortho": "cargar tu ortomosaico",
+  "login.demo": "Ver la demo con un lote de ejemplo",
+  "login.demoHelp": "Sin cuenta solo podés ver la demo con el lote de ejemplo. Para usar tu campo necesitás ingresar.",
   "guide.close": "Cerrar la guía",
   "guide.closeTip": "Cerrar el consejo",
   "guide.ok": "Entendido",
@@ -516,6 +530,20 @@ export const lotEs: Record<string, string> = {
 };
 
 export const lotEn: Record<string, string> = {
+  "loc.helpDemo": "In the demo you work with a real example field: a 52 ha strip near Añatuya. See what the app reads from the field, then continue with your season.",
+  "demo.title": "You're viewing the demo",
+  "demo.text": "Without an account you can explore everything with an example field near Añatuya, to see how it works. To load your own field, save your fields and send requests, sign in with your email.",
+  "demo.cta": "Sign in with my email",
+  "demo.signIn": "Sign in",
+  "demo.lock": "In the demo you can't {what}. Sign in with your email to use it.",
+  "demo.what.dsm": "load your drone survey",
+  "demo.what.vigor": "load your vigour map",
+  "demo.what.send": "send or copy requests",
+  "demo.what.ecostress": "query ECOSTRESS live or upload files",
+  "demo.what.plan": "load your plan",
+  "demo.what.ortho": "load your orthomosaic",
+  "login.demo": "See the demo with an example field",
+  "login.demoHelp": "Without an account you can only see the demo with the example field. To use your own field, sign in.",
   "guide.close": "Close the guide",
   "guide.closeTip": "Close the tip",
   "guide.ok": "Got it",

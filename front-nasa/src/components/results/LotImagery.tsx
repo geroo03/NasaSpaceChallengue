@@ -13,6 +13,8 @@ import { LotDocsPanel } from './LotDocsPanel';
 import { planFieldChecks } from '../../case/verification';
 import type { StrategyResult } from '../../engine/domain/rotations';
 import { Notice, ProvTag, secondaryBtn } from '../ui';
+import { useProfile } from '../../profile/ProfileContext';
+import { DemoLock } from '../DemoLock';
 
 type Overlay = 'ndvi' | 'smap';
 type Base = 'hls' | 'esri';
@@ -68,6 +70,9 @@ export function LotImagery({
   strategy: StrategyResult;
 }) {
   const { t, months, crop, lang, num } = useLang();
+  const { demo } = useProfile();
+  const demoRef = useRef(demo);
+  demoRef.current = demo;
   const host = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const hlsLayer = useRef<L.TileLayer | null>(null);
@@ -102,7 +107,7 @@ export function LotImagery({
     L.control.scale({ metric: true, imperial: false }).addTo(m);
     marker.current = L.circleMarker([lat, lon], { radius: 7, color: '#BC6C25', weight: 3, fillColor: '#FEFAE0', fillOpacity: 0.9, pmIgnore: true }).addTo(m);
     // Drawing like AgroCordS: Geoman polygon tool with finish / undo / cancel actions on the map.
-    m.pm.addControls({
+    if (!demoRef.current) m.pm.addControls({
       position: 'topleft',
       drawPolygon: true,
       drawMarker: false,
@@ -396,7 +401,7 @@ export function LotImagery({
             </p>
           )}
           <div className="mt-4">
-            <LotDocsPanel onLot={(ring, src) => { setLotErr(null); onLot(ring, src); }} />
+            {demo ? <DemoLock what={t('demo.what.plan')} /> : <LotDocsPanel onLot={(ring, src) => { setLotErr(null); onLot(ring, src); }} />}
           </div>
         </div>
 
@@ -465,7 +470,7 @@ export function LotImagery({
       <div className="rounded-xl border border-[#DECFA7] bg-[#FEFAE0] p-4 space-y-3">
         <h3 className="font-bold text-[#283618]">{t('drone.title')}</h3>
         <p className="text-sm text-[#3B2F20]/90">{t('drone.help')}</p>
-        <label className={`${secondaryBtn} cursor-pointer w-fit`}>
+        {demo ? <DemoLock what={t('demo.what.ortho')} /> : <label className={`${secondaryBtn} cursor-pointer w-fit`}>
           {droneBusy ? <Loader2 aria-hidden className="h-4 w-4 animate-spin motion-reduce:animate-none" /> : <Upload aria-hidden className="h-4 w-4" />}
           {droneBusy ? t('drone.reading') : t('drone.upload')}
           <input
@@ -478,7 +483,7 @@ export function LotImagery({
               e.target.value = '';
             }}
           />
-        </label>
+        </label>}
         <p className="text-xs text-[#3B2F20]/80">{t('drone.privacy')}</p>
         {droneErr && <Notice tone="error">{droneErr}</Notice>}
         {drone && (

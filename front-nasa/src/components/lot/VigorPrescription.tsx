@@ -4,6 +4,8 @@ import { useLang } from '../../i18n/LangContext';
 import type { FarmCase } from '../../case/model';
 import type { VigorRaster } from '../../imagery/vigor';
 import { Notice, primaryBtn, secondaryBtn } from '../ui';
+import { useProfile } from '../../profile/ProfileContext';
+import { DemoLock } from '../DemoLock';
 
 type VigorModule = typeof import('../../imagery/vigor');
 type DroneModule = typeof import('../../imagery/drone');
@@ -38,6 +40,7 @@ function download(name: string, mime: string, text: string) {
 
 /** NDVI map from the drone → vigour zones → rate per zone → grid prescription for variable-rate application. */
 export function VigorPrescription({ farmCase }: { farmCase: FarmCase }) {
+  const { demo } = useProfile();
   const { t, num } = useLang();
   const [mod, setMod] = useState<VigorModule | null>(null);
   const [raster, setRaster] = useState<VigorRaster | null>(null);
@@ -106,7 +109,7 @@ export function VigorPrescription({ farmCase }: { farmCase: FarmCase }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[#283618]">{t('vra.help')}</p>
-      <div className="flex flex-wrap items-center gap-2">
+      {demo ? <DemoLock what={t('demo.what.vigor')} /> : <div className="flex flex-wrap items-center gap-2">
         <label className={`${secondaryBtn} cursor-pointer`}>
           {busy ? <Loader2 aria-hidden className="h-4 w-4 animate-spin motion-reduce:animate-none" /> : <Upload aria-hidden className="h-4 w-4" />}
           {busy ? t('vra.reading') : t('vra.upload')}
@@ -122,7 +125,7 @@ export function VigorPrescription({ farmCase }: { farmCase: FarmCase }) {
           />
         </label>
         <span className="text-xs text-[#3B2F20]/85">{t('drone.privacy')}</span>
-      </div>
+      </div>}
       {!farmCase.lotPolygon && <Notice tone="warn">{t('vra.noLot')}</Notice>}
       {err && <Notice tone="error">{err}</Notice>}
 

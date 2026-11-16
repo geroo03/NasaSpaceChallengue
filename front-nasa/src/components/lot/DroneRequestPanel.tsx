@@ -11,6 +11,8 @@ import { Notice, primaryBtn, secondaryBtn } from '../ui';
 // Optional, set in Vercel when Vuelo Verde confirms the contact channel. Never hard-coded.
 import { VUELO_VERDE } from '../../case/provider';
 import { logDroneRequest } from '../../backend/cloudLog';
+import { useProfile } from '../../profile/ProfileContext';
+import { DemoLock } from '../DemoLock';
 const PROVIDER_WHATSAPP = VUELO_VERDE.whatsapp;
 
 function download(name: string, mime: string, text: string) {
@@ -26,6 +28,7 @@ function download(name: string, mime: string, text: string) {
 
 /** Drone survey request built from the lot, modelled on the services in Vuelo Verde's technical report. */
 export function DroneRequestPanel({ farmCase, checks }: { farmCase: FarmCase; checks?: { when: string; what: string }[] }) {
+  const { demo } = useProfile();
   const { t, num } = useLang();
   const [services, setServices] = useState<SurveyService[]>(['altimetry', 'ortho']);
   const [when, setWhen] = useState<SurveyWindow>('beforeSowing');
@@ -141,7 +144,7 @@ export function DroneRequestPanel({ farmCase, checks }: { farmCase: FarmCase; ch
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2">
+          {demo ? <DemoLock what={t('demo.what.send')} /> : <div className="flex flex-wrap gap-2">
             {wa && (
               <a href={wa} target="_blank" rel="noreferrer" className={primaryBtn} onClick={() => log('whatsapp')}>
                 <MessageCircle aria-hidden className="h-4 w-4" /> {t('req.whatsapp')}
@@ -158,7 +161,7 @@ export function DroneRequestPanel({ farmCase, checks }: { farmCase: FarmCase; ch
             <button type="button" className={secondaryBtn} onClick={kml}>
               <Download aria-hidden className="h-4 w-4" /> {t('req.kml')}
             </button>
-          </div>
+          </div>}
           <span aria-live="polite" className="sr-only">
             {copied ? t('req.copied') : ''}
           </span>

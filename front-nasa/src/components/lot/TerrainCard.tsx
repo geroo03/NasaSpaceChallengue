@@ -5,6 +5,8 @@ import { MIN_TERRAIN_SAMPLES, ringCentroid, type FarmCase } from '../../case/mod
 import type { LotApi } from '../../case/lotApi';
 import { areaHa } from '../../imagery/lotImport';
 import { Notice, ProvTag, linkBtn, secondaryBtn } from '../ui';
+import { useProfile } from '../../profile/ProfileContext';
+import { DemoLock } from '../DemoLock';
 
 function Row({ label, children, note }: { label: string; children: React.ReactNode; note?: string }) {
   return (
@@ -18,6 +20,7 @@ function Row({ label, children, note }: { label: string; children: React.ReactNo
 
 /** "Datos del terreno": area, climate point and relief of the lot (NASA SRTM estimate or drone DSM). */
 export function TerrainCard({ farmCase, lot }: { farmCase: FarmCase; lot: LotApi }) {
+  const { demo } = useProfile();
   const { t, num } = useLang();
   const [dsmBusy, setDsmBusy] = useState(false);
   const [dsmErr, setDsmErr] = useState<string | null>(null);
@@ -147,7 +150,7 @@ export function TerrainCard({ farmCase, lot }: { farmCase: FarmCase; lot: LotApi
       <div className="border-t border-[#DECFA7] pt-3 space-y-2">
         <h3 className="text-sm font-bold text-[#283618]">{t('terrain.dsm.title')}</h3>
         <p className="text-xs text-[#3B2F20]/90">{t('terrain.dsm.help')}</p>
-        <div className="flex flex-wrap gap-2">
+        {demo ? <DemoLock what={t('demo.what.dsm')} compact /> : <div className="flex flex-wrap gap-2">
           <label className={`${secondaryBtn} cursor-pointer w-fit`}>
             {dsmBusy ? <Loader2 aria-hidden className="h-4 w-4 animate-spin motion-reduce:animate-none" /> : <Upload aria-hidden className="h-4 w-4" />}
             {dsmBusy ? t('terrain.dsm.reading') : t('terrain.dsm.upload')}
@@ -167,7 +170,7 @@ export function TerrainCard({ farmCase, lot }: { farmCase: FarmCase; lot: LotApi
               {t('terrain.dsm.remove')}
             </button>
           )}
-        </div>
+        </div>}
         <p className="text-xs text-[#3B2F20]/80">{t('drone.privacy')}</p>
         {dsmErr && <Notice tone="error">{dsmErr}</Notice>}
       </div>

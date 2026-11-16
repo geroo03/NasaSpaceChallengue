@@ -5,10 +5,13 @@ import { appeearsTask, defaultPeriod, ECOSTRESS_PRODUCT, EcostressError, hasEcos
 import { ecostressApi, startEcostress } from '../../ecostress/client';
 import { persistEcostress, readEcostress, type SavedEcostress as Saved } from '../../ecostress/storage';
 import { Card, Collapsible, Notice, primaryBtn, secondaryBtn } from '../ui';
+import { useProfile } from '../../profile/ProfileContext';
+import { DemoLock } from '../DemoLock';
 
 /** Point extraction, never an area mean or an automatic calibration of the historical rotation index. */
 export function EcostressPanel({ lat, lon }: Point) {
   const { t, num } = useLang();
+  const { demo } = useProfile();
   const point = { lat, lon };
   const [saved, setSaved] = useState<Saved>(() => readEcostress(point));
   const [data, setData] = useState<EcostressData | null>(() => saved.csv ? parseEcostressCsv(saved.csv, point) : null);
@@ -143,7 +146,7 @@ export function EcostressPanel({ lat, lon }: Point) {
           <button type="button" className="min-h-[44px] underline" onClick={() => { polling.current?.abort(); setData(null); setSaved({}); persistEcostress(point, {}); setPaused(false); }}>{t('eco.clear')}</button>
         </div>
       )}
-      <Collapsible title={t('eco.connect')}>
+      {demo ? <DemoLock what={t('demo.what.ecostress')} /> :       <Collapsible title={t('eco.connect')}>
         <div className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             {(['from', 'to'] as const).map((k) => <label key={k} className="text-sm font-bold">
@@ -167,7 +170,7 @@ export function EcostressPanel({ lat, lon }: Point) {
           </div>
           <p className="text-xs">{t('eco.instructions')}</p>
         </div>
-      </Collapsible>
+      </Collapsible>}
       {waiting && <p role="status" className="flex items-start gap-2 text-sm"><Loader2 aria-hidden className="h-5 w-5 shrink-0 animate-spin" />{t('eco.pending')}</p>}
       {waiting && <button type="button" className={secondaryBtn} onClick={() => { polling.current?.abort(); const next = { ...saved }; delete next.job; setSaved(next); persistEcostress(point, next); }}>{t('eco.stop')}</button>}
       {error && <Notice tone="error">{t(`eco.error.${error}`) === `eco.error.${error}` ? t('eco.error.network') : t(`eco.error.${error}`)}</Notice>}
