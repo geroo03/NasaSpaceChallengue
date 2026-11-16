@@ -34,6 +34,7 @@ AgroField ayuda a decidir **antes de sembrar** qué rotación probar en las pró
 
 - **Ver el proyecto funcionando:** https://field-shift-lab.vercel.app, con «Probar con el lote de ejemplo».
 - **Preparar la entrega:** [docs/entrega/ENTREGA_FORMULARIO.md](docs/entrega/ENTREGA_FORMULARIO.md) y [el guion del video](docs/entrega/video/GUION_VIDEO_30S.md).
+- **Cerrar el envío y entregar al jurado local:** [checklist y mensaje de WhatsApp](docs/entrega/CIERRE_Y_MENSAJE_JURADO.md), [informe en español](docs/entrega/INFORME_JURADO_ES.pdf) y [guion del pitch de hasta 2 minutos](docs/entrega/video/PITCH_JURADO_LOCAL_2MIN_ES.md).
 - **Entender las decisiones:** el vault, desde [00 Inicio](Field%20Shift%20-%20Obsidian/00%20Inicio.md), y [Criterios e innovación](Field%20Shift%20-%20Obsidian/04%20Presentacion/Criterios%20e%20innovaci%C3%B3n.md).
 - **Trabajar con Claude:** [CLAUDE.md](CLAUDE.md).
 

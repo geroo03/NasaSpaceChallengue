@@ -4,6 +4,7 @@ Borrador del 15/11/2026, armado según «Componentes del Proyecto» y «Criterio
 
 - **Demo:** https://field-shift-lab.vercel.app (pública; abre en inglés, con botón ES/EN). Entrar con «Try without an account» y luego el lote de ejemplo.
 - **Repositorio:** https://github.com/geroo03/NasaSpaceChallengue (la app está en `front-nasa/`)
+- **Cierre y jurado local:** [checklist y mensaje de tres enlaces](CIERRE_Y_MENSAJE_JURADO.md), [informe en español](INFORME_JURADO_ES.md) y [pitch de hasta 2 minutos](video/PITCH_JURADO_LOCAL_2MIN_ES.md). El pitch local es un recurso separado de la demo breve de NASA.
 
 Antes de pegar, revisar con el equipo:
 - nombres;
@@ -16,11 +17,9 @@ Antes de pegar, revisar con el equipo:
 
 > AgroField helps farmers in Santiago del Estero, Argentina, decide **before sowing** which two-year crop rotation to try. The farmer draws or uploads the field boundary (cadastre, survey plan or KML). AgroField then reads NASA POWER daily climate (2011–2025), NASA SRTM relief and SoilGrids soil water for that field. It compares the current rotation with up to three alternatives, weighted by the farmer's priorities.
 >
-> Every number states its source: NASA data, modelled, assumed or declared. The app warns about heat at flowering, shows how much water the soil holds at each sowing, and reports what happened in this field in past El Niño and La Niña seasons. NOAA currently observes a very strong El Niño. These are past frequencies, never forecasts.
+> Every number states its source: NASA data, modelled, assumed or declared. The app warns about heat at flowering, estimates soil water at sowing, and reports historical conditions at the field's analysis point in past El Niño and La Niña seasons. These are historical comparisons, never forecasts.
 >
 > Each option comes with dates for checking the field and a drone survey request for Vuelo Verde, a network of 100+ agricultural drone pilots who agreed to be our territorial partner. Satellites give the history, AgroField plans and drones confirm. The result is a printable sheet for the farmer's adviser.
-
-(173 palabras)
 
 ### Resumen en español (referencia)
 
@@ -33,8 +32,8 @@ Con eso compara el manejo actual con hasta tres alternativas, según las priorid
 
 La app avisa sobre:
 - calor en la floración;
-- agua en el suelo al sembrar;
-- qué pasó en el lote en campañas Niño y Niña. NOAA observa hoy un Niño muy fuerte.
+- estimación de agua en el suelo al sembrar;
+- qué pasó en el punto de análisis en campañas Niño y Niña.
 
 Son frecuencias del pasado, no pronósticos. Cada opción trae fechas para revisar el lote y un pedido de relevamiento con dron a Vuelo Verde, alianza territorial con más de 100 pilotos. El cierre es una ficha para el técnico.
 
@@ -73,7 +72,7 @@ Every assumption is listed in the results and in the sheet.
 
 **What we hope to achieve.** A pilot near Añatuya with Vuelo Verde and a real field, comparing the plan with what the drone measures.
 
-**Tools.** TypeScript, React 19, Vite, Tailwind CSS, Leaflet and Leaflet-Geoman, Turf, proj4, geotiff.js, shpjs, dxf-parser, fflate, Vitest (150 automated tests) and Vercel. Everything runs in the browser except one optional serverless function (ECOSTRESS extraction); no API keys reach the browser. Files uploaded by the farmer are processed locally.
+**Tools.** TypeScript, React 19, Vite, Tailwind CSS, Leaflet and Leaflet-Geoman, Turf, proj4, geotiff.js, shpjs, dxf-parser, fflate, Vitest and Vercel. The local review on November 15 passed 188 automated tests and the production build. Analysis runs in the browser; optional server functions support authenticated ECOSTRESS extraction and a Supabase account/history backend. Server credentials stay out of the browser. The farmer's survey plans and raster files are processed locally.
 
 ---
 
@@ -102,11 +101,13 @@ Every assumption is listed in the results and in the sheet.
 | AgroCordS (reference for field drawing and validation rules) | Inspiration for the field editor | team material |
 | Open-source libraries | See the «Tools» section | package.json in the repository |
 
-## 5. Uso de IA (para el desplegable; los jueces no lo ven, pero sí ven marcas en el proyecto)
+## 5. Uso de IA (revisar y declarar en el desplegable)
 
 **Borrador a confirmar por el equipo:**
 - **Claude (Anthropic) vía Claude Code:** escritura y revisión de código, tests, textos de la app y documentación, siempre revisados por el equipo.
 - **ChatGPT y Claude:** ideación y revisión de la propuesta en etapas tempranas (ver `05 Material recibido` en el vault).
+- **ChatGPT/Codex:** revisión de software y documentación; preparación del informe y guion para el jurado local.
+- **ElevenLabs:** voz sintética de la demo breve en inglés, según `marca/video/demo-28s-EN/GUION.md`.
 - **NotebookLM:** transcripción automática de los audios de la entrevista con Vuelo Verde.
 
 No se usaron logos, banderas ni identificadores de misiones de la NASA. Sugerencia: agregar en el README y en la última diapositiva «Desarrollado con asistencia de IA (Claude Code); datos y decisiones revisados por el equipo».
