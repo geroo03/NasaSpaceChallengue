@@ -9,7 +9,7 @@
 
 Al entrar, la app pide nombre, establecimiento y **si tenés dron propio** (o «Probar sin cuenta»). Abre en inglés, con selector ES/EN. Con el backend activado, el ingreso es con un link al mail y el perfil, los lotes y el historial quedan en la cuenta.
 
-1. **Tu lote** (`#/lote`): se dibuja el lote sobre imagen satelital o se carga el plano (KML/KMZ, Shapefile .zip, GeoJSON, o DXF de mensura en POSGAR 2007 / UTM). La app calcula superficie, centro (punto del clima), relieve (NASA SRTM) y suelo (SoilGrids). Un DSM de dron o un análisis de suelo reemplazan esas estimaciones. «Probar con el lote de ejemplo» carga 46 ha cerca de Añatuya.
+1. **Tu lote** (`#/lote`): se dibuja el lote sobre imagen satelital o se carga el plano (KML/KMZ, Shapefile .zip, GeoJSON, o DXF de mensura en POSGAR 2007 / UTM). La app calcula superficie, centro (punto del clima), relieve (NASA SRTM) y suelo (SoilGrids). Un DSM de dron o un análisis de suelo reemplazan esas estimaciones. «Probar con el lote de ejemplo» carga una franja real de 52 ha entre cortinas de monte, cerca de Añatuya.
 2. **Tu campaña** (`#/campana`): cultivo actual, riego (el único recurso que hoy entra al cálculo) y prioridades.
 3. **Tus opciones** (`#/opciones`):
    - el manejo actual contra la alternativa mejor puntuada, con por qué aparece y qué tener en cuenta;

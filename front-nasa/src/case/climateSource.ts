@@ -38,7 +38,7 @@ export const SNAPSHOTS: Snapshot[] = [
     sha256: 'c5c4cab935fbfe2b74bf634ef560cb2a7bcdd7d830d1e6f85dd1a5e4db0f5725',
   },
   {
-    // Centre of the example lot near Añatuya (see EXAMPLE_LOT).
+    // Analysis point of the example lot near Añatuya (see EXAMPLE_POINT).
     id: 'anatuya-example',
     url: `${import.meta.env.BASE_URL}data/power-anatuya-2011-2025.json`,
     lat: -28.38175,

@@ -10,7 +10,7 @@ Actualizado el 15/11/2026. La extracción numérica directa con Earthdata ya fue
 - CSV local, calidad, persistencia por punto y ficha imprimible ES/EN.
 - Snapshot real para presentar sin una nueva descarga: `front-nasa/public/data/ecostress-anatuya-example-2026-09.json`.
 
-El ejemplo es ilustrativo, no un productor validado. La muestra es un píxel de 70 m, no un promedio de las 46 ha ni una medición de humedad de las raíces.
+El ejemplo es ilustrativo, no un productor validado. La muestra es un píxel de 70 m, no un promedio de las 52 ha ni una medición de humedad de las raíces.
 
 ## Extracción real reproducible
 

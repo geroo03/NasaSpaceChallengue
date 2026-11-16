@@ -93,15 +93,22 @@ export interface LotSource {
 }
 
 /**
- * Demo lot: a cleared, sown field ~10 km NE of Añatuya, traced by us on Esri World Imagery for the demo.
- * Not a validated farm: its owner, soil and management are unknown. Its centre has a saved NASA POWER series.
+ * Demo lot: a sown strip ~10 km NE of Añatuya, between two windbreaks of native forest (the strip clearing
+ * typical of Santiago del Estero), from the west headland to the road on the east. Traced on Esri World
+ * Imagery at zoom 17 (~1 m/px): ≈ 52 ha. Not a validated farm: owner, soil and management are unknown.
  */
 export const EXAMPLE_LOT: [number, number][] = [
-  [-28.3803, -62.7439],
-  [-28.3803, -62.7292],
-  [-28.3832, -62.7292],
-  [-28.3832, -62.7439],
+  [-28.3803, -62.74389],
+  [-28.38026, -62.72909],
+  [-28.38353, -62.72909],
+  [-28.38355, -62.74389],
 ];
+
+/**
+ * Analysis point of the demo lot: inside the field, ~20 m from its centroid, where the NASA POWER,
+ * SoilGrids and ECOSTRESS answers shipped with the app were taken, so the demo works offline.
+ */
+export const EXAMPLE_POINT: [number, number] = [-28.38175, -62.73655];
 
 const ALL_UNKNOWN = Object.fromEntries(RESOURCES.map((r) => [r, 'unknown'])) as Record<ResourceId, Access>;
 const ALL_PENDING = Object.fromEntries(RESOURCES.map((r) => [r, 'pending'])) as Record<ResourceId, Availability>;
@@ -294,7 +301,10 @@ export function withLot(c: FarmCase, ring: [number, number][] | null, source: Lo
     next.slope = 'unknown';
     next.slopeSource = null;
   }
-  if (ring && opts.movePoint) {
+  if (ring && opts.movePoint && source?.kind === 'example') {
+    [next.lat, next.lon] = EXAMPLE_POINT;
+    next.placeId = null;
+  } else if (ring && opts.movePoint) {
     const centre = ringCentroid(ring);
     if (centre) {
       next.lat = Number(centre[0].toFixed(5));

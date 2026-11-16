@@ -215,3 +215,16 @@ describe('a soil test belongs to its field', () => {
     expect(applyPatch(c, { lat: c.lat + 0.5, soilPawDeclaredMm: 90 }).soilPawDeclaredMm).toBe(90);
   });
 });
+
+describe('example lot', () => {
+  it('is the real ~52 ha strip and keeps the point of the saved NASA/SoilGrids data', async () => {
+    const { EXAMPLE_LOT, EXAMPLE_POINT } = await import('./model');
+    const { polygonAreaHa } = await import('../imagery/flightOrder');
+    const { snapshotFor } = await import('./climateSource');
+    expect(polygonAreaHa(EXAMPLE_LOT)).toBeGreaterThan(51);
+    expect(polygonAreaHa(EXAMPLE_LOT)).toBeLessThan(53.5);
+    const c = withLot(base, EXAMPLE_LOT, { kind: 'example' }, { movePoint: true });
+    expect([c.lat, c.lon]).toEqual(EXAMPLE_POINT);
+    expect(snapshotFor(c.lat, c.lon)).toBeTruthy();
+  });
+});
