@@ -50,7 +50,7 @@ export function LotScreen({ value, onChange, lot, onNext }: { value: FarmCase; o
         <h1 className="headline-display headline-display--bold text-3xl sm:text-4xl text-[#283618]">{t('loc.q')}</h1>
         <p className="mt-2 text-[#3B2F20]/90">{t('loc.help')}</p>
       </header>
-      <ScreenGuide id="lot" steps={4} />
+      <ScreenGuide id="lot" steps={4} video="lote" />
       {email && <MyLots onOpen={openSaved} activeId={openedId} />}
       {!isExample && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border-2 border-dashed border-[#DDA15E] bg-[#FEFAE0] p-4">

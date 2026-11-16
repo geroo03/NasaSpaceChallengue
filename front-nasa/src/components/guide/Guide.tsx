@@ -1,13 +1,27 @@
-import { useId } from 'react';
-import { Compass, Lightbulb, X } from 'lucide-react';
+import { useId, useState } from 'react';
+import { Compass, Lightbulb, PlayCircle, X } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import { useGuide } from './GuideContext';
 
-/** Screen guide: what this screen is for and the steps to follow, numbered. */
-export function ScreenGuide({ id, steps }: { id: string; steps: number }) {
+/** Short screen recording of the real app (16–20 s, no sound), in the visitor's language. */
+function TutorialVideo({ name, label }: { name: string; label: string }) {
+  const { lang } = useLang();
+  const src = `/tutorial/${name}-${lang === 'es' ? 'es' : 'en'}`;
+  return (
+    <figure className="mx-auto w-full max-w-[260px]">
+      <div className="overflow-hidden rounded-[22px] border-[6px] border-[#283618] bg-[#283618] shadow-lg">
+        <video key={src} src={`${src}.mp4`} poster={`${src}.jpg`} autoPlay muted loop playsInline controls preload="metadata" aria-label={label} className="block aspect-[390/844] w-full bg-[#f0ede4]" />
+      </div>
+    </figure>
+  );
+}
+
+/** Screen guide: what this screen is for and the steps to follow, numbered, with an optional short video. */
+export function ScreenGuide({ id, steps, video }: { id: string; steps: number; video?: string }) {
   const { t } = useLang();
   const guide = useGuide();
   const headingId = useId();
+  const [watching, setWatching] = useState(false);
   if (!guide.isOpen(id)) return null;
   return (
     <section aria-labelledby={headingId} className="fs-enter relative rounded-2xl border-2 border-[#606C38] bg-[#E3EBDD] p-4 sm:p-5 text-[#283618]">
@@ -22,7 +36,8 @@ export function ScreenGuide({ id, steps }: { id: string; steps: number }) {
       <h2 id={headingId} className="flex items-center gap-2 pr-10 text-base sm:text-lg font-bold">
         <Compass aria-hidden className="h-5 w-5 shrink-0 text-[#606C38]" /> {t(`guide.${id}.title`)}
       </h2>
-      <ol className="mt-3 space-y-2">
+      <div className={watching && video ? 'mt-3 grid gap-4 sm:grid-cols-[minmax(0,1fr)_260px] sm:items-start' : ''}>
+      <ol className={watching && video ? 'space-y-2' : 'mt-3 space-y-2'}>
         {Array.from({ length: steps }, (_, i) => (
           <li key={i} className="flex gap-3 text-sm">
             <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#283618] text-xs font-bold text-[#FEFAE0]">{i + 1}</span>
@@ -30,7 +45,19 @@ export function ScreenGuide({ id, steps }: { id: string; steps: number }) {
           </li>
         ))}
       </ol>
+      {watching && video && <TutorialVideo name={video} label={t(`guide.${id}.title`)} />}
+      </div>
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        {video && (
+          <button
+            type="button"
+            aria-expanded={watching}
+            onClick={() => setWatching((w) => !w)}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border-2 border-[#283618] bg-white px-4 text-sm font-bold text-[#283618] hover:bg-[#F4F1E6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BC6C25]"
+          >
+            <PlayCircle aria-hidden className="h-5 w-5" /> {watching ? t('guide.hideVideo') : t('guide.watch')}
+          </button>
+        )}
         <button
           type="button"
           onClick={() => guide.dismiss(id)}

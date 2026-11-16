@@ -354,7 +354,7 @@ function Results({
       />
       )}
 
-      <ScreenGuide id="results" steps={4} />
+      <ScreenGuide id="results" steps={4} video="opciones" />
 
       {/* 2. Which year */}
       <fieldset>

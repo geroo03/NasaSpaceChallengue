@@ -25,6 +25,7 @@ const SHELL_FILES = [
   '/icons/apple-touch-icon.png',
   '/brand/agrofield-logo.svg',
   '/brand/agrofield-logo-negativo-animado.svg',
+  '/brand/agrofield-logo-negativo.svg',
   '/data/power-sde-2011-2025.json',
   '/data/power-anatuya-2011-2025.json',
   '/data/soilgrids-anatuya-example.json',

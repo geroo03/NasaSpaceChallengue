@@ -206,10 +206,9 @@ export default function App() {
       </main>
       <footer className="print:hidden bg-[#283618] text-[#FEFAE0] mt-12">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 py-8 space-y-2">
-          <p className="text-base tracking-[0.06em]">
-            <span className="font-extralight uppercase">FIELD</span>
-            <span className="font-bold uppercase">SHIFT</span>
-            <span className="ml-2 text-sm text-[#E3EBDD]">NASA Space Apps 2026</span>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <img src="/brand/agrofield-logo-negativo.svg" alt="AgroField" width={567} height={240} loading="lazy" className="h-12 w-auto -ml-2" />
+            <span className="text-sm text-[#E3EBDD]">NASA Space Apps 2026</span>
           </p>
           <p className="text-xs text-[#E3EBDD]">{t('footer.sources')}</p>
           <p className="text-xs text-[#A3B18A]">{t('footer.disclaimer')}</p>
