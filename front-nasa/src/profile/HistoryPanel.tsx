@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
-import { History, Loader2 } from 'lucide-react';
+import { ChevronDown, History, Loader2 } from 'lucide-react';
 import { useLang } from '../i18n/LangContext';
-import { listActivity, listRequests, setRequestStatus, type Activity, type RemoteRequest } from '../backend/api';
+import { listActivity, listAnalyses, listLots, listRequests, setRequestStatus, type Activity, type RemoteRequest } from '../backend/api';
+import { readAnalysis, type AnalysisView } from '../backend/analysisView';
 
 const STATES: RemoteRequest['estado'][] = ['enviado', 'aceptado', 'hecho', 'cancelado'];
 
 /** What the signed-in user did, from the cloud: drone requests (with status) and the activity log. */
 export function HistoryPanel() {
   const { t, lang } = useLang();
-  const [data, setData] = useState<{ activity: Activity[]; requests: RemoteRequest[] } | 'loading' | 'error'>('loading');
+  const [data, setData] = useState<{ activity: Activity[]; requests: RemoteRequest[]; analyses: AnalysisView[]; lotNames: Record<string, string> } | 'loading' | 'error'>('loading');
+  const [openAnalysis, setOpenAnalysis] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
-    Promise.all([listActivity(), listRequests()])
-      .then(([activity, requests]) => live && setData({ activity, requests }))
+    Promise.all([listActivity(), listRequests(), listAnalyses(), listLots()])
+      .then(([activity, requests, analyses, lots]) =>
+        live && setData({ activity, requests, analyses: analyses.map(readAnalysis), lotNames: Object.fromEntries(lots.map((l) => [l.id, l.nombre])) }),
+      )
       .catch(() => live && setData('error'));
     return () => {
       live = false;
@@ -75,6 +79,65 @@ export function HistoryPanel() {
                     </select>
                   </li>
                 ))}
+              </ul>
+            </div>
+          )}
+          {data.analyses.length > 0 && (
+            <div>
+              <p className="text-sm font-bold text-[#283618]">{t('hist.analyses')}</p>
+              <ul className="mt-1 divide-y divide-[#EFE3C2] text-sm">
+                {data.analyses.map((a) => {
+                  const open = openAnalysis === a.id;
+                  const tpl = (x: string | null) => (x ? t(`template.${x}`) : t('hist.an.unknown'));
+                  const score = (x: number | null) => (x === null ? '—' : `${Math.round(x)}/100`);
+                  return (
+                    <li key={a.id} className="py-1.5">
+                      <button
+                        type="button"
+                        aria-expanded={open}
+                        aria-controls={`an-${a.id}`}
+                        onClick={() => setOpenAnalysis(open ? null : a.id)}
+                        className="flex w-full min-h-[44px] items-center justify-between gap-2 rounded-lg px-1 text-left hover:bg-[#FEFAE0] focus-visible:outline-2 focus-visible:outline-[#BC6C25]"
+                      >
+                        <span>
+                          <strong>{(a.lotId && data.lotNames[a.lotId]) || t('hist.an.point', { lat: a.lat.toFixed(3), lng: a.lng.toFixed(3) })}</strong>
+                          <span className="block text-xs text-[#3B2F20]/80">{when(a.createdOn)} · {score(a.current.score)} → {score(a.alternative.score)}</span>
+                        </span>
+                        <ChevronDown aria-hidden className={`h-4 w-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+                      </button>
+                      {open && (
+                        <dl id={`an-${a.id}`} className="mt-1 grid gap-x-3 gap-y-1 rounded-lg bg-[#FEFAE0] p-3 text-xs sm:grid-cols-[auto_1fr]">
+                          <dt className="font-bold">{t('hist.an.today')}</dt>
+                          <dd>{tpl(a.current.template)} · {score(a.current.score)}{a.current.bareMonths !== null && ` · ${t('hist.an.bare', { n: String(a.current.bareMonths) })}`}</dd>
+                          <dt className="font-bold">{t('hist.an.alt')}</dt>
+                          <dd>
+                            {tpl(a.alternative.template)} · {score(a.alternative.score)}
+                            {a.alternative.bareMonths !== null && ` · ${t('hist.an.bare', { n: String(a.alternative.bareMonths) })}`}
+                            {a.alternative.suitable === false && ` · ${t('hist.an.unsuitable')}`}
+                          </dd>
+                          <dt className="font-bold">{t('hist.an.irrigation')}</dt>
+                          <dd>
+                            {a.irrigationMm ? `${a.irrigationMm} mm` : t('hist.an.rainfed')}
+                            {a.irrigationMm && a.irrigationSystem ? ` · ${t(`irr.${a.irrigationSystem}`)}` : ''}
+                          </dd>
+                          {a.priorities.length > 0 && (
+                            <>
+                              <dt className="font-bold">{t('hist.an.priorities')}</dt>
+                              <dd>{a.priorities.slice(0, 3).map((p) => `${t(`dim.${p.key}`)} (${p.weight})`).join(', ')}</dd>
+                            </>
+                          )}
+                          {a.years !== null && (
+                            <>
+                              <dt className="font-bold">{t('hist.an.climate')}</dt>
+                              <dd>{t('hist.an.years', { n: String(a.years) })}</dd>
+                            </>
+                          )}
+                          <dd className="sm:col-span-2 text-[#3B2F20]/80">{t('hist.an.note')}</dd>
+                        </dl>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

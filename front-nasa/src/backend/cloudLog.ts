@@ -180,8 +180,8 @@ export async function logAnalysis(c: FarmCase, reference: StrategyResult, best: 
       lng: c.lon,
       entrada,
       resultado: {
-        hoy: { id: reference.id, puntaje: reference.overall, meses_sin_cultivo: reference.bareMonths },
-        alternativa: { id: best.id, puntaje: best.overall, meses_sin_cultivo: best.bareMonths, apta: best.suitable },
+        hoy: { id: reference.id, plantilla: reference.templateId, puntaje: reference.overall, meses_sin_cultivo: reference.bareMonths },
+        alternativa: { id: best.id, plantilla: best.templateId, puntaje: best.overall, meses_sin_cultivo: best.bareMonths, apta: best.suitable },
       },
     }));
     writeMap(seenKey, sessionStorage, { ...seen, [key]: '1' });

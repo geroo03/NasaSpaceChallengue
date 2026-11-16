@@ -1,6 +1,19 @@
 /** Strings for the lot-first flow: lot editor, terrain data and drone survey request (ES argentino / EN). */
 
 export const lotEs: Record<string, string> = {
+  "hist.analyses": "Análisis guardados",
+  "hist.an.point": "Punto {lat}, {lng}",
+  "hist.an.today": "Lo que hacías",
+  "hist.an.alt": "Alternativa",
+  "hist.an.unknown": "Sin dato",
+  "hist.an.bare": "{n} meses sin cultivo",
+  "hist.an.unsuitable": "no apta acá",
+  "hist.an.irrigation": "Riego",
+  "hist.an.rainfed": "Secano",
+  "hist.an.priorities": "Prioridades",
+  "hist.an.climate": "Clima",
+  "hist.an.years": "{n} años de NASA POWER",
+  "hist.an.note": "Es lo que mostró la app ese día, tal como se guardó: no se recalcula.",
   "lots.title": "Mis lotes",
   "lots.refresh": "Actualizar",
   "lots.loading": "Cargando tus lotes…",
@@ -474,6 +487,19 @@ export const lotEs: Record<string, string> = {
 };
 
 export const lotEn: Record<string, string> = {
+  "hist.analyses": "Saved analyses",
+  "hist.an.point": "Point {lat}, {lng}",
+  "hist.an.today": "What you did",
+  "hist.an.alt": "Alternative",
+  "hist.an.unknown": "Unknown",
+  "hist.an.bare": "{n} months without a crop",
+  "hist.an.unsuitable": "not suitable here",
+  "hist.an.irrigation": "Irrigation",
+  "hist.an.rainfed": "Rainfed",
+  "hist.an.priorities": "Priorities",
+  "hist.an.climate": "Climate",
+  "hist.an.years": "{n} years of NASA POWER",
+  "hist.an.note": "What the app showed that day, exactly as saved: it is not recalculated.",
   "lots.title": "My fields",
   "lots.refresh": "Refresh",
   "lots.loading": "Loading your fields…",
