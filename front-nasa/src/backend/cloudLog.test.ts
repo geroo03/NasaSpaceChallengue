@@ -38,7 +38,7 @@ vi.mock('./api', async (orig) => {
   };
 });
 
-const { clearCloudCaches, ensureLot, lotFingerprint, logAnalysis } = await import('./cloudLog');
+const { clearCloudCaches, ensureLot, forgetLot, lotFingerprint, logAnalysis, openRemoteLot } = await import('./cloudLog');
 const api = await import('./api');
 
 const ring: [number, number][] = [[-28.38, -62.74], [-28.38, -62.735], [-28.375, -62.735], [-28.375, -62.74]];
@@ -99,5 +99,36 @@ describe('cloud lots per user', () => {
 
   it('treats an open and a closed ring as the same boundary', () => {
     expect(lotFingerprint([...ring, ring[0]!])).toBe(lotFingerprint(ring));
+  });
+});
+
+describe('opening a saved lot', () => {
+  const remote = (over: Partial<import('./api').RemoteLot>): import('./api').RemoteLot => ({
+    id: 'l1', nombre: 'La Loma', creado_en: '', actualizado_en: '', centroid_lat: -28.3775, centroid_lng: -62.7375, area_ha: 24.5,
+    geometry: { type: 'Polygon', coordinates: [[...ring.map(([la, lo]) => [lo, la] as [number, number]), [ring[0]![1], ring[0]![0]]]] },
+    origen: 'kml', pendiente_pct: null, fuente_pendiente: null, agua_util_mm: null, fuente_suelo: null, ...over,
+  });
+
+  it('loads the same boundary (open ring) with its name as the parcel', () => {
+    const o = openRemoteLot(remote({}));
+    expect(o.ring).toEqual(ring);
+    expect(o.source).toEqual({ kind: 'file', format: 'kml', fileName: 'La Loma', parcel: 'La Loma' });
+    expect(o.soilPawDeclaredMm).toBeNull();
+  });
+
+  it('brings back a declared soil test, but not a SoilGrids estimate', () => {
+    expect(openRemoteLot(remote({ agua_util_mm: 210, fuente_suelo: 'analisis' })).soilPawDeclaredMm).toBe(210);
+    expect(openRemoteLot(remote({ agua_util_mm: 94, fuente_suelo: 'soilgrids' })).soilPawDeclaredMm).toBeNull();
+  });
+
+  it('maps drawn and example lots back to their kind', () => {
+    expect(openRemoteLot(remote({ origen: 'dibujo' })).source).toEqual({ kind: 'drawn', parcel: 'La Loma' });
+    expect(openRemoteLot(remote({ origen: 'ejemplo' })).source).toEqual({ kind: 'example' });
+  });
+
+  it('forgets a deleted lot so the next save does not hit the server with it', async () => {
+    const id = await ensureLot(lotCase, 'u-ana');
+    forgetLot('u-ana', id!);
+    expect(localStorage.getItem('agrofield.cloudLots.u-ana')).toBe('{}');
   });
 });
