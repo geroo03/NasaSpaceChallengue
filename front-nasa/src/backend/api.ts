@@ -90,6 +90,31 @@ export interface LotPayload {
   fuente_suelo: 'soilgrids' | 'analisis' | 'supuesto' | null;
 }
 export const createLot = (l: LotPayload) => call<{ lote: { id: string } }>('POST', '/lotes', l).then((r) => r.lote.id);
+
+/** A lot as the server returns it (server/v1/schemas.ts + timestamps). */
+export interface RemoteLot extends LotPayload {
+  id: string;
+  creado_en: string;
+  actualizado_en: string;
+}
+export type LotChanges = Partial<Pick<LotPayload, 'nombre' | 'pendiente_pct' | 'fuente_pendiente' | 'agua_util_mm' | 'fuente_suelo'>>;
+export const listLots = () => call<{ lotes: RemoteLot[] }>('GET', '/lotes').then((r) => r.lotes);
+export const getLot = (id: string) => call<{ lote: RemoteLot }>('GET', `/lotes/${encodeURIComponent(id)}`).then((r) => r.lote);
+export const updateLot = (id: string, changes: LotChanges) => call<{ lote: RemoteLot }>('PATCH', `/lotes/${encodeURIComponent(id)}`, changes).then((r) => r.lote);
+export const deleteLot = (id: string) => call<void>('DELETE', `/lotes/${encodeURIComponent(id)}`);
+
+/** A saved analysis: what was entered and what the app showed, never recalculated. */
+export interface RemoteAnalysis {
+  id: string;
+  lote_id: string | null;
+  lat: number;
+  lng: number;
+  entrada: Record<string, unknown>;
+  resultado: Record<string, unknown>;
+  creado_en: string;
+}
+export const listAnalyses = (loteId?: string, limit = 20) =>
+  call<{ analisis: RemoteAnalysis[] }>('GET', `/analisis?limite=${limit}${loteId ? `&lote=${encodeURIComponent(loteId)}` : ''}`).then((r) => r.analisis);
 export const createAnalysis = (a: { lote_id: string | null; lat: number; lng: number; entrada: Record<string, unknown>; resultado: Record<string, unknown> }) => call('POST', '/analisis', a);
 export const createRequest = (p: { lote_id: string | null; dron_id: string | null; trabajo: string; ejecutor: 'propio' | 'vuelo_verde'; canal: string; plan: Record<string, unknown>; texto: string }) => call('POST', '/pedidos', p);
 export const listActivity = () => call<{ actividad: Activity[] }>('GET', '/actividad?limite=30').then((r) => r.actividad);
