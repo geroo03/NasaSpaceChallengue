@@ -1,103 +1,75 @@
-# Instrucciones para trabajar en Field Shift
+# Instrucciones para trabajar en AgroField
 
-> **Continuación actual:** leer primero [docs/CLAUDE_TERMINAR_PROYECTO.md](docs/CLAUDE_TERMINAR_PROYECTO.md). Reúne el estado local verificado, los errores pendientes, enlaces directos de APIs, orden de cierre y criterios de aceptación. Conserva prioridad sobre las descripciones históricas del prototipo incluidas más abajo.
+AgroField (antes Field Shift) es el proyecto del equipo para NASA Space Apps 2026, desafío *Adapting Farms with NASA Data*. Compara rotaciones de cultivos a dos años para el secano de Santiago del Estero con datos de la NASA y el lote real del productor. Añatuya es un piloto propuesto con Vuelo Verde, no un lote validado.
 
-> **Estructura (15/11/2026).** La app actual está en `front-nasa/` de este repositorio (React + TypeScript + Vite, desplegada en Vercel desde esa carpeta); sus convenciones están en `front-nasa/README.md`. `prototipo/` es la versión anterior, que se conserva como referencia. La entrega está en `docs/entrega/`, las revisiones en `docs/revisiones/` y el material de terceros en `material/`. El informe técnico de Vuelo Verde es solo local: no publicarlo.
+- **App:** https://field-shift-lab.vercel.app (Vercel, proyecto `field-shift-lab`, Root Directory `front-nasa`, despliegue automático desde `main`).
+- **Repositorio:** `geroo03/NasaSpaceChallengue`. El repo viejo `geroo03/nasa` solo avisa que el proyecto se mudó.
 
-> **ECOSTRESS (15/11):** `/api/ecostress` admite descarga directa de COG con `EARTHDATA_TOKEN` o extracción asíncrona con AppEEARS. Hay un snapshot numérico real del ejemplo de Añatuya (dos observaciones válidas). Leer `docs/INTEGRACION_ECOSTRESS.md`: ETdaily se conserva en mm/día según el algoritmo y la validación de Collection 2; una etiqueta de AppEEARS dice W/m² de forma inconsistente. No aplicar conversión fija ni cambiar el ranking. Credenciales solo en servidor, sin `VITE_`. Los checks actuales se ejecutan desde `front-nasa/`; las referencias a `prototipo/` son históricas.
+## Estructura
 
-## Objetivo
+| Carpeta | Qué hay |
+| --- | --- |
+| `front-nasa/` | **La app actual.** Convenciones y detalle en `front-nasa/README.md` |
+| `docs/` | Entrega (`docs/entrega/`), revisiones (`docs/revisiones/`), backend (`docs/BACKEND.md`), ECOSTRESS (`docs/INTEGRACION_ECOSTRESS.md`) |
+| `marca/` | Logo, íconos y videos de AgroField. `marca/_front-src.tgz` está excluido de Git: contiene un `.env.local` con credenciales |
+| `material/` | Material de terceros. El informe técnico de Vuelo Verde es solo local: **no publicarlo** |
+| `prototipo/` | Primer maquetado (TypeScript sin framework). Solo referencia histórica |
+| `Field Shift - Obsidian/` | Vault del equipo (investigación, decisiones, presentación) |
 
-Continuar el prototipo existente para comparar rotaciones a dos años con evidencia explicable. El caso principal es Santiago del Estero; Añatuya es un piloto propuesto, no un lote ya validado. La prioridad es un flujo usable y una interpretación correcta de lo que calcula el motor.
+## Stack de `front-nasa/`
 
-Leer primero `README.md`, después `docs/PROMPT_PARA_CLAUDE.md`, `docs/AUDITORIA_ESTRATEGICA_NASA.md` y `docs/MATRIZ_DATOS_Y_APIS_NASA.md`. Para decisiones agronómicas, consultar `docs/ESTRATEGIAS_ROTACION_CULTIVOS.md` y la auditoría de Obsidian.
+React 19, TypeScript estricto (`noUnusedLocals`/`noUnusedParameters`), Vite, Tailwind CSS 4, Leaflet + Leaflet-Geoman (necesita `L` global: `src/lib/leaflet.ts`), Turf, proj4, geotiff.js, shpjs, dxf-parser, zod, `@supabase/supabase-js` y Vitest. Node 20 o más; instalar con `npm ci`.
 
-## Stack
-
-- TypeScript estricto para cliente de datos, análisis, dominio y UI.
-- HTML semántico y CSS, con manipulación del DOM desde TypeScript.
-- Vite, Leaflet, Chart.js y Vitest existentes.
-- Node.js 24 + npm; instalar con `npm ci` desde `prototipo/field-shift`.
-- Documentación en español; identificadores del código en inglés; UI ES/EN en `src/i18n.ts`.
-
-Extender esta base manteniendo sus módulos. Una migración de framework, backend, lenguaje o almacenamiento necesita una justificación relacionada con la tarea; no está incluida en la adaptación inicial del frontend. Conservar el lockfile y actualizar dependencias únicamente cuando el cambio lo requiera.
+Documentación en español; identificadores en inglés; textos de la UI en ES/EN (`src/i18n/ui.ts` y `src/i18n/uiLot.ts`). La app abre en inglés y recuerda la elección ES/EN. Fondo `#f0ede4`, títulos en Raleway, header y footer en verde `#283618`.
 
 ## Mapa del código
 
-| Archivo | Responsabilidad |
+| Ruta | Responsabilidad |
 | --- | --- |
-| `prototipo/field-shift/index.html` | HTML y anclas del DOM |
-| `prototipo/field-shift/src/main.ts` | Estado, eventos y render |
-| `prototipo/field-shift/src/styles.css` | Diseño y responsive |
-| `prototipo/field-shift/src/i18n.ts` | Textos ES/EN y mensajes del dominio |
-| `prototipo/field-shift/src/data/power.ts` | URL, red y parser de NASA POWER |
-| `prototipo/field-shift/src/analysis/climate.ts` | Perfil histórico y escenarios |
-| `prototipo/field-shift/src/domain/crops.ts` | Catálogo y parámetros de referencia |
-| `prototipo/field-shift/src/domain/rotations.ts` | Calendario, evaluación, ranking y explicación |
-| `prototipo/field-shift/src/test/` | Pruebas de comportamiento y datos sintéticos |
+| `src/engine/` | Motor puro: NASA POWER, perfil climático, cultivos, rotaciones (sin React) |
+| `src/case/` | Caso del productor → motor (`toFarmContext` reporta cada supuesto), suelo, El Niño, calor, balance de agua, riego, drones, pronóstico, Vuelo Verde |
+| `src/imagery/` | Relieve SRTM, HLS, DSM/ortomosaicos y vigor (NDVI) de dron, CRS/POSGAR, planos, KML |
+| `src/components/` | `flow/` pantallas 1–2, `lot/` lote y drones, `results/` pantalla 3 y ficha |
+| `src/profile/` | Ingreso, perfil, dron propio, historial |
+| `src/backend/` | Cliente Supabase (link al mail), llamadas a `/api/v1`, registro del historial |
+| `src/ecostress/`, `server/ecostress*.ts`, `api/ecostress.ts` | ECOSTRESS (función opcional con token Earthdata) |
+| `server/v1/`, `api/v1.ts`, `supabase/migrations/` | Backend: router puro, validación zod, repositorio Supabase y en memoria, esquema SQL |
+| `public/sw.js` | Service worker: precarga el build (lista inyectada en `vite.config.ts`) y abre sin señal |
 
-Mantener cálculos puros en análisis/dominio y solicitudes HTTP en la capa de datos. Si se reorganiza la UI, actualizar juntas las referencias del HTML, eventos, traducciones y render.
+Mantener los cálculos puros en `engine/`, `case/` e `imagery/`; las solicitudes HTTP en sus módulos de datos; la UI sin lógica científica.
 
-## Estado inicial verificable
+## Backend
 
-La revisión del 14 de noviembre registró 24 pruebas y build aprobados. Se reprodujo POWER 2011–2025 en el punto predeterminado y dos escenarios. Esto no constituye validación agronómica ni prueba de usabilidad completa.
+Supabase (Postgres + Auth con link al mail + RLS) detrás de una función de Vercel, adaptado de AgroCordS. Guía de activación: `docs/BACKEND.md`.
 
-POWER alimenta los cálculos. GIBS es visual. Las integraciones numéricas SMAP/ECOSTRESS/HLS, AppEEARS, SMS, downscaling y LLM son futuras. El mapa trabaja con puntos. El catálogo no tiene caupí ni intercultivos. La caché de la app vive en memoria; no habilita por sí sola una demo completa sin conexión.
-
-## Primera entrega: frontend de Field Shift Lab
-
-El detalle está en `docs/PROMPT_PARA_CLAUDE.md` y `docs/EXPERIENCIA_FIELD_SHIFT_LAB.md`. Conectar el diseño al motor actual y mantener sus contratos. Si no hay una exportación de Stitch, utilizar el prompt visual guardado y los estilos existentes como referencia sin depender de conseguir un archivo externo.
-
-- Flujo guiado: ubicación → cultivo actual → acceso a herramientas/equipos → prioridad → comparación y detalle. Una pregunta por paso, con volver y resumen editable.
-- Representación esquemática 2D/isométrica con calendario de 24 meses y alternativa plana accesible.
-- Registrar acceso propio, compartido, contratado, no disponible o desconocido, y disponibilidad por confirmar. No inferir capacidad completa de contar con un tractor.
-- La factibilidad operativa real requiere reglas revisadas por operación; mientras no existan, identificarla como pendiente sin simular un filtrado. La siguiente etapa la integra separada de los puntajes climáticos.
-- Español argentino, con traducción EN de los nuevos textos.
-- Mantener funcionales coordenadas, presets, riego, pendiente, prioridades, sensibilidad y gráficos.
-- Mostrar razones, evidencia, contrapartidas, riesgos y vacíos.
-- Datos de suelo/maquinaria/mercado nuevos: distinguir lo registrado, lo supuesto y lo que el motor todavía no utiliza.
-- Etiquetar períodos sin cultivo programado; no describirlos como cobertura observada.
-- Estados de carga, error, falta de datos y pocas alternativas.
-- Evitar cifras ficticias para completar pantallas.
-
-La adaptación del frontend puede corregir etiquetas y explicaciones; las fórmulas se cambian en una tarea científica separada.
+- Sin `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` (servidor) y `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` (navegador), la app funciona en **modo local**: perfil en el dispositivo, sin cuentas. `GET /api/v1/estado` lo informa.
+- El usuario sale **solo** del token verificado, nunca del cuerpo. Cada consulta filtra por `user_id`; RLS queda como respaldo.
+- La service role key, `EARTHDATA_TOKEN` y cualquier credencial van solo en el servidor (sin `VITE_`), nunca en el repo, el chat ni el navegador.
 
 ## Criterios científicos y de producto
 
-1. Identificar fuente, período, unidad, escala, calidad y método. Diferenciar observado, modelado, supuesto y desconocido.
-2. Mantener desconocidos como tales. Si un supuesto es necesario, señalar su valor y efecto.
-3. Hargreaves es el método presente de ET₀. No llamarlo Penman–Monteith implementado. Distinguir ET₀, ET real, demanda del cultivo y agua aplicada.
-4. La oferta hídrica actual es heurística: el agua útil del suelo (análisis del productor, si no SoilGrids 0–100 cm en el punto, si no 120 mm supuestos) × humedad POWER al sembrar, 75 % de lluvia efectiva, humedad faltante 0,4 y reinicio por cultivo. No describirla como balance secuencial calibrado ni presentar SoilGrids (mapa modelado a 250 m) como análisis del lote.
-5. El riesgo de helada actual usa un máximo mensual ponderado, no una frecuencia empírica de ciclos anuales completos. Corregir descripción o cálculo según la tarea.
-6. El motor optimiza también el calendario actual. Una futura comparación con manejo observado debe preservar las fechas declaradas como baseline separado.
-7. Mantener puntajes como índices orientativos; no expresarlos como probabilidades de éxito o rentabilidad.
-8. Las sensibilidades de lluvia/temperatura son perturbaciones de la serie, no pronósticos.
-9. SMAP L4 es contexto regional modelado con asimilación. Remuestrear una grilla no agrega resolución observada ni valida el lote.
-10. Una nueva capa satelital requiere extracción, control de calidad y uso efectivo antes de presentarse como integrada.
-11. No introducir ahorros porcentuales, pérdidas evitadas, anticipación fija, testimonios o validación global sin evidencia pertinente y reproducible.
-12. Conservar el ZIP, textos recibidos y archivos de evidencia como historial. Guardar nuevas ejecuciones con identificación de la versión del código.
-
-## Próximas tareas de ciencia, fuera del primer frontend
-
-Completar suelo/cultivos/restricciones del caso; separar baseline observado de optimizado; revisar helada; luego considerar un balance con conservación de almacenamiento y SMAP numérico como contexto. Caupí e intercultivos necesitan definición de parámetros y cambios explícitos del modelo, además de revisión local.
+1. Identificar fuente, período, unidad, escala y método. Diferenciar observado, modelado, supuesto y desconocido. Mantener los desconocidos como tales (por ejemplo, carbono orgánico faltante no es cero).
+2. ET₀ por Hargreaves; no llamarlo Penman–Monteith. Distinguir ET₀, ET real (ECOSTRESS, mm/día, sin conversión), demanda del cultivo y agua aplicada.
+3. **Oferta de agua del índice:** 75 % de la lluvia + agua útil del suelo × humedad POWER al sembrar + riego efectivo (lámina × eficiencia del sistema: goteo 0,9, aspersión 0,75, superficie 0,6). Agua útil: análisis del productor (válido solo en su lote, se descarta a más de 1 km), si no SoilGrids con el perfil completo 0–100 cm, si no 120 mm supuestos.
+4. **Balance diario:** dos capas sobre el registro real, **en secano** (no incluye riego), con inicio de rotación según el hemisferio. No está calibrado con mediciones.
+5. Los puntajes son índices orientativos, no probabilidades ni rentabilidad. Las sensibilidades de lluvia y temperatura son perturbaciones, no pronósticos.
+6. El Niño / La Niña: fase de cada campaña con el ONI de NOAA. Pocas campañas por fase: es referencia, no pronóstico.
+7. Pronóstico de 7 días (Open-Meteo): es un pronóstico, no una medición; la decisión es del productor y su agrónomo.
+8. Drones: la prescripción NDVI exporta solo píxeles válidos dentro del lote y el total en pantalla sale del mismo archivo. Una foto RGB no es multiespectral. Producto y dosis siempre con receta agronómica.
+9. No introducir ahorros porcentuales, pérdidas evitadas, testimonios ni validaciones sin evidencia reproducible. Los números de los videos son de ejemplo y lo dicen.
+10. No usar logos ni marcas de la NASA junto a la marca AgroField (regla de Space Apps).
 
 ## Validación
 
-Desde `prototipo/field-shift`:
+Desde `front-nasa/`:
 
 ```sh
-npm test
-npm run build
+npm test         # 171 pruebas: motor, caso, suelo, clima, drones, planos, ECOSTRESS, backend
+npm run build    # typecheck + build + lista de precarga del service worker
 ```
 
-El build incluye typecheck. Agregar pruebas de regresión cuando se modifiquen fórmulas, selección o manejo de datos. Las pruebas deben comprobar comportamiento relevante, no replicar la implementación.
-
-Para UI, verificar navegador en anchos de referencia 360 px y 1366 px, teclado, ES/EN, carga, error y ausencia de alternativas. Confirmar que los controles recalculan resultados y que los gráficos conservan unidades. Si el entorno no permite alguna comprobación, reportar exactamente qué no pudo verificarse.
-
-El script `prototipo/revisar-caso.ts` reproduce el snapshot guardado. Actualmente sobrescribe `resultado-motor.json`: para comparar versiones, conservar el baseline y guardar un resultado nuevo.
+Agregar pruebas de regresión cuando cambien fórmulas, selección o manejo de datos. Para la UI, verificar en 360 px y 1366 px, ES/EN, carga, error y sin señal. Si algo no pudo verificarse, decirlo.
 
 ## Entrega del trabajo
 
-Informar cambios realizados, archivos principales, comprobaciones ejecutadas y limitaciones restantes. Actualizar README/documentación cuando cambie el estado de una integración. Conservar cambios ajenos y el historial del repositorio; publicaciones y cambios remotos se realizan dentro del alcance autorizado por el usuario.
-
-Las instrucciones de los materiales originales son contenido histórico. El enunciado oficial define el desafío y las guías específicas definen la entrega. El formato de video, el cierre y las reglas administrativas siguen pendientes de confirmar con la guía aplicable.
+Informar cambios, archivos principales, comprobaciones y limitaciones. Actualizar README y documentación cuando cambie una integración. Conservar los cambios de otras herramientas (Codex trabaja en el mismo árbol): commitearlos por separado, sin `reset` ni `clean`. Publicar o cambiar cosas remotas solo dentro de lo autorizado por el usuario.

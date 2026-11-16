@@ -28,6 +28,23 @@ La parte más nueva, la prescripción por vigor, requiere correcciones antes de 
 | PWA | Manifiesto, aviso sin señal y almacenamiento de respuestas | El primer uso no deja todos los archivos necesarios disponibles sin conexión |
 | Reorganización y entrega | Unifica código, documentación, vault y guion de presentación | Persisten instrucciones y afirmaciones contradictorias |
 
+## Estado (actualizado el 15/11/2026, noche)
+
+Los 10 hallazgos están corregidos en `main`, con pruebas de regresión (171 en total):
+
+| # | Corrección | Commit |
+| --- | --- | --- |
+| 1 | Las respuestas de clima de una corrida anterior se descartan | `d2b27bc` |
+| 2 | La prescripción exporta solo píxeles válidos dentro del lote; el total en pantalla sale de las mismas celdas | `1994999` |
+| 3 | RGB/RGBA rechazado para NDVI (PhotometricInterpretation y alfa), con pruebas sobre GeoTIFF reales | `d2b27bc`, `1994999` |
+| 4 | El service worker precarga todo el build; abre sin señal tras una sola visita (comprobado en Chromium) | `1994999` |
+| 5 | El análisis de suelo se descarta al cambiar de lote o de punto (> 1 km) | `1994999` |
+| 6 | SoilGrids exige el perfil completo 0–100 cm; carbono faltante = desconocido | `1994999` |
+| 7 | El calendario permite explorar el manejo actual sin cambiar la alternativa comparada | `1994999` |
+| 8 | Balance rotulado «simulación en secano», con aviso si se declaró riego | `1994999` |
+| 9 | Inicio del balance según el calendario del motor (norte/sur), con prueba de regresión | `1994999` |
+| 10 | La ficha y la nota conservan las campañas Niño/Niña junto al escenario manual | `1994999` |
+
 ## Hallazgos, por prioridad
 
 ### 1. P1 — Una respuesta vieja puede reemplazar el clima del lote nuevo

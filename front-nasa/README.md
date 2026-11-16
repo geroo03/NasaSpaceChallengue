@@ -7,6 +7,8 @@
 
 ## Cómo se usa: 3 pantallas
 
+Al entrar, la app pide nombre, establecimiento y **si tenés dron propio** (o «Probar sin cuenta»). Abre en inglés, con selector ES/EN. Con el backend activado, el ingreso es con un link al mail y el perfil, los lotes y el historial quedan en la cuenta.
+
 1. **Tu lote** (`#/lote`): se dibuja el lote sobre imagen satelital o se carga el plano (KML/KMZ, Shapefile .zip, GeoJSON, o DXF de mensura en POSGAR 2007 / UTM). La app calcula superficie, centro (punto del clima), relieve (NASA SRTM) y suelo (SoilGrids). Un DSM de dron o un análisis de suelo reemplazan esas estimaciones. «Probar con el lote de ejemplo» carga 46 ha cerca de Añatuya.
 2. **Tu campaña** (`#/campana`): cultivo actual, riego (el único recurso que hoy entra al cálculo) y prioridades.
 3. **Tus opciones** (`#/opciones`):
@@ -14,8 +16,9 @@
    - años de prueba: campañas Niño o Niña, más seco, más caluroso;
    - calor en la floración y agua en el suelo al sembrar, campaña por campaña;
    - calendario de 24 meses y el campo mes a mes;
+   - **próximos 7 días** en el lote (Open-Meteo): lluvia, calor, helada, viento y días aptos para pulverizar;
    - qué verificar y cuándo, con el pedido de relevamiento con dron;
-   - **trabajos con dron**: mapeo, siembra de cultivos de servicio y pulverización, planificados sobre el calendario;
+   - **trabajos con dron**: mapeo, prescripción por zonas de vigor (NDVI), siembra de cultivos de servicio y pulverización. Lo que tu dron puede hacer se planifica con sus datos; el resto se pide a Vuelo Verde por WhatsApp o correo;
    - una **ficha imprimible / PDF** para el técnico o el piloto.
 
    Lo técnico (índices, clima, descartadas, fuentes) queda plegado en «¿De dónde sale esto?».
@@ -30,6 +33,7 @@
 | NASA ECOSTRESS ECO_L3T_JET.002 | Catálogo de pasadas y valores ETdaily por punto; filtros cloud/water; evidencia complementaria y ficha |
 | ISRIC SoilGrids 2.0 | Agua útil 0–100 cm, textura y carbono orgánico del lote |
 | NOAA CPC ONI | Fase de El Niño / La Niña de cada campaña y estado actual observado |
+| Open-Meteo (sin clave) | Pronóstico de 7 días en el lote |
 
 POWER, suelo, relieve y catálogos se consultan desde el navegador sin claves. **ECOSTRESS agrega una función de servidor opcional**, `/api/ecostress`, que permite extraer píxeles de COG con un token Earthdata o tramitar tareas de AppEEARS. Sin configurarla, funcionan el catálogo, el CSV local y la extracción real guardada del ejemplo. Los archivos del productor (planos, DSM, ortomosaicos y CSV) se procesan en su equipo, sin subirlos. En `public/data/` hay respuestas guardadas sin modificar para el ejemplo:
 - NASA POWER 2011–2025 del punto de Santiago del Estero y del lote de ejemplo;
@@ -51,7 +55,8 @@ Ver [guía técnica y verificación](../docs/INTEGRACION_ECOSTRESS.md). La desca
 
 - ET₀ por Hargreaves (solo temperatura), no Penman–Monteith.
 - **Oferta de agua del índice:** 75 % de la lluvia + agua útil del suelo × humedad POWER al sembrar + riego. El agua útil sale, en este orden, del análisis del productor, de SoilGrids o de 120 mm supuestos. La reserva se reinicia en cada cultivo.
-- **Balance diario complementario:** dos capas sobre el registro real. Un barbecho sin malezas pierde solo la capa superficial. No está calibrado con mediciones.
+- **Balance diario complementario:** dos capas sobre el registro real, **en secano** (no incluye riego). Un barbecho sin malezas pierde solo la capa superficial. No está calibrado con mediciones.
+- El análisis de suelo que carga el productor vale solo para su lote: se descarta al cambiar de lote o moverse más de 1 km. SoilGrids se usa solo con el perfil completo hasta 1 m.
 - Índices de 0 a 100 orientativos: no son probabilidades ni rentabilidad.
 - «Meses sin cultivo programado» sale del calendario: no es suelo desnudo observado.
 - **El Niño:** hay pocas campañas por fase (5, 4 y 5). Es una referencia, no un pronóstico.
@@ -67,11 +72,15 @@ Ver [guía técnica y verificación](../docs/INTEGRACION_ECOSTRESS.md). La desca
 git clone https://github.com/geroo03/NasaSpaceChallengue && cd NasaSpaceChallengue/front-nasa
 npm ci
 npm run dev        # servidor local
-npm test           # motor, caso, suelo, clima, drones, planos y ECOSTRESS
+npm test           # 171 pruebas: motor, caso, suelo, clima, drones, planos, ECOSTRESS y backend
 npm run build      # typecheck + build estático en dist/
 ```
 
-Node 20 o más. Opcional: `VITE_VUELO_VERDE_WHATSAPP` en Vercel activa el botón de WhatsApp del pedido de dron. Ningún contacto queda escrito en el código.
+Node 20 o más. El contacto comercial público de Vuelo Verde (WhatsApp y correo) está en `src/case/provider.ts`; `VITE_VUELO_VERDE_WHATSAPP` lo reemplaza si hace falta.
+
+## Backend (opcional)
+
+Supabase (Postgres + ingreso con link al mail) detrás de la función `api/v1.ts`: perfiles, drones, lotes, análisis, pedidos con dron e historial. Sin configurar, la app funciona en modo local. Activación paso a paso en [docs/BACKEND.md](../docs/BACKEND.md); variables en `.env.example`.
 
 ## Estructura
 
@@ -88,11 +97,15 @@ src/
   data/         ONI de NOAA (guardado)
   ecostress/    Contrato, calidad y lectura de CSV; catálogo NASA y almacenamiento por punto
   lib/          Leaflet como global (lo necesita Leaflet-Geoman)
-api/ecostress.ts Función Vercel (también disponible en npm run dev)
-server/         Earthdata: píxel COG; AppEEARS: autenticación, tareas y descarga
+  profile/      Ingreso, perfil, dron propio e historial
+  backend/      Cliente Supabase, llamadas a /api/v1 y registro del historial
+api/ecostress.ts Función Vercel de ECOSTRESS (también disponible en npm run dev)
+api/v1.ts       Función Vercel del backend (también en npm run dev)
+server/         ECOSTRESS (Earthdata, AppEEARS) y v1/ (router, validación, repositorios Supabase y en memoria)
+supabase/       Migraciones SQL del esquema
 public/
   data/         Respuestas guardadas de NASA POWER y SoilGrids
-  sw.js         Service worker (app instalable y uso sin señal)
+  sw.js         Service worker (app instalable; precarga el build y abre sin señal)
 ```
 
-React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet + Leaflet-Geoman, Turf, proj4, geotiff.js, shpjs, dxf-parser y Vitest. Despliegue automático en Vercel desde `main`.
+React 19 + TypeScript estricto, Vite, Tailwind CSS 4, Leaflet + Leaflet-Geoman, Turf, proj4, geotiff.js, shpjs, dxf-parser, zod, Supabase y Vitest. Despliegue automático en Vercel desde `main`.

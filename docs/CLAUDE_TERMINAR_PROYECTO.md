@@ -1,3 +1,5 @@
+> **Histórico (15/11/2026, noche).** Este plan de cierre ya se ejecutó: los hallazgos están corregidos (ver `docs/revisiones/REVISION_CAMBIOS_CLAUDE_2026-11-15.md`), la app se llama AgroField y el backend está en `docs/BACKEND.md`. Las instrucciones vigentes están en `CLAUDE.md`.
+
 # Para Claude: terminar Field Shift y preparar la demo
 
 Actualizado: **15/11/2026**, zona del equipo Argentina/Córdoba.
