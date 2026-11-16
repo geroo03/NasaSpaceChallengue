@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Compass, Lightbulb, PlayCircle, X } from 'lucide-react';
 import { useLang } from '../../i18n/LangContext';
 import { useGuide } from './GuideContext';
@@ -22,7 +22,12 @@ export function ScreenGuide({ id, steps, video }: { id: string; steps: number; v
   const guide = useGuide();
   const headingId = useId();
   const [watching, setWatching] = useState(false);
-  if (!guide.isOpen(id)) return null;
+  const open = guide.isOpen(id);
+  const { markSeen } = guide;
+  useEffect(() => {
+    if (open) markSeen(id);
+  }, [open, id, markSeen]);
+  if (!open) return null;
   return (
     <section aria-labelledby={headingId} className="fs-enter relative rounded-2xl border-2 border-[#606C38] bg-[#E3EBDD] p-4 sm:p-5 text-[#283618]">
       <button
@@ -77,7 +82,12 @@ export function ScreenGuide({ id, steps, video }: { id: string; steps: number; v
 export function SectionTip({ id }: { id: string }) {
   const { t } = useLang();
   const guide = useGuide();
-  if (!guide.isOpen(`tip.${id}`)) return null;
+  const open = guide.isOpen(`tip.${id}`);
+  const { markSeen } = guide;
+  useEffect(() => {
+    if (open) markSeen(`tip.${id}`);
+  }, [open, id, markSeen]);
+  if (!open) return null;
   return (
     <p role="note" className="fs-enter flex items-start gap-2 rounded-xl border border-[#DDA15E] bg-[#FEFAE0] px-3 py-2 text-sm text-[#3B2F20]">
       <Lightbulb aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-[#BC6C25]" />
