@@ -45,3 +45,26 @@ export function onSessionChange(cb: (s: Session | null, signedInNow: boolean) =>
   });
   return () => data.subscription.unsubscribe();
 }
+
+/** Tutorial progress kept in the account (Supabase user metadata), so it follows the user across devices. */
+export interface GuideProgress {
+  off: boolean;
+  seen: string[];
+}
+const GUIDE_META = 'agrofield_guide';
+
+export async function loadGuideProgress(): Promise<GuideProgress | null> {
+  const sb = supabase();
+  if (!sb) return null;
+  const { data, error } = await sb.auth.getUser();
+  if (error || !data.user) return null;
+  const v = (data.user.user_metadata as Record<string, unknown> | undefined)?.[GUIDE_META] as Partial<GuideProgress> | undefined;
+  if (!v || !Array.isArray(v.seen)) return { off: false, seen: [] };
+  return { off: Boolean(v.off), seen: v.seen.filter((x): x is string => typeof x === 'string').slice(0, 200) };
+}
+
+export async function saveGuideProgress(v: GuideProgress): Promise<void> {
+  const sb = supabase();
+  if (!sb) return;
+  await sb.auth.updateUser({ data: { [GUIDE_META]: { off: v.off, seen: v.seen.slice(0, 200) } } });
+}
