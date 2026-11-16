@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Mail } from 'lucide-react';
+import { Mail, X } from 'lucide-react';
 import { sendMagicLink } from '../backend/supabase';
 import { HistoryPanel } from './HistoryPanel';
 import { Plane, Send, UserRound } from 'lucide-react';
@@ -54,8 +54,15 @@ function LangSwitch() {
 }
 
 function Shell({ children, onSubmit, onClose, labelledBy }: { children: ReactNode; onSubmit: () => void; onClose: () => void; labelledBy: string }) {
+  const { t } = useLang();
   return (
-    <div className="fixed inset-0 z-[1500] overflow-y-auto bg-[#283618]/70 backdrop-blur-sm px-4 py-6 sm:py-12" role="dialog" aria-modal="true" aria-labelledby={labelledBy}>
+    <div
+      className="fixed inset-0 z-[1500] overflow-y-auto bg-[#283618]/70 backdrop-blur-sm px-4 py-6 sm:py-12"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={labelledBy}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <form
         className="fs-enter mx-auto max-w-xl rounded-2xl bg-fondo p-5 sm:p-7 shadow-xl space-y-5"
         onSubmit={(e) => {
@@ -66,7 +73,12 @@ function Shell({ children, onSubmit, onClose, labelledBy }: { children: ReactNod
       >
         <div className="flex items-start justify-between gap-3">
           <img src="/brand/agrofield-logo.svg" alt="AgroField" width={567} height={240} className="h-14 w-auto -ml-2" />
-          <LangSwitch />
+          <div className="flex items-center gap-2">
+            <LangSwitch />
+            <button type="button" onClick={onClose} aria-label={t('login.close')} className="grid h-10 w-10 place-items-center rounded-lg border border-[#DECFA7] bg-white text-[#283618] hover:bg-[#E3EBDD] focus-visible:outline-2 focus-visible:outline-[#BC6C25]">
+              <X aria-hidden className="h-5 w-5" />
+            </button>
+          </div>
         </div>
         {children}
       </form>
@@ -76,7 +88,11 @@ function Shell({ children, onSubmit, onClose, labelledBy }: { children: ReactNod
 
 function EmailStep({ onLocal }: { onLocal: () => void }) {
   const { t } = useLang();
-  const { setGuest } = useProfile();
+  const { setGuest, setEditing } = useProfile();
+  const leave = () => {
+    setEditing(false);
+    setGuest(true);
+  };
   const [mail, setMail] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.trim());
@@ -87,7 +103,7 @@ function EmailStep({ onLocal }: { onLocal: () => void }) {
     setState(error ? 'error' : 'sent');
   };
   return (
-    <Shell onSubmit={() => void send()} onClose={() => setGuest(true)} labelledBy="mail-h">
+    <Shell onSubmit={() => void send()} onClose={leave} labelledBy="mail-h">
       <div>
         <h2 id="mail-h" className="text-2xl font-bold text-[#283618]">{t('login.title')}</h2>
         <p className="mt-1 text-sm text-[#3B2F20]">{t('login.mail.help')}</p>
@@ -110,7 +126,7 @@ function EmailStep({ onLocal }: { onLocal: () => void }) {
             <Mail aria-hidden className="h-4 w-4" /> {state === 'sending' ? t('login.mail.sending') : t('login.mail.send')}
           </button>
         )}
-        <button type="button" className={secondaryBtn} onClick={() => setGuest(true)}>
+        <button type="button" className={secondaryBtn} onClick={leave}>
           {t('login.guest')}
         </button>
         <button type="button" className="text-sm font-bold text-[#9A5518] underline underline-offset-2" onClick={onLocal}>
@@ -144,7 +160,10 @@ function ProfileForm() {
     setProfile(p);
     setEditing(false);
   };
-  const close = () => (profile ? setEditing(false) : setGuest(true));
+  const close = () => {
+    setEditing(false);
+    if (!profile) setGuest(true);
+  };
 
   return (
     <Shell onSubmit={submit} onClose={close} labelledBy="login-h">
