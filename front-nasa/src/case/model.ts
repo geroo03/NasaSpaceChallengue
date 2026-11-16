@@ -268,6 +268,17 @@ export function distanceKm(a: [number, number], b: [number, number]): number {
 /** SRTM estimates below this many samples (~4.5 ha at 30 m) are shown but not applied to the slope. */
 export const MIN_TERRAIN_SAMPLES = 50;
 
+/** A declared soil test applies within this distance of where it was entered (same field). */
+export const SOIL_TEST_RADIUS_KM = 1;
+
+/** Merge a form patch; moving the analysis point to another place drops a soil test that belongs to the old one. */
+export function applyPatch(c: FarmCase, p: Partial<FarmCase>): FarmCase {
+  const next = { ...c, ...p };
+  const moved = (p.lat !== undefined || p.lon !== undefined) && distanceKm([c.lat, c.lon], [next.lat, next.lon]) > SOIL_TEST_RADIUS_KM;
+  if (moved && p.soilPawDeclaredMm === undefined && !c.lotPolygon) next.soilPawDeclaredMm = null;
+  return next;
+}
+
 /**
  * Sets (or clears) the lot. Terrain belongs to a boundary, so it is reset and re-derived; a slope that came
  * from terrain goes back to unknown until the new estimate arrives. With `movePoint`, the climate point
@@ -275,6 +286,10 @@ export const MIN_TERRAIN_SAMPLES = 50;
  */
 export function withLot(c: FarmCase, ring: [number, number][] | null, source: LotSource | null, opts: { movePoint: boolean }): FarmCase {
   const next: FarmCase = { ...c, lotPolygon: ring, lotSource: ring ? source : null, terrain: null };
+  // A soil test belongs to its field: editing the same boundary keeps it, another field drops it.
+  const before = c.lotPolygon ? ringCentroid(c.lotPolygon) : ([c.lat, c.lon] as [number, number]);
+  const after = ring ? ringCentroid(ring) : null;
+  if (c.soilPawDeclaredMm !== null && (!after || !before || distanceKm(before, after) > SOIL_TEST_RADIUS_KM)) next.soilPawDeclaredMm = null;
   if (c.slopeSource === 'srtm' || c.slopeSource === 'drone') {
     next.slope = 'unknown';
     next.slopeSource = null;

@@ -34,3 +34,22 @@ describe('SoilGrids soil for the lot', () => {
     expect(textureClass(20, 45)).toBe('clay');
   });
 });
+
+describe('incomplete SoilGrids profiles', () => {
+  it('rejects a profile without the deep layers instead of calling 30 cm a 1 m reserve', async () => {
+    const { readFileSync } = await import('node:fs');
+    const full = JSON.parse(readFileSync(new URL('../../public/data/soilgrids-anatuya-example.json', import.meta.url), 'utf8'));
+    const cut = structuredClone(full);
+    for (const l of cut.properties.layers) l.depths = l.depths.filter((d: { label: string }) => !['30-60cm', '60-100cm'].includes(d.label));
+    expect(() => parseSoilgrids(cut, -28.38, -62.74, '2026-11-15')).toThrow(SoilError);
+  });
+  it('keeps missing organic carbon unknown, not zero', async () => {
+    const { readFileSync } = await import('node:fs');
+    const full = JSON.parse(readFileSync(new URL('../../public/data/soilgrids-anatuya-example.json', import.meta.url), 'utf8'));
+    const noSoc = structuredClone(full);
+    for (const l of noSoc.properties.layers) if (l.name === 'soc') for (const d of l.depths) d.values.mean = null;
+    const s = parseSoilgrids(noSoc, -28.38, -62.74, '2026-11-15');
+    expect(s.socGkg).toBeNull();
+    expect(s.pawMm).toBeGreaterThan(50);
+  });
+});

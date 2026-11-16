@@ -6,7 +6,7 @@ import { StepNav, type FlowView } from './components/flow/StepNav';
 import { FieldStatus } from './components/flow/FieldStatus';
 import { ResultsScreen, type LoadState } from './components/results/ResultsScreen';
 import { MethodScreen } from './components/MethodScreen';
-import { loadCase, saveCase, withDeclaredSlope, withLot, withTerrain, type FarmCase } from './case/model';
+import { applyPatch, loadCase, saveCase, withDeclaredSlope, withLot, withTerrain, type FarmCase } from './case/model';
 import type { LotApi } from './case/lotApi';
 import { sampleSrtm } from './imagery/terrain';
 import { fetchSoil, SoilError } from './case/soil';
@@ -32,7 +32,7 @@ export default function App() {
 
   useEffect(() => saveCase(farmCase), [farmCase]);
 
-  const patch = useCallback((p: Partial<FarmCase>) => setFarmCase((c) => ({ ...c, ...p })), []);
+  const patch = useCallback((p: Partial<FarmCase>) => setFarmCase((c) => applyPatch(c, p)), []);
 
   // Terrain of the lot from NASA SRTM, read once per boundary (a drone DSM, once loaded, is kept).
   const [terrainStatus, setTerrainStatus] = useState<LotApi['terrainStatus']>('idle');

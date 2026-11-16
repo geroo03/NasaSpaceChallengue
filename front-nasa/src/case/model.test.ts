@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_CASE, distanceKm, loadCase, prioritiesFromGoals, ringCentroid, saveCase, toFarmContext, withDeclaredSlope, withLot, withTerrain, type FarmCase, type TerrainSummary } from './model';
+import { applyPatch, DEFAULT_CASE, distanceKm, loadCase, prioritiesFromGoals, ringCentroid, saveCase, toFarmContext, withDeclaredSlope, withLot, withTerrain, type FarmCase, type TerrainSummary } from './model';
 
 const base: FarmCase = { ...DEFAULT_CASE };
 
@@ -187,5 +187,31 @@ describe('soil water reserve provenance', () => {
   it('prefers the farmer’s own soil test and flags a texture that disagrees with the map', () => {
     expect(toFarmContext({ ...base, soil, soilPawDeclaredMm: 150 }).farm.soilPawMm).toBe(150);
     expect(toFarmContext({ ...base, soil, soilTexture: 'sandy' }).assumptions).toContain('soilTextureDiffers');
+  });
+});
+
+describe('a soil test belongs to its field', () => {
+  const ringAt = (lat: number, lon: number): [number, number][] => [
+    [lat, lon],
+    [lat, lon + 0.005],
+    [lat + 0.005, lon + 0.005],
+    [lat + 0.005, lon],
+  ];
+  it('is kept when the same boundary is edited', () => {
+    const c = { ...withLot(base, ringAt(-28.38, -62.74), { kind: 'drawn' }, { movePoint: true }), soilPawDeclaredMm: 250 };
+    const edited = withLot(c, ringAt(-28.3801, -62.7401), { kind: 'drawn', edited: true }, { movePoint: true });
+    expect(edited.soilPawDeclaredMm).toBe(250);
+  });
+  it('is dropped when another field is loaded', () => {
+    const c = { ...withLot(base, ringAt(-28.38, -62.74), { kind: 'drawn' }, { movePoint: true }), soilPawDeclaredMm: 250 };
+    const other = withLot(c, ringAt(-27.9, -63.1), { kind: 'file' }, { movePoint: true });
+    expect(other.soilPawDeclaredMm).toBeNull();
+    expect(toFarmContext(other).assumptions.some((a) => JSON.stringify(a).includes('250'))).toBe(false);
+  });
+  it('is dropped when the point moves elsewhere without a lot', () => {
+    const c = { ...base, lotPolygon: null, soilPawDeclaredMm: 180 };
+    expect(applyPatch(c, { lat: c.lat + 0.5 }).soilPawDeclaredMm).toBeNull();
+    expect(applyPatch(c, { lat: c.lat + 0.001 }).soilPawDeclaredMm).toBe(180);
+    expect(applyPatch(c, { lat: c.lat + 0.5, soilPawDeclaredMm: 90 }).soilPawDeclaredMm).toBe(90);
   });
 });

@@ -89,20 +89,23 @@ export function zoneStats(r: VigorRaster, thresholds: number[]): ZoneStats[] {
 export interface PrescriptionCell {
   zone: number;
   rate: number;
-  /** Cell corners as [lon, lat], closed ring. */
-  ring: [number, number][];
+  /** Area actually covered: only valid pixels inside the lot, ha. */
+  areaHa: number;
+  /** Rectangles of valid pixels as [lon, lat] closed rings (a MultiPolygon). */
+  polygons: [number, number][][];
 }
 
 /**
- * Grid prescription: cells of about `cellM` metres; each takes the most common zone of its pixels
- * and that zone's rate. Corners are converted from the file's CRS to WGS 84.
+ * Grid prescription: blocks of about `cellM` metres; each takes the most common zone of its pixels
+ * and that zone's rate. The geometry keeps only the block's valid pixels (inside the lot, with data):
+ * roads, bush or gaps without data never get a rate. Corners are converted from the file's CRS to WGS 84.
  */
 export function prescriptionGrid(r: VigorRaster, thresholds: number[], rates: number[], cellM: number): PrescriptionCell[] {
-  const [minX, minY, maxX, maxY] = r.bbox;
+  const [minX, , , maxY] = r.bbox;
   const def = proj4DefFor(r.epsg);
   const toLonLat = r.epsg === 4326 || !def ? (x: number, y: number): [number, number] => [x, y] : (x: number, y: number) => proj4(def, 'EPSG:4326', [x, y]) as [number, number];
-  const pxW = (maxX - minX) / r.width;
-  const pxH = (maxY - minY) / r.height;
+  const pxW = (r.bbox[2] - minX) / r.width;
+  const pxH = (maxY - r.bbox[1]) / r.height;
   const pxSideM = Math.sqrt(r.pixelAreaM2);
   const step = Math.max(1, Math.round(cellM / Math.max(pxSideM, 1e-6)));
   const n = thresholds.length + 1;
@@ -110,40 +113,74 @@ export function prescriptionGrid(r: VigorRaster, thresholds: number[], rates: nu
   for (let row = 0; row < r.height; row += step) {
     for (let col = 0; col < r.width; col += step) {
       const counts = new Array<number>(n).fill(0);
+      // Runs of valid pixels per row: [startCol, endCol) in raster columns.
+      const runs: { row: number; a: number; b: number }[] = [];
+      let valid = 0;
       for (let dy = 0; dy < step && row + dy < r.height; dy++) {
-        for (let dx = 0; dx < step && col + dx < r.width; dx++) {
-          const c = classify(r.values[(row + dy) * r.width + col + dx]!, thresholds);
-          if (c >= 0) counts[c]!++;
+        let start = -1;
+        const last = Math.min(r.width, col + step);
+        for (let x = col; x <= last; x++) {
+          const c = x < last ? classify(r.values[(row + dy) * r.width + x]!, thresholds) : -1;
+          if (c >= 0) {
+            counts[c]!++;
+            valid++;
+            if (start < 0) start = x;
+          } else if (start >= 0) {
+            runs.push({ row: row + dy, a: start, b: x });
+            start = -1;
+          }
         }
       }
-      let zone = -1;
-      let best = 0;
+      if (!valid) continue;
+      let zone = 0;
       counts.forEach((k, z) => {
-        if (k > best) {
-          best = k;
-          zone = z;
-        }
+        if (k > counts[zone]!) zone = z;
       });
-      if (zone < 0) continue;
-      const x0 = minX + col * pxW;
-      const x1 = minX + Math.min(r.width, col + step) * pxW;
-      const y0 = maxY - row * pxH;
-      const y1 = maxY - Math.min(r.height, row + step) * pxH;
-      const ring = [toLonLat(x0, y0), toLonLat(x1, y0), toLonLat(x1, y1), toLonLat(x0, y1)];
-      cells.push({ zone, rate: rates[zone] ?? 0, ring: [...ring, ring[0]!] });
+      // Merge identical runs on consecutive rows into rectangles.
+      const rects: { a: number; b: number; r0: number; r1: number }[] = [];
+      for (const run of runs) {
+        const open = rects.find((q) => q.a === run.a && q.b === run.b && q.r1 === run.row);
+        if (open) open.r1 = run.row + 1;
+        else rects.push({ a: run.a, b: run.b, r0: run.row, r1: run.row + 1 });
+      }
+      const polygons = rects.map((q) => {
+        const x0 = minX + q.a * pxW;
+        const x1 = minX + q.b * pxW;
+        const y0 = maxY - q.r0 * pxH;
+        const y1 = maxY - q.r1 * pxH;
+        const ring = [toLonLat(x0, y0), toLonLat(x1, y0), toLonLat(x1, y1), toLonLat(x0, y1)];
+        return [...ring, ring[0]!];
+      });
+      cells.push({ zone, rate: rates[zone] ?? 0, areaHa: (valid * r.pixelAreaM2) / 10_000, polygons });
     }
   }
   return cells;
 }
 
+/** Totals of the exported prescription itself, so the screen and the file always agree. */
+export function prescriptionTotals(cells: PrescriptionCell[]): { total: number; appliedHa: number; areaHa: number } {
+  let total = 0;
+  let appliedHa = 0;
+  let areaHa = 0;
+  for (const c of cells) {
+    areaHa += c.areaHa;
+    if (c.rate > 0) {
+      appliedHa += c.areaHa;
+      total += c.areaHa * c.rate;
+    }
+  }
+  return { total, appliedHa, areaHa };
+}
+
 export function prescriptionGeoJson(cells: PrescriptionCell[], meta: { name: string; unit: string; createdOn: string }): string {
+  const round = ([x, y]: [number, number]) => [Number(x.toFixed(7)), Number(y.toFixed(7))];
   return JSON.stringify({
     type: 'FeatureCollection',
     name: meta.name,
     features: cells.map((c) => ({
       type: 'Feature',
-      properties: { zona: c.zone + 1, dosis: c.rate, unidad: meta.unit },
-      geometry: { type: 'Polygon', coordinates: [c.ring.map(([x, y]) => [Number(x.toFixed(7)), Number(y.toFixed(7))])] },
+      properties: { zona: c.zone + 1, dosis: c.rate, unidad: meta.unit, superficie_ha: Number(c.areaHa.toFixed(4)) },
+      geometry: { type: 'MultiPolygon', coordinates: c.polygons.map((ring) => [ring.map(round)]) },
     })),
     generator: 'AgroField',
     createdOn: meta.createdOn,
@@ -199,7 +236,7 @@ export async function readVigor(file: File, ring: LatLon[] | null, bands: { red:
         values[i] = nodata !== null && v === nodata ? NaN : v;
       }
       source = 'index';
-    } else if (spp - alphaSamples(image) > Math.max(bands.red, bands.nir)) {
+    } else if (!isColourPicture(image) && spp - alphaSamples(image) > Math.max(bands.red, bands.nir)) {
       const r = (await image.readRasters({ width: rw, height: rh, samples: [bands.red, bands.nir], resampleMethod: 'nearest' })) as unknown as ArrayLike<number>[];
       for (let i = 0; i < values.length; i++) {
         const red = r[0]![i]!;
@@ -251,4 +288,14 @@ function alphaSamples(image: { getFileDirectory(): Record<string, unknown> }): n
   const extra = image.getFileDirectory().ExtraSamples;
   const list = Array.isArray(extra) || ArrayBuffer.isView(extra) ? Array.from(extra as ArrayLike<number>) : typeof extra === 'number' ? [extra] : [];
   return list.filter((v) => v === 1 || v === 2).length;
+}
+
+/**
+ * An RGB photo (PhotometricInterpretation = 2, e.g. an orthomosaic) has no near-infrared band, whatever
+ * its 4th channel is: NDVI from it would be fake but still fall in −1…1. Multispectral stacks are
+ * stored as separate grey bands (PhotometricInterpretation 0/1).
+ */
+function isColourPicture(image: { getFileDirectory(): Record<string, unknown> }): boolean {
+  const pi = image.getFileDirectory().PhotometricInterpretation;
+  return pi === 2 || pi === 6; // RGB or YCbCr
 }

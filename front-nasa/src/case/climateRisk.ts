@@ -265,7 +265,9 @@ export function dailyWaterBalance(strategy: StrategyResult, series: ClimateSerie
   let cycles = 0;
   const first = days[0];
   if (!first) return { pawMm: paw, tewMm: tew, cycles: 0, monthly: [], sowing: [] };
-  const firstCampaign = campaignOf(first) + 1; // first complete campaign
+  // Rotation month 0 is July in the south and January in the north (engine contract: calendarMonthAt).
+  const startMonth = strategy.timeline[0]?.calendarMonth ?? 7;
+  const firstCampaign = (first.month >= startMonth ? first.year : first.year - 1) + 1; // first complete campaign
 
   for (const offset of [0, 12]) {
     let surface = tew * (days[0]?.topWetness ?? 0.4);
@@ -273,7 +275,7 @@ export function dailyWaterBalance(strategy: StrategyResult, series: ClimateSerie
     let lastKey = '';
     for (let i = 0; i < days.length; i++) {
       const d = days[i]!;
-      const monthsSince = (d.year - firstCampaign) * 12 + (d.month - 7);
+      const monthsSince = (d.year - firstCampaign) * 12 + (d.month - startMonth);
       if (monthsSince < 0) continue;
       const idx = (((monthsSince + offset) % 24) + 24) % 24;
       const k = `${d.year}-${d.month}`;

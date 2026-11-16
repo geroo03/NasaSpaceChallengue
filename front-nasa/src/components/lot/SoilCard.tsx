@@ -50,8 +50,14 @@ export function SoilCard({ farmCase, lot, onChange }: { farmCase: FarmCase; lot:
             </div>
             <div className="rounded-lg bg-white border border-[#DECFA7] px-3 py-2">
               <dt className="text-xs font-bold text-[#3B2F20]/85">{t('soil.om')}</dt>
-              <dd className="mt-0.5 text-lg font-bold tabular-nums text-[#283618]">≈ {num((here.socGkg * 1.724) / 10, 1)} %</dd>
-              <dd className="text-[11px] text-[#3B2F20]/80">{t('soil.omNote', { soc: num(here.socGkg, 1) })}</dd>
+              {here.socGkg !== null ? (
+                <>
+                  <dd className="mt-0.5 text-lg font-bold tabular-nums text-[#283618]">≈ {num((here.socGkg * 1.724) / 10, 1)} %</dd>
+                  <dd className="text-[11px] text-[#3B2F20]/80">{t('soil.omNote', { soc: num(here.socGkg, 1) })}</dd>
+                </>
+              ) : (
+                <dd className="mt-0.5 text-sm font-bold text-[#7A3F0C]">{t('soil.omUnknown')}</dd>
+              )}
             </div>
             <div className="rounded-lg bg-white border border-[#DECFA7] px-3 py-2">
               <dt className="text-xs font-bold text-[#3B2F20]/85">{t('soil.paw')}</dt>

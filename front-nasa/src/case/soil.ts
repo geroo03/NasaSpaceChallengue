@@ -14,7 +14,8 @@ export interface SoilLayer {
   thicknessMm: number;
   sandPct: number;
   clayPct: number;
-  socGkg: number;
+  /** null = SoilGrids has no organic carbon value for this layer (unknown, not zero). */
+  socGkg: number | null;
   fcPct: number; // % volume at 33 kPa
   wpPct: number; // % volume at 1500 kPa
 }
@@ -30,7 +31,8 @@ export interface SoilSummary {
   sandPct: number;
   clayPct: number;
   siltPct: number;
-  socGkg: number;
+  /** Organic carbon of the top 30 cm, g/kg; null when any of those layers lacks it. */
+  socGkg: number | null;
   texture: Exclude<SoilTexture, 'unknown'>;
   layers: SoilLayer[];
 }
@@ -91,10 +93,11 @@ export function parseSoilgrids(json: unknown, lat: number, lon: number, retrieve
     const clay = get('clay', depth); // %
     const soc = get('soc', depth); // g/kg
     if (fc === null || wp === null || sand === null || clay === null) continue;
-    out.push({ depth, thicknessMm: THICKNESS_MM[depth], sandPct: sand, clayPct: clay, socGkg: soc ?? 0, fcPct: fc, wpPct: wp });
+    out.push({ depth, thicknessMm: THICKNESS_MM[depth], sandPct: sand, clayPct: clay, socGkg: soc, fcPct: fc, wpPct: wp });
   }
-  // Water and urban areas have no values: say so instead of inventing a soil.
-  if (out.length < 3) throw new SoilError('noData');
+  // Water and urban areas have no values, and a profile missing a layer would understate the 1 m
+  // reserve: say so instead of inventing a soil (the engine falls back to the generic reserve).
+  if (out.length < SOIL_DEPTHS.length) throw new SoilError('noData');
   const pawMm = out.reduce((acc, l) => acc + (Math.max(0, l.fcPct - l.wpPct) / 100) * l.thicknessMm, 0);
   const top = out.filter((l) => l.depth === '0-5cm' || l.depth === '5-15cm' || l.depth === '15-30cm');
   const w = top.reduce((a, l) => a + l.thicknessMm, 0) || 1;
@@ -110,7 +113,7 @@ export function parseSoilgrids(json: unknown, lat: number, lon: number, retrieve
     sandPct,
     clayPct,
     siltPct: Math.max(0, 100 - sandPct - clayPct),
-    socGkg: avg((l) => l.socGkg),
+    socGkg: top.every((l) => l.socGkg !== null) ? avg((l) => l.socGkg!) : null,
     texture: textureClass(sandPct, clayPct),
     layers: out,
   };

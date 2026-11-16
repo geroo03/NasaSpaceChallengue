@@ -94,12 +94,11 @@ export function VigorPrescription({ farmCase }: { farmCase: FarmCase }) {
     }
   };
 
-  const total = zones.reduce((acc, z, i) => acc + z.areaHa * (rates[i] ?? 0), 0);
-  const appliedHa = zones.reduce((acc, z, i) => acc + ((rates[i] ?? 0) > 0 ? z.areaHa : 0), 0);
-  const lotHa = zones.reduce((acc, z) => acc + z.areaHa, 0);
+  // Totals come from the same cells that are exported, so the screen and the file match.
+  const cells = useMemo(() => (mod && raster ? mod.prescriptionGrid(raster, thresholds, rates.slice(0, classes), cellM) : []), [mod, raster, thresholds, rates, classes, cellM]);
+  const { total, appliedHa, areaHa: lotHa } = mod ? mod.prescriptionTotals(cells) : { total: 0, appliedHa: 0, areaHa: 0 };
   const exportGrid = () => {
     if (!mod || !raster) return;
-    const cells = mod.prescriptionGrid(raster, thresholds, rates.slice(0, classes), cellM);
     const createdOn = new Date().toISOString().slice(0, 10);
     download(`prescripcion-${createdOn}.geojson`, 'application/geo+json', mod.prescriptionGeoJson(cells, { name: t('vra.fileName'), unit, createdOn }));
   };

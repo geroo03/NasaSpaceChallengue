@@ -159,6 +159,8 @@ function Results({
   const [custom, setCustom] = useState<Scenario | null>(null);
   const scenario = custom ?? (YEARS.find((y) => y.id === yearId) ?? YEARS[0]!).scenario;
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // "The field, month by month" can explore today's management too, without changing the compared alternative.
+  const [fieldId, setFieldId] = useState<string | null>(null);
   const [month, setMonth] = useState(19); // February of year 2 in the south: summer crops on the field
   const [toolsOpen, setToolsOpen] = useState(false);
   const [sheet, setSheet] = useState(false);
@@ -170,8 +172,12 @@ function Results({
   const enso = useMemo(() => latestEnso(), []);
   const year = YEARS.find((y) => y.id === yearId) ?? YEARS[0]!;
   const phaseCampaigns = year.phase ? (phases.find((p) => p.phase === year.phase)?.campaigns ?? []) : [];
+  // Campaign selection (El Niño / La Niña) and a manual rain/temperature change are independent and can
+  // both be on: the series, the notes and the sheet always say which campaigns were used.
+  const phaseOn = Boolean(year.phase) && phaseCampaigns.length >= 2;
+  const phaseNote = phaseOn ? t('year.ensoNote', { list: phaseCampaigns.map((c) => `${c}/${String(c + 1).slice(2)}`).join(', ') }) : null;
   const usedSeries = useMemo(() => {
-    const base = year.phase && phaseCampaigns.length >= 2 ? seriesForCampaigns(data.series, phaseCampaigns) : data.series;
+    const base = phaseOn ? seriesForCampaigns(data.series, phaseCampaigns) : data.series;
     return applyScenario(base, scenario);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.series, year.phase, phaseCampaigns.join(','), scenario]);
@@ -227,6 +233,11 @@ function Results({
   const alts = strategies.slice(1);
   const selected = alts.find((s) => s.id === selectedId) ?? alts[0] ?? reference;
   const shown = selected;
+  const explored = strategies.find((s) => s.id === fieldId) ?? shown;
+  const pickAlt = (id: string) => {
+    setSelectedId(id);
+    setFieldId(null);
+  };
   const lotCentre = farmCase.lotPolygon ? ringCentroid(farmCase.lotPolygon) : null;
   const lotCentreKm = lotCentre ? distanceKm(lotCentre, [farmCase.lat, farmCase.lon]) : null;
   const years = (recordProfile ?? profile).yearsAnalysed;
@@ -246,9 +257,9 @@ function Results({
         : t('loc.place.custom');
   const why = shown.rationale.map(m).slice(0, 3);
   const watch = [...shown.risks, ...shown.gaps].map(m).slice(0, 3);
-  const checks = planFieldChecks(shown).map((c) => {
+  const checks = planFieldChecks(explored).map((c) => {
     const at = (i: number) => {
-      const cell = shown.timeline[i];
+      const cell = explored.timeline[i];
       return `${cell ? months[cell.calendarMonth - 1] : ''} · ${t('scene.year', { n: i < 12 ? 1 : 2 })}`;
     };
     const when = c.untilMonth !== undefined && c.untilMonth !== c.month ? `${at(c.month)} → ${at(c.untilMonth)}` : at(c.month);
@@ -263,7 +274,7 @@ function Results({
         from={from}
         to={to}
         scenario={scenarioOn ? scenario : null}
-        subset={year.phase && !custom ? t('year.ensoNote', { list: phaseCampaigns.map((c) => `${c}/${String(c + 1).slice(2)}`).join(', ') }) : null}
+        subset={phaseNote}
         reference={reference}
         option={shown}
         why={why}
@@ -347,7 +358,7 @@ function Results({
         <legend className="text-sm font-bold text-[#283618]">{t('year.q')}</legend>
         <div className="mt-2 flex flex-wrap gap-2">
           {YEARS.filter((y) => south || !y.phase).map((y) => {
-            const active = !custom && yearId === y.id;
+            const active = yearId === y.id && (y.phase !== undefined || !custom);
             return (
               <button
                 key={y.id}
@@ -368,8 +379,8 @@ function Results({
           })}
         </div>
         <p className="mt-1.5 text-xs text-[#3B2F20]/85">
-          {year.phase && !custom
-            ? t('year.ensoNote', { list: phaseCampaigns.map((c) => `${c}/${String(c + 1).slice(2)}`).join(', ') })
+          {phaseNote
+            ? `${phaseNote}${custom ? ` ${t('year.note')}` : ''}`
             : scenarioOn
               ? t('year.note')
               : t('year.historyNote', { from, to })}
@@ -404,7 +415,7 @@ function Results({
                 key={s.id}
                 type="button"
                 aria-pressed={s === shown}
-                onClick={() => setSelectedId(s.id)}
+                onClick={() => pickAlt(s.id)}
                 className={`rounded-full border px-3 min-h-[40px] font-bold focus-visible:outline-2 focus-visible:outline-[#BC6C25] ${
                   s === shown ? 'border-[#283618] bg-[#E3EBDD] text-[#283618]' : 'border-[#DECFA7] bg-white text-[#3B2F20] hover:border-[#A3B18A]'
                 }`}
@@ -463,6 +474,11 @@ function Results({
         </Card>
         <Card className="min-w-0" as="div">
           <SectionTitle sub={t('water.help')}>{t('water.title')}</SectionTitle>
+          {(farmCase.irrigationMm ?? 0) > 0 && (
+            <div className="mb-3">
+              <Notice>{t('water.irrigNote')}</Notice>
+            </div>
+          )}
           <SoilWaterChart reference={waterRef} option={waterOpt} refStrategy={reference} optStrategy={shown !== reference ? shown : null} refLabel={t('hero.today')} optLabel={optLabel} />
         </Card>
         {south && (
@@ -482,16 +498,17 @@ function Results({
         </h2>
         <div className="grid gap-6 lg:grid-cols-12 items-start">
           <Card className="min-w-0 lg:col-span-5" as="div">
-            <FieldScene strategy={shown} month={month} setMonth={setMonth} />
+            <FieldScene strategy={explored} month={month} setMonth={setMonth} />
           </Card>
           <Card className="min-w-0 lg:col-span-7" as="div">
             <SectionTitle sub={t('cal.help')}>{t('cal.title')}</SectionTitle>
             <RotationCalendar
               strategies={strategies}
-              selectedId={shown.id}
+              selectedId={explored.id}
               month={month}
               onSelect={(id, mm) => {
-                if (id !== reference.id) setSelectedId(id);
+                if (id === reference.id) setFieldId(id);
+                else pickAlt(id);
                 if (mm !== undefined) setMonth(mm);
               }}
             />
@@ -507,7 +524,7 @@ function Results({
         <p className="max-w-3xl text-sm text-[#3B2F20]">{t('verify.help')}</p>
         <div className="grid gap-5 xl:grid-cols-2 items-start">
           <Card className="min-w-0" as="div">
-            <VerificationPanel strategy={shown} onPickMonth={setMonth} />
+            <VerificationPanel strategy={explored} onPickMonth={setMonth} />
           </Card>
           <Suspense fallback={null}>
             {farmCase.lotPolygon ? (
@@ -527,7 +544,7 @@ function Results({
 
       {/* 5b. Drone work on this rotation's calendar */}
       <Suspense fallback={null}>
-        <DroneServices farmCase={farmCase} strategy={shown} />
+        <DroneServices farmCase={farmCase} strategy={explored} />
       </Suspense>
 
       {/* 6. Everything behind the result, folded */}
@@ -586,7 +603,7 @@ function Results({
                 }
               >
                 {farmCase.lotPolygon && <TerrainCard farmCase={farmCase} lot={lot} />}
-                <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} source={farmCase.lotSource} onLot={onLot} strategy={shown} />
+                <LotImagery lat={farmCase.lat} lon={farmCase.lon} polygon={farmCase.lotPolygon} source={farmCase.lotSource} onLot={onLot} strategy={explored} />
               </Suspense>
             </div>
           )}

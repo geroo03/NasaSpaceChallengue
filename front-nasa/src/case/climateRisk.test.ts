@@ -93,3 +93,28 @@ describe('heat at flowering and month-by-month water', () => {
     expect(dailyWaterBalance(current, series, 0, et0 as never).monthly.every((m) => m.median === 0)).toBe(true);
   });
 });
+
+describe('daily water balance in both hemispheres', () => {
+  // Synthetic series: 60 mm on 1 January every year, no rain otherwise, constant demand.
+  const days = [];
+  for (let y = 2011; y <= 2016; y++) {
+    for (let m = 1; m <= 12; m++) {
+      for (let dd = 1; dd <= 28; dd++) {
+        days.push({ date: `${y}-${String(m).padStart(2, '0')}-${String(dd).padStart(2, '0')}`, year: y, month: m, doy: (m - 1) * 30 + dd, tmax: 30, tmin: 15, precip: m === 1 && dd === 1 ? 60 : 0, rootWetness: 0.2, topWetness: 0.2 });
+      }
+    }
+  }
+  const synth = { ...series, days } as typeof series;
+  it('puts the wettest month on January in the north and in the south', async () => {
+    const { calendarMonthAt } = await import('../engine/domain/rotations');
+    const { CROPS } = await import('../engine/domain/crops');
+    for (const hemisphere of ['south', 'north'] as const) {
+      const timeline = Array.from({ length: 24 }, (_, index) => ({ index, calendarMonth: calendarMonthAt(index, hemisphere), crop: 'soy', bare: false, pressure: 0 }));
+      const strategy = { timeline, slots: [{ crop: CROPS.soy, months: timeline.map((c) => c.index) }] } as never;
+      const b = dailyWaterBalance(strategy, synth, 120, () => 0.5);
+      expect(b.monthly.some((m) => m.median > 0)).toBe(true);
+      const wettest = b.monthly.reduce((a, m) => (m.median > a.median ? m : a));
+      expect(timeline[wettest.index]!.calendarMonth).toBe(1);
+    }
+  });
+});
